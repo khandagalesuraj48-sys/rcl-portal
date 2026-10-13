@@ -87,6 +87,8 @@
   .pg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px 14px; }
   .pg-grid label { display: flex; flex-direction: column; gap: 4px; margin: 0; color: var(--ink); font-weight: 600; }
   .pg-sel.Edit { color: var(--ok); } .pg-sel.View { color: var(--blue); } .pg-sel.None { color: var(--muted); }
+  .acts { display: flex; align-items: center; gap: 12px; } .link.del { color: #B42318; }
+  table.co-t td.co-a { white-space: normal; min-width: 240px; max-width: 420px; font-size: 13px; } table.co-t td.co-n { white-space: normal; min-width: 180px; }
   .rolebox { display: flex; align-items: center; gap: 10px; } .rolebox .sel-r { flex: 1 1 auto; min-width: 120px; }
   .u-pages { flex: 0 0 auto; font-size: 13.5px; }
   .steps { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
@@ -202,14 +204,14 @@
   <main class="wrap">
     <section id="t_users" class="panel">
       <div class="panel-head"><h2>Users &amp; Access</h2><span class="note">Pick a site: for every user, which module he may open there – <b>Admin</b>, <b>User</b> or <b>No access</b>. Access is separate on every site. Switched off = cannot sign in.</span></div>
-      <div class="bar"><div class="field"><label for="u_site">Site</label><select id="u_site"></select></div>
+      <div class="bar"><div class="field"><label for="u_site">Site</label><select id="u_site"></select></div><div class="field"><label for="u_mod">Module</label><select id="u_mod"></select></div>
         <button class="btn primary small" id="u_new" type="button">+ Add user</button><span class="note" id="u_count"></span></div>
       <div class="tw"><table><thead id="u_head"></thead><tbody id="u_rows"></tbody></table></div>
       <div class="panel pg" id="pg_panel" hidden></div>
       <p class="note">A new user gets a <b>one-time password</b>: at his first sign-in he sets his own. A new one-time password ends his sign-ins.</p>
     </section>
     <section id="t_sites" class="panel" hidden>
-      <div class="panel-head"><h2>Sites</h2><span class="note">Every site of every module. A closed site cannot be opened by anybody.</span></div>
+      <div class="panel-head"><h2>Sites</h2><span class="note">Every site of every module. <b>Closed</b> = switched off: nobody can open it. A closed site can be deleted – its data stays in its own database.</span></div>
       <div class="bar"><button class="btn primary small" id="st_new" type="button">+ New site</button></div>
       <div class="panel pg" id="ns_panel" hidden>
         <div class="panel-head"><h2>New site</h2><span class="note">Mechanical for a new site – the same app, its own database. Nothing of another site is copied and no user is made; afterwards you give the site to people under Users &amp; Access.</span></div>
@@ -228,7 +230,7 @@
     </section>
     <section id="t_companies" class="panel" hidden>
       <div class="panel-head"><h2>Companies</h2><span class="note">The companies a site belongs to.</span></div>
-      <div class="tw"><table><thead><tr><th>Company</th><th>GSTIN</th><th>PAN</th><th>Address</th><th>Logo</th><th></th></tr></thead><tbody id="co_rows"></tbody></table></div>
+      <div class="tw"><table class="co-t"><thead><tr><th>Company</th><th>GSTIN</th><th>PAN</th><th>Address</th><th>Logo</th><th>Sites</th><th></th></tr></thead><tbody id="co_rows"></tbody></table></div>
       <h2 style="margin-top:18px" id="co_title">Add a company</h2>
       <div class="grid2" style="margin-top:10px">
         <div class="field"><label for="co_name">Name *</label><input id="co_name" maxlength="80"></div>
@@ -240,7 +242,7 @@
       <div class="bar"><button class="btn primary" id="co_save" type="button">Save company</button><button class="btn" id="co_clear" type="button">New company</button></div>
     </section>
     <section id="t_modules" class="panel" hidden>
-      <div class="panel-head"><h2>Modules</h2><span class="note">A module shows on the dashboard only when it is <b>Live</b> and has its link.</span></div>
+      <div class="panel-head"><h2>Modules</h2><span class="note">A module shows on the dashboard only when it is <b>Live</b> and has its link. A module that is <b>Off</b> can be deleted (not Mechanical).</span></div>
       <div class="bar"><button class="btn primary small" id="m_new" type="button">+ Add module</button></div>
       <div class="tw"><table><thead><tr><th>Module</th><th>Link</th><th>State</th><th></th></tr></thead><tbody id="m_rows"></tbody></table></div>
     </section>
@@ -399,21 +401,26 @@
     const d = S.data; if (!d) return;
     const sites = d.sites; S.site = sites.some(s => s.code === S.site) ? S.site : (sites[0] || {}).code || '';
     $('u_site').innerHTML = sites.map(s => '<option value="' + esc(s.code) + '"' + (s.code === S.site ? ' selected' : '') + '>' + esc(s.name) + ' (' + esc(s.code) + ')' + (s.status === 'closed' ? ' – closed' : '') + '</option>').join('') || '<option value="">– no site yet –</option>';
-    $('u_head').innerHTML = '<tr><th>User</th><th>Active</th>' + d.modules.map(m => '<th>' + esc(m.name) + '</th>').join('') + '<th>One-time password</th><th></th></tr>';
+    S.mod = d.modules.some(m => m.key === S.mod) ? S.mod : '';
+    $('u_mod').innerHTML = '<option value="">All modules</option>' + d.modules.map(m => '<option value="' + esc(m.key) + '"' + (m.key === S.mod ? ' selected' : '') + '>' + esc(m.name) + (m.status !== 'live' ? ' – off' : '') + '</option>').join('');
+    $('u_head').innerHTML = '<tr><th>User</th><th>Active</th>' + mods().map(m => '<th>' + esc(m.name) + '</th>').join('') + '<th>One-time password</th><th></th></tr>';
     const people = d.users.filter(u => !u.super);
     $('u_rows').innerHTML = people.map(u => row(u, false)).join('');
     $('u_count').textContent = people.length + ' users · ' + people.filter(u => u.active).length + ' active';
   }
+  // the modules shown as columns: the one picked, or all of them
+  const mods = () => S.data.modules.filter(m => !S.mod || m.key === S.mod);
   function row(u, isNew) {
     const d = S.data, roleOf = m => ((d.access.find(a => a.email === u.email && a.site === S.site && a.module === m.key)) || {}).role || '';
     return '<tr data-email="' + esc(u.email) + '"' + (isNew ? ' data-new="1"' : u.active ? '' : ' class="off"') + '>' +
       '<td class="w">' + (isNew ? '<input class="u-email" type="email" placeholder="email"><input class="u-name" placeholder="name" style="margin-top:4px">' : '<b>' + esc(u.name) + '</b><small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + '</small>') + '</td>' +
       '<td><input type="checkbox" class="u-active"' + (u.active !== false ? ' checked' : '') + ' aria-label="Active" style="width:20px;min-height:20px"></td>' +
-      d.modules.map(m => '<td><div class="rolebox">' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + (m.key === 'mechanical' && !isNew && roleOf(m) ? '<button type="button" class="link u-pages" data-email="' + esc(u.email) + '">Pages</button>' : '') + '</div></td>').join('') +
+      mods().map(m => '<td><div class="rolebox">' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + (m.key === 'mechanical' && !isNew && roleOf(m) ? '<button type="button" class="link u-pages" data-email="' + esc(u.email) + '">Pages</button>' : '') + '</div></td>').join('') +
       '<td><input class="u-pw" placeholder="' + (isNew ? 'one-time password' : 'new one-time password') + '" autocomplete="new-password"></td>' +
       '<td><button class="btn primary small u-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (isNew ? ' <button class="link u-cancel" type="button">Cancel</button>' : '') + '</td></tr>';
   }
   $('u_site').addEventListener('change', () => { S.site = $('u_site').value; $('pg_panel').hidden = true; users(); });
+  $('u_mod').addEventListener('change', () => { S.mod = $('u_mod').value; $('pg_panel').hidden = true; users(); });
   $('u_new').addEventListener('click', () => { if (document.querySelector('#u_rows tr[data-new]')) return; $('u_rows').insertAdjacentHTML('afterbegin', row({ email: '', name: '', active: true }, true)); document.querySelector('#u_rows .u-email').focus(); });
   $('u_rows').addEventListener('change', e => { const tr = e.target.closest('tr'); if (tr) tr.classList.add('dirty'); if (e.target.classList.contains('sel-r')) e.target.className = 'sel-r ' + (e.target.value || 'none'); });
   $('u_rows').addEventListener('click', e => {
@@ -466,7 +473,7 @@
     const d = S.data; if (!d) return;
     const comp = c => '<select class="st-comp"><option value="">–</option>' + d.companies.map(x => '<option value="' + esc(x.id) + '"' + (x.id === c ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>';
     const stat = v => '<select class="st-status"><option value="active"' + (v !== 'closed' ? ' selected' : '') + '>Active</option><option value="closed"' + (v === 'closed' ? ' selected' : '') + '>Closed</option></select>';
-    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<b>' + esc(s.code) + '</b>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><button class="btn primary small st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status === 'closed' ? ' <button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button>' : '') + '</td></tr>';
+    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<b>' + esc(s.code) + '</b>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="btn primary small st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>';
     $('st_rows').innerHTML = d.sites.map(s => S.siteRow(s, false)).join('') || '<tr><td colspan="5" class="note">No site yet.</td></tr>';
   }
   // ---- New site (with Mechanical): a checklist the system works through – pressed again, it goes on where it stopped ----
@@ -491,39 +498,57 @@
   }
   $('ns_check').addEventListener('click', () => busy($('ns_check'), 'Checking…', async () => {
     try { const r = await api('/api/admin', { action: 'siteSetup', code: $('ns_code').value, name: $('ns_name').value, company: $('ns_comp').value, url: $('ns_url').value, sheet: $('ns_sheet').value });
-      nsShow(r); if (r.ready) { toast('Site ' + r.site + ' is ready.'); await load(); sites(); } else await load(); }
+      nsShow(r); if (r.ready) toast('Site ' + r.site + ' is ready.'); await load(); sites(); }
     catch (er) { fail(er); } }));
   $('ns_panel').addEventListener('click', e => { if (e.target.id !== 'ns_sql') return; const b = e.target;
     busy(b, 'Copying…', async () => { try { const r = await api('/api/admin', { action: 'siteSql' });
       try { await navigator.clipboard.writeText(r.sql); toast('The SQL is copied (' + Math.round(r.sql.length / 1024) + ' KB) – paste it in the new project\'s SQL Editor and Run.'); }
       catch (e2) { const t = document.createElement('textarea'); t.value = r.sql; t.readOnly = true; t.style.cssText = 'width:100%;height:160px;margin-top:8px'; b.closest('li').appendChild(t); t.select(); toast('Select all in the box below and copy it (Ctrl + C).'); } }
     catch (er) { fail(er); } }); });
+  // delete a Closed site – its code typed again; its own database (the data) stays as it is
+  $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-del'); if (!b) return; const code = b.dataset.code, st = S.data.sites.find(x => x.code === code) || {};
+    const n = S.data.access.filter(a => a.site === code).length;
+    const typed = window.prompt('Delete site ' + code + ' – ' + (st.name || '') + '?\n\nIt leaves the lists (here and in Mechanical)' + (n ? ' and ' + n + ' access given on it are removed' : '') + '.\nIts own database – all its data – is NOT deleted.\n\nType the site code (' + code + ') to delete it:');
+    if (typed === null) return;
+    busy(b, 'Deleting…', async () => { try { const r = await api('/api/admin', { action: 'siteDelete', code: code, confirm: typed });
+      toast('Site ' + code + ' deleted' + (r.accessRemoved ? ' (' + r.accessRemoved + ' access removed)' : '') + '. Its data stays in its own database.'); await load(); sites(); } catch (er) { fail(er); } }); });
   $('st_rows').addEventListener('click', e => { if (!e.target.classList.contains('st-save')) return; const tr = e.target.closest('tr'), isNew = !!tr.dataset.new;
     busy(e.target, 'Saving…', async () => { try { await api('/api/admin', { action: 'siteSave', isNew: isNew, code: isNew ? tr.querySelector('.st-code').value : tr.dataset.code, name: tr.querySelector('.st-name').value, company: tr.querySelector('.st-comp').value, status: tr.querySelector('.st-status').value });
       toast('Site saved.'); await load(); sites(); } catch (er) { fail(er); } }); });
   // companies
   function companies() {
     const d = S.data; if (!d) return;
-    $('co_rows').innerHTML = d.companies.map(c => '<tr data-id="' + esc(c.id) + '"><td><b>' + esc(c.name) + '</b></td><td>' + esc(c.gstin || '–') + '</td><td>' + esc(c.pan || '–') + '</td><td>' + esc(c.address || '–') + '</td><td>' + (c.logo ? 'Yes' : '–') + '</td><td><button class="btn small co-edit" type="button">Change</button></td></tr>').join('') || '<tr><td colspan="6" class="note">No company yet – add Rachana and Sketchline below.</td></tr>';
+    $('co_rows').innerHTML = d.companies.map(c => { const used = d.sites.filter(x => x.company_id === c.id).map(x => x.code);
+      return '<tr data-id="' + esc(c.id) + '"><td class="co-n"><b>' + esc(c.name) + '</b></td><td>' + esc(c.gstin || '–') + '</td><td>' + esc(c.pan || '–') + '</td><td class="co-a">' + esc(c.address || '–') + '</td><td>' + (c.logo ? 'Yes' : '–') + '</td><td>' + esc(used.join(', ') || '–') + '</td>' +
+        '<td><div class="acts"><button class="btn small co-edit" type="button">Change</button>' + (used.length ? '' : '<button class="link del co-del" type="button">Delete</button>') + '</div></td></tr>'; }).join('') || '<tr><td colspan="7" class="note">No company yet – add Rachana and Sketchline below.</td></tr>';
     coForm(null);
   }
   function coForm(c) { S.coId = c ? c.id : ''; $('co_title').textContent = c ? 'Change: ' + c.name : 'Add a company'; ['name', 'gstin', 'pan', 'address', 'logo'].forEach(k => { $('co_' + k).value = c ? (c[k] || '') : ''; }); }
   $('co_rows').addEventListener('click', e => { if (!e.target.classList.contains('co-edit')) return; coForm(S.data.companies.find(c => c.id === e.target.closest('tr').dataset.id)); $('co_name').focus(); });
+  $('co_rows').addEventListener('click', e => { if (!e.target.classList.contains('co-del')) return; const c = S.data.companies.find(x => x.id === e.target.closest('tr').dataset.id); if (!c) return;
+    if (!window.confirm('Delete the company "' + c.name + '"?\nNo site belongs to it.')) return;
+    busy(e.target, 'Deleting…', async () => { try { await api('/api/admin', { action: 'companyDelete', id: c.id }); toast('Company deleted.'); await load(); companies(); } catch (er) { fail(er); } }); });
   $('co_clear').addEventListener('click', () => coForm(null));
   $('co_save').addEventListener('click', e => busy(e.target, 'Saving…', async () => { try { await api('/api/admin', { action: 'companySave', id: S.coId, name: $('co_name').value, gstin: $('co_gstin').value, pan: $('co_pan').value, address: $('co_address').value, logo: $('co_logo').value });
     toast('Company saved.'); await load(); companies(); } catch (er) { fail(er); } }));
   // modules
   function modules() {
     const d = S.data; if (!d) return;
-    S.modRow = (m, isNew) => '<tr data-key="' + esc(m.key) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="m-key" placeholder="key, e.g. store" style="width:130px"><input class="m-name" placeholder="name, e.g. Store" style="width:130px;margin-top:4px">' : '<b>' + esc(m.name) + '</b><small>' + esc(m.key) + '</small>') + '</td>' +
+    S.modRow = (m, isNew) => '<tr data-key="' + esc(m.key) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="m-key" placeholder="key, e.g. store" style="width:130px"><input class="m-name" placeholder="name, e.g. Store" style="width:130px;margin-top:4px">' : '<input class="m-name" maxlength="40" value="' + esc(m.name) + '" aria-label="Name" style="width:160px"><small>' + esc(m.key) + '</small>') + '</td>' +
       '<td class="w"><input class="m-url" placeholder="https://…" value="' + esc(m.url || '') + '"></td><td><select class="m-status"><option value="live"' + (m.status === 'live' ? ' selected' : '') + '>Live</option><option value="off"' + (m.status !== 'live' ? ' selected' : '') + '>Off</option></select></td>' +
-      '<td><button class="btn primary small m-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button></td></tr>';
+      '<td><div class="acts"><button class="btn primary small m-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && m.key !== 'mechanical' && m.status !== 'live' ? '<button class="link del m-del" type="button">Delete</button>' : '') + '</div></td></tr>';
     $('m_rows').innerHTML = d.modules.map(m => S.modRow(m, false)).join('');
   }
   $('m_new').addEventListener('click', () => { if (document.querySelector('#m_rows tr[data-new]')) return; $('m_rows').insertAdjacentHTML('afterbegin', S.modRow({ key: '', name: '', status: 'off' }, true)); });
   $('m_rows').addEventListener('click', e => { if (!e.target.classList.contains('m-save')) return; const tr = e.target.closest('tr'), isNew = !!tr.dataset.new;
-    busy(e.target, 'Saving…', async () => { try { await api('/api/admin', { action: 'moduleSave', isNew: isNew, key: isNew ? tr.querySelector('.m-key').value.trim() : tr.dataset.key, name: isNew ? tr.querySelector('.m-name').value : '', url: tr.querySelector('.m-url').value.trim(), status: tr.querySelector('.m-status').value });
+    busy(e.target, 'Saving…', async () => { try { await api('/api/admin', { action: 'moduleSave', isNew: isNew, key: isNew ? tr.querySelector('.m-key').value.trim() : tr.dataset.key, name: tr.querySelector('.m-name').value, url: tr.querySelector('.m-url').value.trim(), status: tr.querySelector('.m-status').value });
       toast('Module saved.'); await load(); modules(); } catch (er) { fail(er); } }); });
+  // delete a module that is Off – its key typed again; everybody's access to it goes too
+  $('m_rows').addEventListener('click', e => { if (!e.target.classList.contains('m-del')) return; const key = e.target.closest('tr').dataset.key, m = S.data.modules.find(x => x.key === key) || {};
+    const n = S.data.access.filter(a => a.module === key).length;
+    const typed = window.prompt('Delete the module ' + (m.name || key) + '?\n\nIt leaves the list' + (n ? ' and ' + n + ' access given to it are removed' : '') + '. Its own app and data are not touched.\n\nType the module key (' + key + ') to delete it:');
+    if (typed === null) return;
+    busy(e.target, 'Deleting…', async () => { try { await api('/api/admin', { action: 'moduleDelete', key: key, confirm: typed }); toast('Module deleted.'); await load(); modules(); } catch (er) { fail(er); } }); });
   // activity
   async function audit() {
     $('a_rows').innerHTML = '<tr><td colspan="5" class="note">Loading…</td></tr>';

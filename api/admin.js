@@ -148,6 +148,23 @@ const ACTIONS = {
     }
     return r;
   },
+  /* (asked 13-10-2026) delete a site: only one that is Closed first, with its code typed again. The site's own database
+   * (its data) is NEVER touched – it only leaves the lists: here (with everybody's access to it) and in Mechanical (set to
+   * closed there, so nobody opens it; "New site" with the same link brings it back with its data). The first site cannot go. */
+  async siteDelete(me, x, req) {
+    const code = String(x.code || '').trim().toUpperCase();
+    const cur = ((await db('GET', 'sites?select=code,name,status&code=eq.' + enc(code))) || [])[0];
+    if (!cur) throw fail(404, 'This site is not in the list.');
+    if (cur.status !== 'closed') throw fail(400, 'First set the site to Closed and Save – then delete it.', 'notclosed');
+    if (String(x.confirm || '').trim().toUpperCase() !== code) throw fail(400, 'Type the site code (' + code + ') to delete it.', 'confirm');
+    const m = ((await db('GET', 'modules?select=url&key=eq.mechanical')) || [])[0];
+    if (m && m.url) await mechAsk(req, me, { act: 'siteOff', site: code });      // the first site is refused there
+    const acc = (await db('GET', 'access?select=email,module,role&site=eq.' + enc(code))) || [];
+    if (acc.length) await db('DELETE', 'access?site=eq.' + enc(code), undefined, 'return=minimal');
+    await db('DELETE', 'sites?code=eq.' + enc(code), undefined, 'return=minimal');
+    await audit(me.email, 'Site deleted', code, { name: cur.name, accessRemoved: acc.map(a => a.email + ' ' + a.module + ' ' + a.role).slice(0, 200), data: 'kept in its own database' });
+    return { ok: true, accessRemoved: acc.length };
+  },
   async companySave(me, x) {
     const name = clean(x.name, 80), gstin = clean(x.gstin, 15).toUpperCase(), pan = clean(x.pan, 10).toUpperCase(), logo = clean(x.logo, 300), address = clean(x.address, 300);
     if (name.length < 2) throw fail(400, 'Enter the name of the company (2 to 80 letters).');
@@ -166,6 +183,32 @@ const ACTIONS = {
     await db('POST', 'companies', [{ id, name, address, gstin, pan, logo }], 'return=minimal');
     await audit(me.email, 'Company added', id, { name: name }); return { ok: true, id: id };
   },
+  // (asked 13-10-2026) delete a company: only one that no site belongs to
+  async companyDelete(me, x) {
+    const id = String(x.id || '');
+    const c = ((await db('GET', 'companies?select=id,name&id=eq.' + enc(id))) || [])[0];
+    if (!c) throw fail(404, 'This company is not in the list.');
+    const used = (await db('GET', 'sites?select=code&company_id=eq.' + enc(id))) || [];
+    if (used.length) throw fail(400, 'Sites of this company: ' + used.map(s => s.code).join(', ') + ' – give them another company first (Sites), then delete it.', 'inuse');
+    await db('DELETE', 'companies?id=eq.' + enc(id), undefined, 'return=minimal');
+    await audit(me.email, 'Company deleted', id, { name: c.name });
+    return { ok: true };
+  },
+  // (asked 13-10-2026) delete a module: only one that is Off first, with its key typed again; everybody's access to it goes too.
+  // Mechanical stays (the sites and the pages are set up through it).
+  async moduleDelete(me, x) {
+    const key = String(x.key || '');
+    const m = ((await db('GET', 'modules?select=key,name,status&key=eq.' + enc(key))) || [])[0];
+    if (!m) throw fail(404, 'This module is not in the list.');
+    if (key === 'mechanical') throw fail(400, 'Mechanical cannot be deleted – the sites and the pages are set up through it. Set it Off instead.', 'mech');
+    if (m.status !== 'off') throw fail(400, 'First set the module Off and Save – then delete it.', 'notoff');
+    if (String(x.confirm || '').trim().toLowerCase() !== key) throw fail(400, 'Type the module key (' + key + ') to delete it.', 'confirm');
+    const acc = (await db('GET', 'access?select=email,site,role&module=eq.' + enc(key))) || [];
+    if (acc.length) await db('DELETE', 'access?module=eq.' + enc(key), undefined, 'return=minimal');
+    await db('DELETE', 'modules?key=eq.' + enc(key), undefined, 'return=minimal');
+    await audit(me.email, 'Module deleted', key, { name: m.name, accessRemoved: acc.map(a => a.email + ' ' + a.site + ' ' + a.role).slice(0, 200) });
+    return { ok: true, accessRemoved: acc.length };
+  },
   async moduleSave(me, x) {
     const key = String(x.key || ''), url = clean(x.url, 300).replace(/\/+$/, ''), status = String(x.status || 'off'), name = clean(x.name, 40);
     if (!/^[a-z]{2,20}$/.test(key)) throw fail(400, 'The module key: 2 to 20 small letters (e.g. store).');
@@ -180,9 +223,10 @@ const ACTIONS = {
       await db('POST', 'modules', [{ key, name, url: url || null, status, sort: (last ? last.sort : 0) + 1 }], 'return=minimal');
     } else {
       if (!cur) throw fail(404, 'This module is not in the list.');
+      if (x.name !== undefined && x.name !== '' && name.length < 2) throw fail(400, 'Give the module a name.');
       await db('PATCH', 'modules?key=eq.' + enc(key), Object.assign({ url: url || null, status: status }, name ? { name: name } : {}), 'return=minimal');
     }
-    await audit(me.email, x.isNew ? 'Module added' : 'Module changed', key, { url: url, status: status });
+    await audit(me.email, x.isNew ? 'Module added' : 'Module changed', key, { name: name || (cur && cur.name), url: url, status: status });
     return { ok: true };
   },
   async endSessions(me, x) {
