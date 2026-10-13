@@ -30,6 +30,7 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
 (async () => {
   // ---- the start ----
   sql('rcl_portal', "truncate public.access, public.sessions, public.audit, public.counters, public.signing_keys, public.users, public.sites, public.companies cascade; update public.modules set url = null, status = 'live' where key = 'mechanical'; delete from public.modules where key <> 'mechanical';");
+  sql('rcl_portal', "alter table public.users drop column if exists start_item; notify pgrst, 'reload schema';");      // (rig: as before the step-2 SQL)
   execSync('timeout 60 bash /home/claude/rig/portal_srv.sh');      // a fresh Portal server: it forgets the signing key of the emptied database
   // Mechanical as the rig has it: users on the first site only (opening a module through the Portal adds a user's site there – an earlier run)
   sql('rcl', "delete from public.rcl_user_sites where site <> 'S1'; delete from public.app_users where email = 'ravi@rcl.test'; delete from public.rcl_user_sites where email = 'ravi@rcl.test';");
@@ -169,6 +170,31 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   ok('   his old sign-ins have ended', r.j.signedIn === false);
   r = await X.req('/api/auth', { action: 'login', email: 'sa@rcl.test', password: 'Super#Admin2041' });
   ok('   he signs in with the new password', r.status === 200 && r.j.user.super, r.j);
+  // ---- "My start": the module that opens straight after sign-in (step-2 SQL) ----
+  r = await A.req('/api/auth', { action: 'me' });
+  ok('My start, before the step-2 SQL: the page is told it is not ready (no star shown)', r.j.signedIn && r.j.startReady === false && r.j.start === '', r.j);
+  r = await A.req('/api/auth', { action: 'setStart', module: 'mechanical', site: 'S1' });
+  ok('   choosing one says which SQL to run', r.status === 500 && r.j.code === 'nostep' && /portal_step2_start\.sql/.test(r.j.error), r.j);
+  execSync('timeout 60 su postgres -c "psql -d rcl_portal -v ON_ERROR_STOP=1 -tA -q -f ' + require('path').join(__dirname, '..', 'sql', 'portal_step2_start.sql') + '"');
+  await wait(1500);
+  ok('   the step-2 SQL only adds the column (users and passwords as they were)', sql('rcl_portal', "select count(*) from users where password_hash is null") === '0' && sql('rcl_portal', "select count(start_item) from users") === '0');
+  r = await A.req('/api/auth', { action: 'me' });
+  ok('after the SQL: ready, nothing chosen yet', r.j.startReady === true && r.j.start === '', r.j);
+  r = await A.req('/api/auth', { action: 'setStart', module: 'mechanical', site: 'ZZ' });
+  ok('   a module on a site he does not have: refused', r.status === 403, r.j);
+  r = await A.req('/api/auth', { action: 'setStart', module: 'mechanical', site: 's1' });
+  ok('   his own: saved', r.status === 200 && r.j.start === 'mechanical|S1' && sql('rcl_portal', "select start_item from users where email = 'sujit@rcl.test'") === 'mechanical|S1', r.j);
+  r = await A.req('/api/auth', { action: 'me' });
+  ok('   the page is told his start', r.j.start === 'mechanical|S1');
+  sql('rcl_portal', "delete from access where email = 'sujit@rcl.test' and site = 'S1'");
+  r = await A.req('/api/auth', { action: 'me' });
+  ok('   his start is not used once he no longer has it (the dashboard instead)', r.j.start === '', r.j);
+  sql('rcl_portal', "insert into access (email, site, module, role, granted_by) values ('sujit@rcl.test', 'S1', 'mechanical', 'admin', 'test')");
+  r = await A.req('/api/auth', { action: 'setStart' });
+  ok('   taken away: his modules page opens again', r.status === 200 && sql('rcl_portal', "select coalesce(start_item, '-') from users where email = 'sujit@rcl.test'") === '-', r.j);
+  r = await X.req('/api/auth', { action: 'setStart', module: 'mechanical', site: 'S1' });
+  ok('   the Super Admin has no start (he opens no module)', r.status === 400, r.j);
+  ok('   written in the Activity record', sql('rcl_portal', "select count(*) from audit where action = 'Start module'") === '2');
   // ---- sign out ----
   r = await A.req('/api/auth', { action: 'logout' });
   ok('sign out: the cookie is emptied and the sign-in is gone from the database', r.status === 200 && /Max-Age=0/.test(r.setCookie) && sql('rcl_portal', "select count(*) from sessions where email = 'sujit@rcl.test'") === '0', r.setCookie);
