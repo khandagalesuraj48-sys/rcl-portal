@@ -32,8 +32,9 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
   const errors = [];
   // a view puts the cursor into its first box 30 ms after it opens: typing starts after that (otherwise letters land in the wrong box)
   const settled = (pg, id) => pg.waitForFunction(x => document.activeElement && document.activeElement.id === x, id);
+  // (the sign-in picture comes from the internet, which this rig cannot reach: ERR_TUNNEL_CONNECTION_FAILED is the rig, not the page)
   // only the Portal's own page counts (Mechanical, opened at the end, is tested in its own repository); the one wrong password tried on purpose answers 401
-    const watch = pg => { pg.on('pageerror', e => { if (pg.url().startsWith(P)) errors.push(String(e)); }); pg.on('console', m => { if (m.type() === 'error' && pg.url().startsWith(P) && !/favicon|status of 401/.test(m.text())) errors.push(m.text()); }); pg.setDefaultTimeout(20000); };
+    const watch = pg => { pg.on('pageerror', e => { if (pg.url().startsWith(P)) errors.push(String(e)); }); pg.on('console', m => { if (m.type() === 'error' && pg.url().startsWith(P) && !/favicon|status of 401|ERR_TUNNEL_CONNECTION_FAILED/.test(m.text())) errors.push(m.text()); }); pg.setDefaultTimeout(20000); };
   try {
     // ---- computer ----
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } }), pg = await ctx.newPage(); watch(pg);
@@ -99,6 +100,21 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     const cards = await pg.$$eval('#h_sites a.mod', x => x.map(a => a.textContent));
     ok('sujit (two sites) sees his dashboard: one card per site and module', cards.length === 2, cards);
     await pg.screenshot({ path: path.join(SHOTS, '05-dashboard-computer.png'), fullPage: true });
+    // "My start" (needs the step-2 SQL – test/api.test.js runs it on the rig): the T2 card opens straight after sign-in
+    const stars = await pg.$$eval('#h_sites button.star', x => x.map(b => b.textContent));
+    ok('   each card offers "Open this at sign-in"', stars.length === 2 && stars.every(t => /Open this at sign-in/.test(t)), stars);
+    await pg.click('#h_sites .modw:has-text("T2") button.star');
+    await pg.waitForSelector('#h_sites .mod.start');
+    ok('   chosen: the T2 card is marked "Opens at sign-in"', /Opens at sign-in/.test(await pg.textContent('#h_sites .modw:has-text("T2") button.star')));
+    await pg.screenshot({ path: path.join(SHOTS, '05b-dashboard-my-start.png'), fullPage: true });
+    await pg.click('#h_out'); await pg.waitForSelector('#v_login:not([hidden])'); await settled(pg, 'l_email');
+    await pg.fill('#l_email', 'sujit@rcl.test'); await pg.fill('#l_pass', PW);
+    const [g3] = await Promise.all([pg.waitForResponse(goTo, { timeout: 30000 }), pg.waitForURL(u => u.href.startsWith(M), { timeout: 30000 }), pg.click('#l_btn')]);
+    ok('   his next sign-in opens Mechanical on T2 straight away (no dashboard)', /site=T2/.test(g3.url()) && (g3.headers().location || '').startsWith(M + '/#sso='), g3.url());
+    await pg.goto(P + '/?menu=1'); await pg.waitForSelector('#v_home:not([hidden])');
+    ok('   from a module ("All my modules") the dashboard still opens', (await pg.$$eval('#h_sites a.mod', x => x.length)) === 2);
+    await pg.click('#h_sites .modw:has-text("T2") button.star'); await pg.waitForSelector('#h_sites .mod.start', { state: 'detached' });
+    ok('   "remove": no start any more', (await pg.$$eval('#h_sites .mod.start', x => x.length)) === 0);
     const [g2] = await Promise.all([pg.waitForResponse(goTo, { timeout: 30000 }), pg.waitForURL(u => u.href.startsWith(M), { timeout: 30000 }), pg.click('#h_sites a.mod >> nth=0')]);
     ok('   a card opens the module with a ticket', (g2.headers().location || '').startsWith(M + '/#sso='));
     await ctx.close();

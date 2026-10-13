@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>RCL ERP</title>
 <meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.png">
 <style>
   /* RCL ERP Portal – the same family as the Mechanical app: navy bar, white panels, amber main button */
   :root { --navy: #0F1F3D; --ink: #17202A; --muted: #5B6573; --line: #D9DEE5; --page: #F3F5F8; --panel: #FFFFFF; --amber: #F2B632; --amber-ink: #3B2A00;
@@ -24,9 +25,24 @@
   .err { color: var(--bad); font-weight: 600; min-height: 1.4em; }
   .note { color: var(--muted); font-size: 14px; }
   .mr { color: var(--muted); font-size: 13.5px; }
-  /* sign-in */
-  .center { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
-  .card { width: 100%; max-width: 420px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 28px 24px; box-shadow: 0 12px 34px rgba(15,31,61,.08); }
+  /* sign-in pages: the One Click Solution look, as Mechanical's sign-in – the picture on the left, a white form on the right
+     (on a phone: only the form) */
+  .center { min-height: 100vh; min-height: 100dvh; display: flex; background: #fff; }
+  .center::before { content: ""; flex: 0 0 50%; background: url("https://cdn.21st.dev/assets/mirror/0d/0d205a1a31d40e927885b0ec5f603407caa10585b5bc6e8b08240402c7417e86.png") center / cover no-repeat, linear-gradient(135deg, #0f172a, #1e3a8a 55%, #1e293b); }
+  .card { width: 100%; max-width: 440px; margin: auto; padding: 28px 32px; background: #fff; }
+  .card .oc { display: flex; justify-content: center; margin-bottom: 20px; } .card .oc img { width: min(200px, 60%); height: auto; }
+  .card h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; color: #111827; }
+  .card .field label { font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px; }
+  .card .field { margin-bottom: 18px; }
+  .card input { padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 12px; font-size: 15px; }
+  .card input:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
+  .card .btn.primary { min-height: 48px; border: 0; border-radius: 12px; background: linear-gradient(135deg, #1F2B34, #3B4C59); color: #fff; font-weight: 600; box-shadow: 0 8px 22px rgba(20,30,38,.25); }
+  .card .btn.primary:hover { box-shadow: 0 12px 26px rgba(20,30,38,.32); }
+  .card .link { color: #2563eb; font-weight: 500; }
+  .pass { position: relative; } .pass input { padding-right: 48px; }
+  .eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: 0; background: none; padding: 6px; border-radius: 50%; cursor: pointer; color: #6b7280; display: grid; }
+  .eye:hover { background: #f3f4f6; } .eye svg { width: 20px; height: 20px; } .eye .off { display: none; } .eye.on .on { display: none; } .eye.on .off { display: block; }
+  @media (max-width: 860px) { .center::before { display: none; } .card { padding: 24px 20px; } .card h1 { text-align: center; font-size: 26px; } }
   .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
   .brand .mark { width: 40px; height: 40px; border-radius: 10px; background: var(--navy); color: var(--amber); display: grid; place-items: center; font-weight: 800; letter-spacing: .02em; }
   .brand b { font-size: 20px; } .brand small { display: block; color: var(--muted); font-size: 12.5px; }
@@ -47,6 +63,8 @@
   .mod { display: flex; flex-direction: column; gap: 4px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; text-decoration: none; color: var(--ink); min-height: 92px; }
   .mod:hover { border-color: var(--blue); box-shadow: 0 6px 18px rgba(29,85,226,.12); }
   .mod b { font-size: 17px; } .mod span { color: var(--muted); font-size: 13.5px; }
+  .modw { display: flex; flex-direction: column; gap: 6px; } .modw .star { align-self: flex-start; font-size: 13.5px; }
+  .mod.start { border-color: #D99A00; box-shadow: 0 0 0 2px #F2B63255; }
   .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--soft); color: var(--blue); }
   /* console */
   .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -74,12 +92,13 @@
 <!-- sign-in -->
 <section id="v_login" class="center" hidden>
   <form class="card" id="f_login" autocomplete="on">
-    <div class="brand"><span class="mark">RCL</span><div><b>RCL ERP</b><small>Rachana Construction Limited</small></div></div>
-    <h1>Sign in</h1>
-    <p class="mr">एकाच login ने सगळे modules.</p>
+    <div class="oc"><img src="/oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
+    <h1>Welcome Back</h1>
+    <p class="note" style="margin:0 0 22px">One sign-in for every RCL ERP module · <span class="mr">एकाच login ने सगळे modules.</span></p>
     <p class="note" id="l_msg" hidden></p>
     <div class="field"><label for="l_email">Email</label><input id="l_email" type="email" autocomplete="username" required></div>
-    <div class="field"><label for="l_pass">Password</label><input id="l_pass" type="password" autocomplete="current-password" required></div>
+    <div class="field"><label for="l_pass">Password</label><div class="pass"><input id="l_pass" type="password" autocomplete="current-password" required>
+      <button type="button" class="eye" id="l_eye" aria-label="Show password"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><line x1="2" x2="22" y1="2" y2="22"/></svg></button></div></div>
     <p class="err" id="l_err" role="alert"></p>
     <button class="btn primary" style="width:100%" id="l_btn" type="submit">Sign in</button>
     <p class="note" style="margin-top:14px">Forgot your password? Ask the Super Admin to give you a one-time password.<br>
@@ -91,7 +110,7 @@
 <!-- first start: import from Mechanical -->
 <section id="v_setup" class="center" hidden>
   <form class="card" id="f_setup">
-    <div class="brand"><span class="mark">RCL</span><div><b>RCL ERP</b><small>First start</small></div></div>
+    <div class="oc"><img src="/oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
     <h1>Bring the users over</h1>
     <p class="note">The Portal copies from Mechanical, once: the companies, the sites, every user with the password he has now, who has which site, and the Super Admin. Mechanical is only read – nothing there changes.</p>
     <p class="mr">Mechanical मधले users, त्यांचे आत्ताचे passwords, sites आणि Super Admin एकदाच इथे येतील. Mechanical मध्ये काहीही बदलत नाही.</p>
@@ -106,7 +125,7 @@
 <!-- the Super Admin's recovery code -->
 <section id="v_rec" class="center" hidden>
   <form class="card" id="f_rec">
-    <div class="brand"><span class="mark">RCL</span><div><b>RCL ERP</b><small>Super Admin</small></div></div>
+    <div class="oc"><img src="/oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
     <h1>A new password with the recovery code</h1>
     <p class="note">Only for the Super Admin: the recovery code written down when the Super Admin was made. You get a NEW recovery code – the old one stops working.</p>
     <div id="rc_form">
@@ -125,7 +144,8 @@
 <!-- own password -->
 <section id="v_pw" class="center" hidden>
   <form class="card" id="f_pw">
-    <div class="brand"><span class="mark">RCL</span><div><b>RCL ERP</b><small id="p_who"></small></div></div>
+    <div class="oc"><img src="/oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
+    <p class="note" id="p_who" style="margin:0 0 6px;text-align:center"></p>
     <h1 id="p_title">Set your own password</h1>
     <p class="note" id="p_sub">Your password was set by the Super Admin. Choose a new one only you know.</p>
     <div class="field" id="p_old_f"><label for="p_old">Current password</label><input id="p_old" type="password" autocomplete="current-password"></div>
@@ -218,7 +238,7 @@
   const esc = s => String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const S = { me: null, data: null, site: '' };
   // Marathi lines for the answers people meet most
-  const MR = { wrong: 'Email किंवा password चुकीचा आहे.', locked: 'खूप चुकीचे प्रयत्न झाले – 15 मिनिटांनी पुन्हा प्रयत्न करा.', busy: 'खूप जण एकदम sign in करत आहेत – एक मिनिट थांबा.',
+  const MR = { nostep: 'यासाठी Portal च्या Supabase मध्ये sql/portal_step2_start.sql एकदा चालवावा लागेल.', wrong: 'Email किंवा password चुकीचा आहे.', locked: 'खूप चुकीचे प्रयत्न झाले – 15 मिनिटांनी पुन्हा प्रयत्न करा.', busy: 'खूप जण एकदम sign in करत आहेत – एक मिनिट थांबा.',
     policy: 'Password किमान 8 अक्षरांचा, अक्षरे आणि अंक दोन्ही असलेला हवा.', oldpw: 'सध्याचा password चुकीचा आहे.', recovery: 'Email किंवा recovery code चुकीचा आहे.', session: 'तुमचा login संपला आहे – पुन्हा sign in करा.' };
   function toast(t, bad) { const e = $('toast'); e.textContent = t; e.className = bad ? 'bad' : ''; e.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { e.hidden = true; }, bad ? 6000 : 3500); }
   async function api(path, body) {
@@ -246,6 +266,8 @@
     if (me.mustChange) return pwView(true);
     if (me.user.super) return saView();
     if (next) { location.replace(next); return; }
+    // "My start": the module he chose opens straight after sign-in (from a module's "Modules" button, ?menu=1: the dashboard)
+    if (me.start && !params.has('menu') && !params.has('msg') && !params.has('pw')) { const [mo, si] = me.start.split('|'); location.replace(goLink({ module: mo, site: si })); return; }
     // a module's password button comes here with ?pw=1: the Portal's own "Change password" (one password for every module)
     if (params.has('pw')) { params.delete('pw'); history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : '')); params.set('menu', '1'); homeView(); return pwView(false); }
     homeView();
@@ -262,6 +284,7 @@
       try { await api('/api/auth', { action: 'login', email: $('l_email').value.trim(), password: $('l_pass').value }); $('l_pass').value = ''; await start(); }
       catch (e) { $('l_err').textContent = msgOf(e); }
     }); });
+  $('l_eye').addEventListener('click', () => { const show = $('l_pass').type === 'password'; $('l_pass').type = show ? 'text' : 'password'; $('l_eye').classList.toggle('on', show); $('l_eye').setAttribute('aria-label', show ? 'Hide password' : 'Show password'); });
   $('l_setup_btn').addEventListener('click', () => { show('v_setup'); setTimeout(() => $('s_email').focus(), 30); });
   $('s_back').addEventListener('click', () => loginView());
   $('f_setup').addEventListener('submit', ev => { ev.preventDefault(); $('s_err').textContent = '';
@@ -300,7 +323,10 @@
       catch (e) { $('p_err').textContent = msgOf(e); if (e.code === 'session') loginView(); }
     }); });
   $('p_cancel').addEventListener('click', () => { if (pwForced) signOut(); else start(); });
-  async function signOut() { try { await api('/api/auth', { action: 'logout' }); } catch (e) { /* the cookie ends anyway */ } S.me = null; loginView(); }
+  async function signOut() { try { await api('/api/auth', { action: 'logout' }); } catch (e) { /* the cookie ends anyway */ } S.me = null;
+    // the next sign-in starts afresh ("?menu=1" of the page he was on must not keep him from his start)
+    ['menu', 'msg', 'pw'].forEach(k => params.delete(k)); try { history.replaceState(null, '', location.pathname); } catch (e) { /* the address stays */ }
+    loginView(); }
 
   // ---------- a person's modules ----------
   function homeView() {
@@ -313,11 +339,16 @@
     const bySite = {}; items.forEach(i => { (bySite[i.site] = bySite[i.site] || { name: i.siteName, company: i.company, mods: [] }).mods.push(i); });
     $('h_sites').innerHTML = Object.keys(bySite).map(c => { const s = bySite[c];
       return '<div class="site panel"><h3>' + esc(s.name) + ' <small>' + esc(c) + (s.company ? ' · ' + esc(s.company) : '') + '</small></h3><div class="mods">' +
-        s.mods.map(i => '<a class="mod" href="' + esc(goLink(i)) + '"><b>' + esc(i.moduleName) + '</b><span>' + esc(i.siteName) + '</span><span class="tag">' + (i.role === 'admin' ? 'Admin' : 'User') + '</span></a>').join('') + '</div></div>'; }).join('');
+        s.mods.map(i => { const k = i.module + '|' + i.site, mine = me.start === k;
+          return '<div class="modw"><a class="mod' + (mine ? ' start' : '') + '" href="' + esc(goLink(i)) + '"><b>' + esc(i.moduleName) + '</b><span>' + esc(i.siteName) + '</span><span class="tag">' + (i.role === 'admin' ? 'Admin' : 'User') + '</span></a>' +
+            (me.startReady && items.length > 1 ? '<button type="button" class="link star" data-k="' + esc(mine ? '' : k) + '">' + (mine ? '★ Opens at sign-in – remove' : '☆ Open this at sign-in') + '</button>' : '') + '</div>'; }).join('') + '</div></div>'; }).join('');
     $('h_none').hidden = items.length > 0;
   }
   const goLink = i => '/api/go?module=' + encodeURIComponent(i.module) + '&site=' + encodeURIComponent(i.site);
   $('h_out').addEventListener('click', signOut);
+  $('h_sites').addEventListener('click', async e => { const b = e.target.closest('button.star'); if (!b) return;
+    const k = b.dataset.k, [mo, si] = k ? k.split('|') : ['', ''];
+    busy(b, 'Saving…', async () => { try { await api('/api/auth', { action: 'setStart', module: mo, site: si }); S.me.start = k; toast(k ? 'Saved – this module opens straight after you sign in.' : 'Saved – your modules page opens after you sign in.'); homeView(); } catch (er) { fail(er); } }); });
   $('h_pw').addEventListener('click', () => pwView(false));
 
   // ---------- the Super Admin ----------

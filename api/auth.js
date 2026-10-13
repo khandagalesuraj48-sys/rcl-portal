@@ -22,6 +22,12 @@ async function myItems(email) {
   return items;
 }
 
+// his start ('module|SITE' or ''), or null where the step-2 SQL is not run yet (the column is not there)
+async function startOf(email) {
+  try { const r = ((await db('GET', 'users?select=start_item&email=eq.' + enc(email))) || [])[0]; return (r && r.start_item) || ''; }
+  catch (e) { if (/42703|start_item/.test(String(e && e.message))) return null; throw e; }
+}
+
 const ACTIONS = {
   async login(req, x) {
     const email = lc(x.email).slice(0, 120), password = String(x.password || '');
@@ -56,8 +62,22 @@ const ACTIONS = {
   async me(req) {
     const s = await ses.read(req);
     if (!s) return { body: { signedIn: false } };
-    const u = s.user, must = pw.mustChange(u.password_hash);
-    return { body: { signedIn: true, user: { email: u.email, name: u.name, super: !!u.is_super }, mustChange: must, items: u.is_super || must ? [] : await myItems(u.email) } };
+    const u = s.user, must = pw.mustChange(u.password_hash), items = u.is_super || must ? [] : await myItems(u.email);
+    // his start (the module that opens straight after sign-in) – only while he still has it
+    const st = items.length ? await startOf(u.email) : null, start = st === null ? '' : st;
+    return { body: { signedIn: true, user: { email: u.email, name: u.name, super: !!u.is_super }, mustChange: must, items: items,
+      start: items.some(i => i.module + '|' + i.site === start) ? start : '', startReady: st !== null } };
+  },
+  // "My start": the module (on a site) that opens straight after his sign-in – one of his own; empty = the dashboard
+  async setStart(req, x) {
+    const s = await ses.need(req), u = s.user;
+    if (u.is_super) throw fail(400, 'The Super Admin opens no module.', 'super');
+    const want = x.module ? String(x.module) + '|' + String(x.site || '').toUpperCase() : '';
+    if (want && !(await myItems(u.email)).some(i => i.module + '|' + i.site === want)) throw fail(403, 'You do not have that module on that site.', 'noaccess');
+    if (await startOf(u.email) === null) throw fail(500, 'This needs one database step first: run sql/portal_step2_start.sql once in the Portal\'s Supabase → SQL Editor.', 'nostep');
+    await db('PATCH', 'users?email=eq.' + enc(u.email), { start_item: want || null }, 'return=minimal');
+    await audit(u.email, 'Start module', want || '(dashboard)', null);
+    return { body: { ok: true, start: want } };
   },
   async changePassword(req, x) {
     const s = await ses.need(req), u = s.user;
