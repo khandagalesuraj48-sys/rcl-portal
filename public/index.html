@@ -89,6 +89,12 @@
   .pg-sel.Edit { color: var(--ok); } .pg-sel.View { color: var(--blue); } .pg-sel.None { color: var(--muted); }
   .rolebox { display: flex; align-items: center; gap: 10px; } .rolebox .sel-r { flex: 1 1 auto; min-width: 120px; }
   .u-pages { flex: 0 0 auto; font-size: 13.5px; }
+  .steps { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+  .steps li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  .steps .st-t { display: block; font-weight: 700; } .steps li.ok .st-t::before { content: "✓ "; color: var(--ok); } .steps li.bad { border-color: #F2B632; background: #FFFBEA; } .steps li.bad .st-t::before { content: "✗ "; color: var(--bad); }
+  .steps li.wait { opacity: .55; } .steps li.wait .st-t::before { content: "· "; }
+  .steps li code { background: #EEF3FF; padding: 1px 6px; border-radius: 6px; font-weight: 700; }
+  .steps .bar { margin: 8px 0 0; }
   .sel-r { font-weight: 600; } .sel-r.admin { color: var(--blue); } .sel-r.user { color: var(--ok); } .sel-r.none { color: var(--muted); }
   @media (max-width: 640px) { .top .who { margin-left: 0; text-align: left; } }
 </style>
@@ -204,7 +210,20 @@
     </section>
     <section id="t_sites" class="panel" hidden>
       <div class="panel-head"><h2>Sites</h2><span class="note">Every site of every module. A closed site cannot be opened by anybody.</span></div>
-      <div class="bar"><button class="btn primary small" id="st_new" type="button">+ Add site</button></div>
+      <div class="bar"><button class="btn primary small" id="st_new" type="button">+ New site</button></div>
+      <div class="panel pg" id="ns_panel" hidden>
+        <div class="panel-head"><h2>New site</h2><span class="note">Mechanical for a new site – the same app, its own database. Nothing of another site is copied and no user is made; afterwards you give the site to people under Users &amp; Access.</span></div>
+        <p class="note" style="margin-top:0"><b>Before:</b> make the site's Supabase project yourself (Supabase → New project · region Mumbai). Its secret key is never typed here – the steps below say where it goes.</p>
+        <div class="grid2">
+          <div class="field"><label for="ns_code">Site code</label><input id="ns_code" maxlength="12" placeholder="e.g. 18B" autocomplete="off"></div>
+          <div class="field"><label for="ns_name">Site name</label><input id="ns_name" maxlength="80" placeholder="e.g. Kolhapur 18B" autocomplete="off"></div>
+          <div class="field"><label for="ns_comp">Company</label><select id="ns_comp"></select></div>
+          <div class="field"><label for="ns_url">Supabase project link</label><input id="ns_url" placeholder="https://….supabase.co" autocomplete="off"></div>
+          <div class="field"><label for="ns_sheet">Google Sheet for its backup (can be added later)</label><input id="ns_sheet" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off"></div>
+        </div>
+        <div class="bar" style="margin:4px 0 0"><button class="btn primary small" id="ns_check" type="button">Check &amp; set up</button><button class="btn small" id="ns_close" type="button">Close</button></div>
+        <ol class="steps" id="ns_steps" hidden></ol>
+      </div>
       <div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>Company</th><th>State</th><th></th></tr></thead><tbody id="st_rows"></tbody></table></div>
     </section>
     <section id="t_companies" class="panel" hidden>
@@ -447,10 +466,38 @@
     const d = S.data; if (!d) return;
     const comp = c => '<select class="st-comp"><option value="">–</option>' + d.companies.map(x => '<option value="' + esc(x.id) + '"' + (x.id === c ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>';
     const stat = v => '<select class="st-status"><option value="active"' + (v !== 'closed' ? ' selected' : '') + '>Active</option><option value="closed"' + (v === 'closed' ? ' selected' : '') + '>Closed</option></select>';
-    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<b>' + esc(s.code) + '</b>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><button class="btn primary small st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button></td></tr>';
+    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<b>' + esc(s.code) + '</b>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><button class="btn primary small st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status === 'closed' ? ' <button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button>' : '') + '</td></tr>';
     $('st_rows').innerHTML = d.sites.map(s => S.siteRow(s, false)).join('') || '<tr><td colspan="5" class="note">No site yet.</td></tr>';
   }
-  $('st_new').addEventListener('click', () => { if (document.querySelector('#st_rows tr[data-new]')) return; $('st_rows').insertAdjacentHTML('afterbegin', S.siteRow({ code: '', name: '', status: 'active' }, true)); document.querySelector('#st_rows .st-code').focus(); });
+  // ---- New site (with Mechanical): a checklist the system works through – pressed again, it goes on where it stopped ----
+  const NS_STEP = { link: '1. The Supabase project link', key: '2. The secret key – in Vercel, never here', connect: '3. The database answers with that key', tables: '4. Mechanical\'s tables in the new database', company: '5. Company settings (as the first site; the new name)', ready: '6. Ready' };
+  $('st_new').addEventListener('click', () => { const p = $('ns_panel'); p.hidden = false;
+    $('ns_comp').innerHTML = '<option value="">–</option>' + S.data.companies.map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>').join('');
+    $('ns_steps').hidden = true; p.scrollIntoView({ block: 'nearest' }); setTimeout(() => $('ns_code').focus(), 30); });
+  $('ns_close').addEventListener('click', () => { $('ns_panel').hidden = true; });
+  // a site row's "Set up" opens the same form for that site (one that is not Ready yet, or to check it again)
+  $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-setup'); if (!b) return; const st = S.data.sites.find(x => x.code === b.dataset.code) || {};
+    $('st_new').click(); $('ns_code').value = st.code || ''; $('ns_name').value = st.name || ''; $('ns_comp').value = st.company_id || ''; $('ns_url').focus(); });
+  function nsShow(r) {
+    const box = $('ns_steps'), done = {}; (r.steps || []).forEach(x => { done[x.step] = x; });
+    const order = ['link', 'key', 'connect', 'tables', 'company', 'ready'], firstBad = order.find(k => done[k] && !done[k].ok);
+    box.hidden = false;
+    box.innerHTML = order.map(k => { const d = done[k], cls = d ? (d.ok ? 'ok' : 'bad') : 'wait';
+      let more = d && d.note && (!d.ok || k === 'company') ? '<div class="note">' + esc(d.note) + '</div>' : '';
+      if (k === 'key' && d && !d.ok) more = '<div class="note">Vercel → <b>rclerp</b> (Mechanical) → Settings → Environment Variables → add <code>' + esc(r.keyName) + '</code> = this project\'s <b>Secret key</b> (Supabase → Project Settings → API Keys → Secret keys) → Save → Deployments → <b>Redeploy</b>. Then press <b>Check &amp; set up</b> again.</div>' + (r.keysLink ? '<div class="bar"><a class="btn small" target="_blank" rel="noopener" href="' + esc(r.keysLink) + '">Open the project\'s API keys</a></div>' : '');
+      if (k === 'tables' && d && !d.ok) more = '<div class="note">Run Mechanical\'s SQL once in the NEW project: copy it, open its SQL Editor, paste, Run. Then press <b>Check &amp; set up</b> again.' + (d.note ? '<br><small>' + esc(d.note) + '</small>' : '') + '</div><div class="bar"><button class="btn primary small" type="button" id="ns_sql">Copy the SQL</button>' + (r.sqlLink ? '<a class="btn small" target="_blank" rel="noopener" href="' + esc(r.sqlLink) + '">Open its SQL Editor</a>' : '') + '</div>';
+      if (k === 'ready' && d && d.ok) more = '<div class="note">The site is Active. Give it to people under <b>Users &amp; Access</b> (pick the site).' + (r.backupEmail && $('ns_sheet').value.trim() ? ' For its backup, share the Google Sheet with <code>' + esc(r.backupEmail) + '</code> as Editor.' : '') + '</div>';
+      return '<li class="' + cls + '"><span class="st-t">' + esc(NS_STEP[k]) + '</span>' + (d || k === firstBad ? more : '') + '</li>'; }).join('');
+  }
+  $('ns_check').addEventListener('click', () => busy($('ns_check'), 'Checking…', async () => {
+    try { const r = await api('/api/admin', { action: 'siteSetup', code: $('ns_code').value, name: $('ns_name').value, company: $('ns_comp').value, url: $('ns_url').value, sheet: $('ns_sheet').value });
+      nsShow(r); if (r.ready) { toast('Site ' + r.site + ' is ready.'); await load(); sites(); } else await load(); }
+    catch (er) { fail(er); } }));
+  $('ns_panel').addEventListener('click', e => { if (e.target.id !== 'ns_sql') return; const b = e.target;
+    busy(b, 'Copying…', async () => { try { const r = await api('/api/admin', { action: 'siteSql' });
+      try { await navigator.clipboard.writeText(r.sql); toast('The SQL is copied (' + Math.round(r.sql.length / 1024) + ' KB) – paste it in the new project\'s SQL Editor and Run.'); }
+      catch (e2) { const t = document.createElement('textarea'); t.value = r.sql; t.readOnly = true; t.style.cssText = 'width:100%;height:160px;margin-top:8px'; b.closest('li').appendChild(t); t.select(); toast('Select all in the box below and copy it (Ctrl + C).'); } }
+    catch (er) { fail(er); } }); });
   $('st_rows').addEventListener('click', e => { if (!e.target.classList.contains('st-save')) return; const tr = e.target.closest('tr'), isNew = !!tr.dataset.new;
     busy(e.target, 'Saving…', async () => { try { await api('/api/admin', { action: 'siteSave', isNew: isNew, code: isNew ? tr.querySelector('.st-code').value : tr.dataset.code, name: tr.querySelector('.st-name').value, company: tr.querySelector('.st-comp').value, status: tr.querySelector('.st-status').value });
       toast('Site saved.'); await load(); sites(); } catch (er) { fail(er); } }); });

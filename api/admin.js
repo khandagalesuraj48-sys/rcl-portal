@@ -120,6 +120,34 @@ const ACTIONS = {
     await audit(me.email, x.isNew ? 'Site added' : 'Site changed', code, { name: name, company: comp, status: status });
     return { ok: true };
   },
+  /* "New site" (with Mechanical's update-95): the Super Admin gives the site's code, name, company and the link of the Supabase
+   * project he made; the system checks every step and sets the site up. Can be pressed again and again (it goes on where it
+   * stopped). The site is in the list as Closed until Mechanical says Ready, then Active. No key ever comes here. */
+  async siteSql(me, x, req) {
+    const r = await mechAsk(req, me, { act: 'siteSql', site: 'S1' });
+    return { sql: r.sql || '', files: r.files || [] };
+  },
+  async siteSetup(me, x, req) {
+    const code = String(x.code || '').trim().toUpperCase(), name = clean(x.name, 80), comp = clean(x.company, 40);
+    const url = String(x.url || '').trim().replace(/\/+$/, '').slice(0, 200);
+    if (!/^[A-Z0-9]{1,12}$/.test(code)) throw fail(400, 'The site code: 1 to 12 capital letters or digits (e.g. VTR, 18B).');
+    if (name.length < 2) throw fail(400, 'Give the site a name (2 to 80 letters).');
+    const c = comp ? ((await db('GET', 'companies?select=id,name&id=eq.' + enc(comp))) || [])[0] : null;
+    if (comp && !c) throw fail(404, 'This company is not in the list.');
+    const m = /\/spreadsheets\/d\/([A-Za-z0-9_-]{20,})/.exec(String(x.sheet || '')) || /^([A-Za-z0-9_-]{20,})$/.exec(String(x.sheet || '').trim());
+    if (String(x.sheet || '').trim() && !m) throw fail(400, 'The Google Sheet link: open the Sheet and copy the address from the browser (…/spreadsheets/d/…).');
+    const cur = ((await db('GET', 'sites?select=code,status&code=eq.' + enc(code))) || [])[0];
+    if (!cur) {
+      const last = ((await db('GET', 'sites?select=sort&order=sort.desc&limit=1')) || [])[0];
+      await db('POST', 'sites', [{ code: code, name: name, company_id: comp || null, status: 'closed', sort: (last ? last.sort : 0) + 1 }], 'return=minimal');
+      await audit(me.email, 'Site added', code, { name: name, company: comp, by: 'New site' });
+    } else await db('PATCH', 'sites?code=eq.' + enc(code), { name: name, company_id: comp || null }, 'return=minimal');
+    const r = await mechAsk(req, me, { act: 'siteSetup', site: code, name: name, url: url, sheet: m ? m[1] : '', company: c ? { id: c.id, name: c.name } : {} });
+    if (r.ready) {
+      if (!cur || cur.status !== 'active') { await db('PATCH', 'sites?code=eq.' + enc(code), { status: 'active' }, 'return=minimal'); await audit(me.email, 'Site ready', code, { name: name, module: 'mechanical' }); }
+    }
+    return r;
+  },
   async companySave(me, x) {
     const name = clean(x.name, 80), gstin = clean(x.gstin, 15).toUpperCase(), pan = clean(x.pan, 10).toUpperCase(), logo = clean(x.logo, 300), address = clean(x.address, 300);
     if (name.length < 2) throw fail(400, 'Enter the name of the company (2 to 80 letters).');
