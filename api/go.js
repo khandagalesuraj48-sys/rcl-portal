@@ -5,7 +5,7 @@
  * Not signed in → the sign-in page, and back here after it. */
 'use strict';
 const crypto = require('crypto');
-const { handler, redirect, query, origin } = require('../lib/http');
+const { handler, redirect, query, origin, publicUrl } = require('../lib/http');
 const { db, enc } = require('../lib/db');
 const pw = require('../lib/pw');
 const ses = require('../lib/session');
@@ -15,22 +15,27 @@ const { myItems } = require('./auth');
 
 module.exports = handler(async (req, res) => {
   const q = query(req), mod = String(q.get('module') || ''), site = String(q.get('site') || '').toUpperCase();
+  // the page of the module to open (from a module's menu: "Store → Item Master"); only a plain name passes
+  const page = /^[a-z0-9_-]{1,40}$/i.test(String(q.get('page') || '')) ? String(q.get('page')) : '';
+  // ONE ADDRESS: every way back to the Portal page is RELATIVE ("../" from …/api/go = the Portal page), so it stays right
+  // whether the Portal is opened at its own address or under the main one (<main>/portal)
   const s = await ses.read(req);
-  if (!s) return redirect(res, '/?next=' + enc('/api/go?module=' + enc(mod) + '&site=' + enc(site)));
+  if (!s) return redirect(res, '../?next=' + enc('api/go?module=' + enc(mod) + '&site=' + enc(site) + (page ? '&page=' + enc(page) : '')));
   const u = s.user;
-  if (u.is_super) return redirect(res, '/?msg=super');
-  if (pw.mustChange(u.password_hash)) return redirect(res, '/');
+  if (u.is_super) return redirect(res, '../?msg=super');
+  if (pw.mustChange(u.password_hash)) return redirect(res, '../');
   const items = await myItems(u.email);
   const it = items.find(x => x.module === mod && x.site === site);
-  if (!it) return redirect(res, '/?msg=noaccess');
+  if (!it) return redirect(res, '../?msg=noaccess');
   const m = ((await db('GET', 'modules?select=url&key=eq.' + enc(mod))) || [])[0];
   const now = Math.floor(Date.now() / 1000);
   const ticket = await keys.sign({
-    iss: origin(req), aud: mod, sub: u.email, name: u.name, site: site, siteName: it.siteName, role: it.role,
+    iss: publicUrl() || origin(req), aud: mod, sub: u.email, name: u.name, site: site, siteName: it.siteName, role: it.role,
     // the person's other modules on this site and his other sites of this module – for the module's own "Modules" switch
-    mods: items.filter(x => x.site === site).map(x => ({ key: x.module, name: x.moduleName })),
+    // (with each one's address: a module's menu lists the pages of the others and opens them in the same window)
+    mods: items.filter(x => x.site === site).map(x => ({ key: x.module, name: x.moduleName, url: x.url })),
     sites: items.filter(x => x.module === mod).map(x => ({ code: x.site, name: x.siteName })),
     iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') });
   await audit(u.email, 'Opened module', mod + ' · ' + site, null);
-  redirect(res, String(m.url).replace(/\/+$/, '') + '/#sso=' + ticket);
+  redirect(res, String(m.url).replace(/\/+$/, '') + '/#sso=' + ticket + (page ? '&page=' + enc(page) : ''));
 });

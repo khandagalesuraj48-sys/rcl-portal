@@ -84,16 +84,18 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   const jw = await (await fetch(P + '/api/jwks')).json(), key = jw.keys.find(k => k.kid === head.kid);
   const good = !!key && crypto.verify('sha256', Buffer.from(h + '.' + b), { key: crypto.createPublicKey({ key: key, format: 'jwk' }), dsaEncoding: 'ieee-p1363' }, Buffer.from(sg, 'base64url'));
   ok('   the ticket is signed (ES256) and checks out with the Portal\'s PUBLIC key (/api/jwks)', head.alg === 'ES256' && good);
-  ok('   it says who, which site, which module, as what – and is good for 60 seconds only', cl.sub === 'sujit@rcl.test' && cl.site === 'S1' && cl.aud === 'mechanical' && cl.role === 'admin' && cl.exp - cl.iat === 60 && /^[0-9a-f]{32}$/.test(cl.jti) && Array.isArray(cl.mods), cl);
+  ok('   it says who, which site, which module, as what – and is good for 60 seconds only', cl.sub === 'sujit@rcl.test' && cl.site === 'S1' && cl.aud === 'mechanical' && cl.role === 'admin' && cl.exp - cl.iat === 60 && /^[0-9a-f]{32}$/.test(cl.jti) && Array.isArray(cl.mods) && cl.mods.every(m => /^http:\/\/127\.0\.0\.1:\d+/.test(m.url)), cl);
+  r = await A.req('/api/go?module=mechanical&site=S1&page=lg');
+  ok('   a page asked for goes along after the ticket (#sso=…&page=lg); a strange page name is dropped', /#sso=[\w.-]+&page=lg$/.test(r.loc || '') && /#sso=[\w.-]+$/.test((await A.req('/api/go?module=mechanical&site=S1&page=' + encodeURIComponent('x"><b'))).loc || ''), r.loc);
   const forged = h + '.' + Buffer.from(JSON.stringify(Object.assign({}, cl, { sub: 'sa@rcl.test' }))).toString('base64url') + '.' + sg;
   const f2 = forged.split('.');
   ok('   a ticket changed by anybody fails the check', !crypto.verify('sha256', Buffer.from(f2[0] + '.' + f2[1]), { key: crypto.createPublicKey({ key: key, format: 'jwk' }), dsaEncoding: 'ieee-p1363' }, Buffer.from(f2[2], 'base64url')));
   ok('   the private key is kept LOCKED in the database (no key text in it)', !/BEGIN/.test(sql('rcl_portal', 'select private_sealed from signing_keys')) && /^v1\./.test(sql('rcl_portal', 'select private_sealed from signing_keys')));
   r = await A.req('/api/go?module=mechanical&site=T2');
-  ok('a site he does not have: back to his dashboard with a note, no ticket', r.status === 302 && r.loc === '/?msg=noaccess', r.loc);
+  ok('a site he does not have: back to his dashboard with a note, no ticket', r.status === 302 && r.loc === '../?msg=noaccess', r.loc);
   const N = browser();
   r = await N.req('/api/go?module=mechanical&site=S1');
-  ok('not signed in: to the sign-in page, and back to the module after it', r.status === 302 && r.loc === '/?next=' + encodeURIComponent('/api/go?module=mechanical&site=S1'), r.loc);
+  ok('not signed in: to the sign-in page (a RELATIVE address – right at its own address and under the main one), and back to the module after it', r.status === 302 && r.loc === '../?next=' + encodeURIComponent('api/go?module=mechanical&site=S1'), r.loc);
   r = await A.req('/api/admin', { action: 'overview' });
   ok('an ordinary user (even a Mechanical Admin) cannot open the Super Admin console', r.status === 403, r.j);
 
@@ -102,7 +104,7 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   r = await S.req('/api/auth', { action: 'login', email: 'sa@rcl.test', password: SAPW });
   ok('the Super Admin signs in on the same page', r.status === 200 && r.j.user.super === true, r.j);
   r = await S.req('/api/go?module=mechanical&site=S1');
-  ok('   he opens no module (no entries, no reports)', r.status === 302 && r.loc === '/?msg=super', r.loc);
+  ok('   he opens no module (no entries, no reports)', r.status === 302 && r.loc === '../?msg=super', r.loc);
   r = await S.req('/api/admin', { action: 'overview' });
   ok('   his console: users (no kept password in the answer), sites, modules, companies, access', r.status === 200 && r.j.users.length >= 4 && !JSON.stringify(r.j).includes('scrypt$') && r.j.sites.length >= 2 && r.j.modules.length === 1, Object.keys(r.j));
   r = await S.req('/api/admin', { action: 'companySave', name: 'Sketchline Industries', gstin: '27ABC' });
@@ -149,7 +151,7 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   r = await R.req('/api/auth', { action: 'me' });
   ok('   until then: no modules', r.j.mustChange === true && r.j.items.length === 0);
   r = await R.req('/api/go?module=mechanical&site=18B');
-  ok('   and no ticket', r.status === 302 && r.loc === '/', r.loc);
+  ok('   and no ticket', r.status === 302 && r.loc === '../', r.loc);
   r = await R.req('/api/auth', { action: 'changePassword', old: 'Temp1234', password: 'short' });
   ok('   a weak password is refused', r.status === 400 && /at least 8/.test(r.j.error), r.j);
   r = await R.req('/api/auth', { action: 'changePassword', old: 'Temp1234', password: 'Ravi#Own2026' });
