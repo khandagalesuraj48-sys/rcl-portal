@@ -62,3 +62,18 @@ The Portal is also served under the main address, `https://oneclicksolution-erp.
   * The page at that address passes the origin check.
 * **`/api/go?…&page=KEY`:** the page travels on after the ticket (`#sso=…&page=KEY`).
 * **The ticket's `mods`** carry each module's address (`url`), so a module can show the others' pages in its menu.
+
+## The mobile app's versions (14-10-2026)
+`POST /api/app { action: 'latest', platform }` (signed-in people only) answers with the newest app from the private
+Supabase bucket **app-releases**:
+* **Android:** `android/latest.json`
+  * `{ build, version, file, sha256, notes }`;
+  * the APK link it gives works for 10 minutes.
+* **iPhone:** `ios/latest.json`
+  * `{ build, version, store }`;
+  * the store link must be the App Store or TestFlight.
+
+The rcl-mobile release workflow puts the files there; the Portal only reads them. Anything wrong in `latest.json` (a file
+outside `android/`, a missing fingerprint, a link to another site) is never given to the phones.
+
+The Portal's home page shows **Download the Android app** when a version is there (for the first install).
