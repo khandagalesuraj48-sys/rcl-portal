@@ -182,6 +182,9 @@
   <main class="wrap">
     <p class="note" id="h_msg" hidden></p>
     <div id="h_sites"></div>
+    <!-- (14-10-2026) the mobile app: shown only when a version is in the Portal's app store -->
+    <div class="panel" id="h_app" hidden><h2>Mobile app</h2><p class="note" id="h_app_txt"></p><p class="mr">Android फोनवर RCL ERP app – एकदा download करून install करा; पुढचे update app मध्येच येतील.</p>
+      <p><button class="btn primary" id="h_apk" type="button">Download the Android app</button></p></div>
     <div class="panel" id="h_none" hidden><h2>No module yet</h2><p class="note">The Super Admin has not given you a module on any site yet. Ask him.</p><p class="mr">तुम्हाला अजून कोणताही module दिलेला नाही – Super Admin ला सांगा.</p></div>
   </main>
 </section>
@@ -360,8 +363,18 @@
     loginView(); }
 
   // ---------- a person's modules ----------
+  // (14-10-2026) the Android app: a link that works 10 minutes, asked for at the click (never kept in the page)
+  async function appPanel() {
+    try { const r = await api('/api/app', { action: 'latest', platform: 'android' }); $('h_app').hidden = !r.url;
+      if (r.url) $('h_app_txt').textContent = 'RCL ERP for Android, version ' + r.version + '. Download it once and install it; later updates come inside the app.'; }
+    catch (e) { $('h_app').hidden = true; }
+  }
+  $('h_apk').addEventListener('click', e => busy(e.target, 'Getting the file…', async () => {
+    try { const r = await api('/api/app', { action: 'latest', platform: 'android' }); if (r.url) location.href = r.url; else toast('The app is not there right now.', true); }
+    catch (er) { toast(msgOf(er), true); }
+  }));
   function homeView() {
-    show('v_home');
+    show('v_home'); appPanel();
     const me = S.me, items = me.items || [];
     $('h_name').textContent = me.user.name; $('h_email').textContent = me.user.email;
     const m = params.get('msg'); $('h_msg').hidden = m !== 'noaccess'; $('h_msg').textContent = 'You do not have that module on that site. Ask the Super Admin.';
