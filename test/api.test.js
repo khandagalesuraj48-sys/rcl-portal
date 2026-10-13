@@ -87,6 +87,17 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   ok('   it says who, which site, which module, as what – and is good for 60 seconds only', cl.sub === 'sujit@rcl.test' && cl.site === 'S1' && cl.aud === 'mechanical' && cl.role === 'admin' && cl.exp - cl.iat === 60 && /^[0-9a-f]{32}$/.test(cl.jti) && Array.isArray(cl.mods) && cl.mods.every(m => /^http:\/\/127\.0\.0\.1:\d+/.test(m.url)), cl);
   r = await A.req('/api/go?module=mechanical&site=S1&page=lg');
   ok('   a page asked for goes along after the ticket (#sso=…&page=lg); a strange page name is dropped', /#sso=[\w.-]+&page=lg$/.test(r.loc || '') && /#sso=[\w.-]+$/.test((await A.req('/api/go?module=mechanical&site=S1&page=' + encodeURIComponent('x"><b'))).loc || ''), r.loc);
+  // (13-10-2026, in the same view) a module shown inside another asks for its ticket as an answer, not a page change
+  r = await A.req('/api/go?module=mechanical&site=S1&json=1');
+  ok('   json=1 (a module inside another): the ticket itself, no page change; it checks out like the other', r.status === 200 && /^[\w-]+\.[\w-]+\.[\w-]+$/.test(r.j.ticket || '') && !r.loc, r);
+  r = await A.req('/api/go?module=mechanical&site=S1&json=1', undefined, { noHeader: true });
+  ok('   json=1 without the Portal page\'s header: refused', r.status === 403 && !r.j.ticket, r);
+  r = await A.req('/api/go?module=mechanical&site=S1&json=1', undefined, { origin: 'https://evil.example' });
+  ok('   json=1 asked from another site: refused', r.status === 403 && !r.j.ticket, r);
+  r = await A.req('/api/go?module=mechanical&site=T9&json=1');
+  ok('   json=1 for a site he does not have: "noaccess", no ticket', r.status === 403 && r.j.code === 'noaccess' && !r.j.ticket, r);
+  r = await A.req('/api/go?module=mechanical&site=S1&json=1', undefined, { noCookie: true });
+  ok('   json=1 not signed in: "signin", no ticket', r.status === 401 && r.j.code === 'signin' && !r.j.ticket, r);
   const forged = h + '.' + Buffer.from(JSON.stringify(Object.assign({}, cl, { sub: 'sa@rcl.test' }))).toString('base64url') + '.' + sg;
   const f2 = forged.split('.');
   ok('   a ticket changed by anybody fails the check', !crypto.verify('sha256', Buffer.from(f2[0] + '.' + f2[1]), { key: crypto.createPublicKey({ key: key, format: 'jwk' }), dsaEncoding: 'ieee-p1363' }, Buffer.from(f2[2], 'base64url')));
