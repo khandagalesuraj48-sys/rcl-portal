@@ -11,6 +11,16 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
   (Mechanical's project) as `SITE_<CODE>_KEY`, never here. The SQL is copied from the form into that project's SQL Editor.
   Mechanical's company settings come over with the new name; no data and no users. The site stays Closed until it is Ready, then Active.
   No code change is needed for a new site.
+* **Change, switch off, delete (Super Admin):**
+  * **Sites:** Closed = switched off, nobody can open it. Only a Closed site can be deleted, and only with its code typed again.
+    It leaves the lists here and in Mechanical, with the access given on it. Its own database (its data) is never touched:
+    "New site" with the same link brings it back. The first site cannot be deleted.
+  * **Companies:** can be changed, and deleted while no site belongs to them.
+  * **Modules:** name, link and Live/Off can be changed. Only an Off module can be deleted, and only with its key typed again;
+    the access given to it goes too. Mechanical cannot be deleted.
+  * **Users & Access:** pick a Site and a Module ("All modules" or one) – only that module's column shows.
+* **A new module** (e.g. Store) is its own GitHub repository and its own Vercel project. Its Vercel address goes under Modules
+  → Link, and it is set Live.
 * **From inside a module** the "Modules" button comes back to `/?menu=1` – the person's own dashboard – without signing in again.
 
 ## Parts
