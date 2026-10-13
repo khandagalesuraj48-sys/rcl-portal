@@ -6,6 +6,11 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
 * **The Super Admin** designs the system here and only here: users, which module each user may open on which site (Admin / User / No access), sites, companies, modules, the activity log. He opens no module himself.
 * **Opening a module:** the Portal hands the module a one-minute signed ticket (`/api/go` → `<module>/#sso=…`). The module checks the signature with the Portal's public key (`/api/jwks`). No password travels to the module.
 * **My start:** on his dashboard a person marks one module ("☆ Open this at sign-in"); from then on that module opens straight after he signs in. One module on one site opens straight away anyway.
+* **A new site (Super Admin → Sites → + New site):** he makes the site's Supabase project himself, then gives its link here.
+  "Check & set up" works through a checklist and says what to do at each step. The site's secret key goes only into Vercel
+  (Mechanical's project) as `SITE_<CODE>_KEY`, never here. The SQL is copied from the form into that project's SQL Editor.
+  Mechanical's company settings come over with the new name; no data and no users. The site stays Closed until it is Ready, then Active.
+  No code change is needed for a new site.
 * **From inside a module** the "Modules" button comes back to `/?menu=1` – the person's own dashboard – without signing in again.
 
 ## Parts

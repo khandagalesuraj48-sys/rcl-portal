@@ -88,6 +88,17 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     await pg.click('#pg_save'); await pg.waitForSelector('#pg_panel', { state: 'hidden' });
     ok('   saved: Mechanical now gives view@ Edit on Diesel Issue', sql('rcl', "select perm_diesel_issue from app_users where email = 'view@rcl.test'") === 'Edit');
     sql('rcl', "update app_users set perm_diesel_issue = '" + keepPg + "', updated_at = now() where email = 'view@rcl.test'");
+    // "New site": the form and its checklist (the whole way to Ready is tested in Mechanical's test/newsite95.js)
+    await pg.click('#sa_tabs button[data-t="sites"]'); await pg.waitForSelector('#t_sites:not([hidden])');
+    await pg.click('#st_new'); await pg.waitForSelector('#ns_panel:not([hidden])');
+    await pg.fill('#ns_code', 'N4'); await pg.fill('#ns_name', 'Test Site N4'); await pg.fill('#ns_url', 'http://127.0.0.1:3104');
+    await pg.click('#ns_check'); await pg.waitForSelector('#ns_steps li.bad');
+    const nsTxt = await pg.textContent('#ns_steps');
+    ok('New site: the checklist – link ✓, then the key: the form names SITE_N4_KEY and says where it goes (Vercel), no key asked here', /SITE_N4_KEY/.test(nsTxt) && /Redeploy/.test(nsTxt) && (await pg.$$eval('#ns_steps li.ok', x => x.length)) === 1 && !(await pg.$('#ns_panel input[type=password]')), nsTxt.slice(0, 200));
+    await pg.screenshot({ path: path.join(SHOTS, '03a-new-site.png'), fullPage: true });
+    ok('   the site waits as Closed in the list until it is ready', sql('rcl_portal', "select status from sites where code = 'N4'") === 'closed');
+    sql('rcl_portal', "delete from sites where code = 'N4'");
+    await pg.click('#ns_close');
     for (const t of ['sites', 'companies', 'modules', 'audit']) { await pg.click('#sa_tabs button[data-t="' + t + '"]'); await pg.waitForSelector('#t_' + t + ':not([hidden])'); await pg.screenshot({ path: path.join(SHOTS, '03-super-' + t + '.png'), fullPage: true }); }
     ok('   the Activity tab shows the import and the new user', /Import from Mechanical/.test(await pg.textContent('#a_rows')) && /ravi@rcl\.test/.test(await pg.textContent('#a_rows')));
     await pg.click('#sa_out'); await pg.waitForSelector('#v_login:not([hidden])'); await settled(pg, 'l_email');
