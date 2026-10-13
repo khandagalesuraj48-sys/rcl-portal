@@ -30,6 +30,9 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
 (async () => {
   // ---- the start ----
   sql('rcl_portal', "truncate public.access, public.sessions, public.audit, public.counters, public.signing_keys, public.users, public.sites, public.companies cascade; update public.modules set url = null, status = 'live' where key = 'mechanical'; delete from public.modules where key <> 'mechanical';");
+  execSync('timeout 60 bash /home/claude/rig/portal_srv.sh');      // a fresh Portal server: it forgets the signing key of the emptied database
+  // Mechanical as the rig has it: users on the first site only (opening a module through the Portal adds a user's site there – an earlier run)
+  sql('rcl', "delete from public.rcl_user_sites where site <> 'S1'; delete from public.app_users where email = 'ravi@rcl.test'; delete from public.rcl_user_sites where email = 'ravi@rcl.test';");
   sql('rcl', "delete from rcl_super_admin; delete from web.cache where key like 'SA%' or key like 'F\\_%' or key like 'LG\\_%'; delete from rcl_companies where id not in (select company_id from rcl_sites where company_id is not null); insert into rcl_companies (id, name, gstin) values ('RACHANATEST', 'Rachana Test Co', '27AABCR1234Q1ZX') on conflict (id) do nothing;");
   const a = await mech('login', 'sujit@rcl.test', PW);
   const mk = await mech('api', a.result.token, 'createSuperAdmin', [{ email: 'sa@rcl.test', name: 'Owner', password: SAPW, password2: SAPW }]);
@@ -174,6 +177,11 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   ok('the Activity record has the sign-ins, failures, the import, users, access, sites, modules', ['Login', 'Login failed', 'Import from Mechanical', 'User added', 'Access', 'Site added', 'Module added', 'Opened module', 'Password changed', 'Logout'].every(x => acts.includes(x)), acts);
   r = await X.req('/api/admin', { action: 'audit' });
   ok('   and the Super Admin can read it', r.status === 200 && r.j.rows.length > 10);
+  // the signing key the server remembers was taken out of the database: the public keys still answer (no endless lookup)
+  sql('rcl_portal', 'delete from public.signing_keys;');
+  const tj = Date.now(); let jk = null;
+  try { jk = await (await fetch(P + '/api/jwks', { signal: AbortSignal.timeout(10000) })).json(); } catch (e) { jk = null; }
+  ok('public keys with the remembered key gone from the database: answered at once, with a new key', !!jk && jk.keys && jk.keys.length === 1 && Date.now() - tj < 5000, jk);
   out.push('TOTAL ' + pass + ' passed, ' + fail + ' failed  (' + Math.round((Date.now() - T0) / 1000) + ' s)');
   console.log(out.join('\n')); process.exit(fail ? 1 : 0);
 })().catch(e => { console.log(out.join('\n')); console.log('CRASH ' + (e && e.stack || e)); process.exit(1); });
