@@ -1,7 +1,9 @@
 /* POST /api/admin { action, … } – the Super Admin's console: users, who may open which module on which site, sites,
  * companies, modules, the activity record. Only the Super Admin; he himself opens no module (no entries, no reports). */
 'use strict';
-const { handler, readBody, send, sameSite, fail } = require('../lib/http');
+const { handler, readBody, send, sameSite, fail, origin } = require('../lib/http');
+const crypto = require('crypto');
+const keys = require('../lib/keys');
 const { db, enc } = require('../lib/db');
 const pw = require('../lib/pw');
 const ses = require('../lib/session');
@@ -22,7 +24,46 @@ async function overview() {
 }
 const userOf = async email => ((await db('GET', 'users?select=email,name,active,is_super&email=eq.' + enc(email))) || [])[0] || null;
 
+/* (update for Mechanical's update-94) the pages of Mechanical (Edit / View / No access per page) are given HERE, by the
+ * Super Admin. The Portal's server asks Mechanical's server with a ticket it signs itself (for "mechanical-admin", 60 s, once);
+ * what to set travels inside the signed ticket. Mechanical checks the signature with the Portal's public key. */
+const PAGE_ACCESS = ['Edit', 'View', 'None'];
+async function mechAsk(req, me, claims) {
+  const m = ((await db('GET', 'modules?select=url,status&key=eq.mechanical')) || [])[0];
+  if (!m || !m.url) throw fail(400, 'Mechanical has no link yet – set it under Modules.', 'nolink');
+  const now = Math.floor(Date.now() / 1000);
+  const t = await keys.sign(Object.assign({ iss: origin(req), aud: 'mechanical-admin', sub: me.email, iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') }, claims));
+  let r, j = {};
+  try { r = await fetch(String(m.url).replace(/\/+$/, '') + '/api/rpc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fn: 'portalAdmin', args: [t] }), signal: AbortSignal.timeout(25000) }); }
+  catch (e) { throw fail(503, 'Mechanical could not be reached – try again in a moment.', 'mech'); }
+  try { j = await r.json(); } catch (e) { j = { error: 'Mechanical did not answer properly (' + r.status + ').' }; }
+  if (j.error) throw fail(r.status >= 500 ? 502 : 400, 'Mechanical: ' + j.error, 'mech');      // (never 401: that would sign the Super Admin out here)
+  return j.result;
+}
+const siteOk = async code => ((await db('GET', 'sites?select=code&code=eq.' + enc(code))) || []).length > 0;
+
 const ACTIONS = {
+  // one site's users in Mechanical with their pages, and the list of Mechanical's pages
+  async mechPages(me, x, req) {
+    const site = String(x.site || '').toUpperCase();
+    if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
+    const r = await mechAsk(req, me, { act: 'users', site: site });
+    return { site: site, pages: r.pages || [], users: r.users || [] };
+  },
+  // one person's pages in Mechanical on one site (he must have Mechanical on that site here)
+  async mechPagesSave(me, x, req) {
+    const site = String(x.site || '').toUpperCase(), email = lc(x.email);
+    const acc = ((await db('GET', 'access?select=role&module=eq.mechanical&site=eq.' + enc(site) + '&email=eq.' + enc(email))) || [])[0];
+    if (!acc) throw fail(400, 'First give him Mechanical on this site (Admin or User), then his pages.', 'noaccess');
+    const u = await userOf(email);
+    if (!u || u.is_super) throw fail(400, 'This user is not in the list.');
+    const perms = {};
+    Object.keys(x.perms && typeof x.perms === 'object' ? x.perms : {}).slice(0, 60).forEach(k => { if (PAGE_ACCESS.indexOf(x.perms[k]) > -1) perms[String(k).slice(0, 40)] = x.perms[k]; });
+    if (!Object.keys(perms).length) throw fail(400, 'No page was given.');
+    const r = await mechAsk(req, me, { act: 'pages', site: site, email: email, name: u.name, admin: acc.role === 'admin', perms: perms });
+    await audit(me.email, 'Pages', email + ' · ' + site, { changes: String(r.changes || '').slice(0, 1500), added: !!r.added });
+    return { ok: true, added: !!r.added, changes: r.changes || '', user: r.user };
+  },
   overview: async () => overview(),
   async userSave(me, x) {
     const email = lc(x.email);
@@ -132,5 +173,5 @@ module.exports = handler(async (req, res) => {
   const s = await ses.need(req, { super: true, ownPassword: true });
   const x = await readBody(req), a = String(x.action || '');
   if (!Object.prototype.hasOwnProperty.call(ACTIONS, a)) return send(res, 404, { error: 'Unknown action.' });
-  send(res, 200, await ACTIONS[a](s.user, x));
+  send(res, 200, await ACTIONS[a](s.user, x, req));
 });

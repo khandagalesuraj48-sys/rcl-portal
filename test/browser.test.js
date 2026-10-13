@@ -9,7 +9,7 @@ const { chromium } = require('playwright');
 const P = 'http://127.0.0.1:3010', M = 'http://127.0.0.1:3000';
 const SHOTS = path.join(__dirname, 'shots'); fs.mkdirSync(SHOTS, { recursive: true });
 let pass = 0, fail = 0; const out = [];
-const ok = (n, c, x) => { c ? pass++ : fail++; out.push((c ? 'PASS ' : 'FAIL ') + n + (x !== undefined && !c ? '  → ' + String(typeof x === 'string' ? x : JSON.stringify(x)).slice(0, 300) : '')); };
+const ok = (n, c, x) => { c ? pass++ : fail++; out.push((c ? 'PASS ' : 'FAIL ') + n + (x !== undefined && !c ? '  → ' + String(typeof x === 'string' ? x : JSON.stringify(x)).slice(0, 1500) : '')); };
 const sql = (db, q) => execSync('timeout 60 su postgres -c "psql -d ' + db + ' -tA -q"', { input: q }).toString().trim();
 const mech = async (fn, ...args) => (await (await fetch(M + '/api/rpc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fn, args }), signal: AbortSignal.timeout(60000) })).json());
 const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
@@ -75,6 +75,19 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
       await pg.waitForFunction(() => /Saved: sujit/.test(document.getElementById('toast').textContent));
       ok('   access is per site: sujit given Mechanical on ' + other + ' too', sql('rcl_portal', "select role from access where email = 'sujit@rcl.test' and site = '" + other + "' and module = 'mechanical'") === 'user');
     } else ok('   a second site on the rig to test per-site access', false, 'only one site');
+    // the pages of Mechanical for one user, given here (Mechanical :3000 is linked to this Portal on the rig)
+    await pg.selectOption('#u_site', site1); await pg.waitForSelector('#u_rows tr[data-email="view@rcl.test"] .u-pages');
+    const keepPg = sql('rcl', "select perm_diesel_issue from app_users where email = 'view@rcl.test'");
+    await pg.waitForSelector('#toast', { state: 'hidden' });      // (the note of the last save sits over the bottom rows for a few seconds)
+    await pg.click('#u_rows tr[data-email="view@rcl.test"] .u-pages');
+    await pg.waitForSelector('#pg_panel .pg-sel');
+    const nPg = await pg.$$eval('#pg_panel .pg-sel', x => x.length);
+    ok('"Pages" next to Mechanical: every page of Mechanical with Edit / View / No access', nPg >= 15, nPg);
+    await pg.selectOption('#pg_panel .pg-sel[data-k="Diesel Issue"]', 'Edit');
+    await pg.screenshot({ path: path.join(SHOTS, '02b-super-pages.png'), fullPage: true });
+    await pg.click('#pg_save'); await pg.waitForSelector('#pg_panel', { state: 'hidden' });
+    ok('   saved: Mechanical now gives view@ Edit on Diesel Issue', sql('rcl', "select perm_diesel_issue from app_users where email = 'view@rcl.test'") === 'Edit');
+    sql('rcl', "update app_users set perm_diesel_issue = '" + keepPg + "', updated_at = now() where email = 'view@rcl.test'");
     for (const t of ['sites', 'companies', 'modules', 'audit']) { await pg.click('#sa_tabs button[data-t="' + t + '"]'); await pg.waitForSelector('#t_' + t + ':not([hidden])'); await pg.screenshot({ path: path.join(SHOTS, '03-super-' + t + '.png'), fullPage: true }); }
     ok('   the Activity tab shows the import and the new user', /Import from Mechanical/.test(await pg.textContent('#a_rows')) && /ravi@rcl\.test/.test(await pg.textContent('#a_rows')));
     await pg.click('#sa_out'); await pg.waitForSelector('#v_login:not([hidden])'); await settled(pg, 'l_email');

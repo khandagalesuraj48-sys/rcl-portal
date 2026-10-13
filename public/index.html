@@ -83,6 +83,12 @@
   .code { font: 700 20px/1.4 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .08em; text-align: center; padding: 12px; border: 2px dashed var(--blue); border-radius: 10px; user-select: all; }
   #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #1F2B34; color: #fff; padding: 10px 18px; border-radius: 10px; max-width: calc(100% - 32px); z-index: 50; }
   #toast.bad { background: var(--bad); }
+  .pg { margin-top: 14px; border-color: #B9C7E8; background: #FBFCFF; }
+  .pg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px 14px; }
+  .pg-grid label { display: flex; flex-direction: column; gap: 4px; margin: 0; color: var(--ink); font-weight: 600; }
+  .pg-sel.Edit { color: var(--ok); } .pg-sel.View { color: var(--blue); } .pg-sel.None { color: var(--muted); }
+  .rolebox { display: flex; align-items: center; gap: 10px; } .rolebox .sel-r { flex: 1 1 auto; min-width: 120px; }
+  .u-pages { flex: 0 0 auto; font-size: 13.5px; }
   .sel-r { font-weight: 600; } .sel-r.admin { color: var(--blue); } .sel-r.user { color: var(--ok); } .sel-r.none { color: var(--muted); }
   @media (max-width: 640px) { .top .who { margin-left: 0; text-align: left; } }
 </style>
@@ -193,6 +199,7 @@
       <div class="bar"><div class="field"><label for="u_site">Site</label><select id="u_site"></select></div>
         <button class="btn primary small" id="u_new" type="button">+ Add user</button><span class="note" id="u_count"></span></div>
       <div class="tw"><table><thead id="u_head"></thead><tbody id="u_rows"></tbody></table></div>
+      <div class="panel pg" id="pg_panel" hidden></div>
       <p class="note">A new user gets a <b>one-time password</b>: at his first sign-in he sets his own. A new one-time password ends his sign-ins.</p>
     </section>
     <section id="t_sites" class="panel" hidden>
@@ -383,16 +390,17 @@
     return '<tr data-email="' + esc(u.email) + '"' + (isNew ? ' data-new="1"' : u.active ? '' : ' class="off"') + '>' +
       '<td class="w">' + (isNew ? '<input class="u-email" type="email" placeholder="email"><input class="u-name" placeholder="name" style="margin-top:4px">' : '<b>' + esc(u.name) + '</b><small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + '</small>') + '</td>' +
       '<td><input type="checkbox" class="u-active"' + (u.active !== false ? ' checked' : '') + ' aria-label="Active" style="width:20px;min-height:20px"></td>' +
-      d.modules.map(m => '<td>' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + '</td>').join('') +
+      d.modules.map(m => '<td><div class="rolebox">' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + (m.key === 'mechanical' && !isNew && roleOf(m) ? '<button type="button" class="link u-pages" data-email="' + esc(u.email) + '">Pages</button>' : '') + '</div></td>').join('') +
       '<td><input class="u-pw" placeholder="' + (isNew ? 'one-time password' : 'new one-time password') + '" autocomplete="new-password"></td>' +
       '<td><button class="btn primary small u-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (isNew ? ' <button class="link u-cancel" type="button">Cancel</button>' : '') + '</td></tr>';
   }
-  $('u_site').addEventListener('change', () => { S.site = $('u_site').value; users(); });
+  $('u_site').addEventListener('change', () => { S.site = $('u_site').value; $('pg_panel').hidden = true; users(); });
   $('u_new').addEventListener('click', () => { if (document.querySelector('#u_rows tr[data-new]')) return; $('u_rows').insertAdjacentHTML('afterbegin', row({ email: '', name: '', active: true }, true)); document.querySelector('#u_rows .u-email').focus(); });
   $('u_rows').addEventListener('change', e => { const tr = e.target.closest('tr'); if (tr) tr.classList.add('dirty'); if (e.target.classList.contains('sel-r')) e.target.className = 'sel-r ' + (e.target.value || 'none'); });
   $('u_rows').addEventListener('click', e => {
     const tr = e.target.closest('tr'); if (!tr) return;
     if (e.target.classList.contains('u-cancel')) { tr.remove(); return; }
+    if (e.target.classList.contains('u-pages')) { pagesOpen(e.target.dataset.email); return; }
     if (!e.target.classList.contains('u-save')) return;
     const isNew = !!tr.dataset.new, email = isNew ? tr.querySelector('.u-email').value.trim().toLowerCase() : tr.dataset.email;
     const cur = S.data.users.find(u => u.email === email) || {};
@@ -408,6 +416,31 @@
         await load(); users();
       } catch (er) { fail(er); }
     });
+  });
+  // the pages of Mechanical for one person on the chosen site (Edit / View / No access) – kept in Mechanical, set from here
+  const PG_WORD = { Edit: 'Edit', View: 'View', None: 'No access' };
+  async function pagesOpen(email) {
+    const box = $('pg_panel'), site = S.site, siteName = (S.data.sites.find(x => x.code === site) || {}).name || site;
+    const u = S.data.users.find(x => x.email === email) || { email: email, name: email };
+    const role = ((S.data.access.find(a => a.email === email && a.site === site && a.module === 'mechanical')) || {}).role || '';
+    box.hidden = false; box.innerHTML = '<p class="note">Loading the pages from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
+    let d; try { d = await api('/api/admin', { action: 'mechPages', site: site }); } catch (er) { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="btn small" type="button" id="pg_close">Close</button>'; return; }
+    if (S.site !== site) return;
+    const mu = (d.users || []).find(x => x.email === email);
+    const head = '<div class="panel-head"><h2>Pages in Mechanical – ' + esc(u.name) + '</h2><span class="note">' + esc(siteName) + ' (' + esc(site) + ') · <b>Edit</b> = add / change / delete · <b>View</b> = see and print · <b>No access</b> = page hidden</span></div>';
+    if (role === 'admin') { box.innerHTML = head + '<p class="note"><b>Admin</b> has Edit on every page. To give single pages, make him <b>User</b> above and save, then open Pages again.</p><button class="btn small" type="button" id="pg_close">Close</button>'; return; }
+    box.innerHTML = head + (mu ? '' : '<p class="note">He has not opened Mechanical on this site yet – the pages saved here are ready for his first sign-in.</p>') +
+      '<div class="pg-grid">' + (d.pages || []).map(p => { const v = (mu && mu.perms && mu.perms[p.key]) || 'None';
+        return '<label>' + esc(p.label) + '<select class="pg-sel ' + v + '" data-k="' + esc(p.key) + '">' + ['Edit', 'View', 'None'].map(o => '<option value="' + o + '"' + (o === v ? ' selected' : '') + '>' + PG_WORD[o] + '</option>').join('') + '</select></label>'; }).join('') + '</div>' +
+      '<div class="bar" style="margin:14px 0 0"><button class="btn primary small" type="button" id="pg_save" data-email="' + esc(email) + '" data-site="' + esc(site) + '">Save pages</button><button class="btn small" type="button" id="pg_close">Close</button></div>';
+  }
+  $('pg_panel').addEventListener('change', e => { if (e.target.classList.contains('pg-sel')) e.target.className = 'pg-sel ' + e.target.value; });
+  $('pg_panel').addEventListener('click', e => {
+    if (e.target.id === 'pg_close') { $('pg_panel').hidden = true; return; }
+    if (e.target.id !== 'pg_save') return;
+    const b = e.target, perms = {}; document.querySelectorAll('#pg_panel .pg-sel').forEach(x => { perms[x.dataset.k] = x.value; });
+    busy(b, 'Saving…', async () => { try { const r = await api('/api/admin', { action: 'mechPagesSave', site: b.dataset.site, email: b.dataset.email, perms: perms });
+      toast(r.changes ? 'Pages saved in Mechanical.' : 'Saved – nothing had changed.'); $('pg_panel').hidden = true; } catch (er) { fail(er); } });
   });
   // sites
   function sites() {
