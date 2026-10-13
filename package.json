@@ -1,0 +1,11 @@
+{
+  "name": "rcl-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RCL ERP Portal – one sign-in for every module, the Super Admin's console, and the dashboard of modules.",
+  "scripts": {
+    "dev": "node dev.js",
+    "test": "node --test test/unit.test.js"
+  },
+  "engines": { "node": ">=20" }
+}

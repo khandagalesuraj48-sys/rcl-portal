@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RCL ERP</title>
+<meta name="robots" content="noindex">
+<style>
+  /* RCL ERP Portal – the same family as the Mechanical app: navy bar, white panels, amber main button */
+  :root { --navy: #0F1F3D; --ink: #17202A; --muted: #5B6573; --line: #D9DEE5; --page: #F3F5F8; --panel: #FFFFFF; --amber: #F2B632; --amber-ink: #3B2A00;
+    --blue: #1D55E2; --ok: #15803D; --bad: #B91C1C; --soft: #EEF3FF; --ui: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.5 var(--ui); }
+  [hidden] { display: none !important; }
+  button, input, select { font: inherit; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 8px 16px; border-radius: 10px; border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; font-weight: 600; }
+  .btn.primary { background: var(--amber); border-color: #D99A00; color: var(--amber-ink); }
+  .btn.small { min-height: 34px; padding: 5px 12px; font-size: 14px; }
+  .btn:disabled { opacity: .6; cursor: default; }
+  .btn:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  input, select { min-height: 40px; padding: 7px 10px; border: 1px solid #B8C0CC; border-radius: 8px; background: #fff; color: var(--ink); width: 100%; }
+  label { display: block; font-size: 13.5px; font-weight: 600; color: var(--muted); margin: 0 0 4px; }
+  .field { margin: 0 0 14px; }
+  .err { color: var(--bad); font-weight: 600; min-height: 1.4em; }
+  .note { color: var(--muted); font-size: 14px; }
+  .mr { color: var(--muted); font-size: 13.5px; }
+  /* sign-in */
+  .center { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+  .card { width: 100%; max-width: 420px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 28px 24px; box-shadow: 0 12px 34px rgba(15,31,61,.08); }
+  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .brand .mark { width: 40px; height: 40px; border-radius: 10px; background: var(--navy); color: var(--amber); display: grid; place-items: center; font-weight: 800; letter-spacing: .02em; }
+  .brand b { font-size: 20px; } .brand small { display: block; color: var(--muted); font-size: 12.5px; }
+  h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 18px; margin: 0; }
+  .link { background: none; border: 0; padding: 0; color: var(--blue); cursor: pointer; font-weight: 600; }
+  /* top bar */
+  .top { position: sticky; top: 0; z-index: 5; background: var(--navy); color: #fff; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 10px 16px; }
+  .top .brand { margin: 0; } .top .brand b { color: #fff; } .top .brand small { color: rgba(255,255,255,.7); }
+  .top .who { margin-left: auto; text-align: right; font-size: 14px; } .top .who small { display: block; opacity: .75; }
+  .top .btn { background: transparent; color: #fff; border-color: rgba(255,255,255,.45); }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 18px 16px 48px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+  .panel-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-bottom: 12px; }
+  .panel-head .note { flex: 1 1 260px; }
+  /* dashboard */
+  .site { margin-bottom: 18px; } .site h3 { margin: 0 0 8px; font-size: 16px; } .site h3 small { color: var(--muted); font-weight: 500; }
+  .mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .mod { display: flex; flex-direction: column; gap: 4px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; text-decoration: none; color: var(--ink); min-height: 92px; }
+  .mod:hover { border-color: var(--blue); box-shadow: 0 6px 18px rgba(29,85,226,.12); }
+  .mod b { font-size: 17px; } .mod span { color: var(--muted); font-size: 13.5px; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--soft); color: var(--blue); }
+  /* console */
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tabs button { min-height: 36px; padding: 6px 14px; border: 1px solid rgba(255,255,255,.4); border-radius: 999px; background: transparent; color: #fff; font-weight: 600; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: #fff; color: var(--navy); }
+  .tw { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
+  th { background: #F6F8FB; font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  td input, td select { min-height: 34px; padding: 4px 8px; }
+  td.w input { min-width: 180px; } td small { display: block; color: var(--muted); }
+  tr.off td { opacity: .6; } tr.dirty { background: #FFFBEA; }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .bar .field { margin: 0; min-width: 220px; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .code { font: 700 20px/1.4 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .08em; text-align: center; padding: 12px; border: 2px dashed var(--blue); border-radius: 10px; user-select: all; }
+  #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #1F2B34; color: #fff; padding: 10px 18px; border-radius: 10px; max-width: calc(100% - 32px); z-index: 50; }
+  #toast.bad { background: var(--bad); }
+  .sel-r { font-weight: 600; } .sel-r.admin { color: var(--blue); } .sel-r.user { color: var(--ok); } .sel-r.none { color: var(--muted); }
+  @media (max-width: 640px) { .top .who { margin-left: 0; text-align: left; } }
+</style>
+</head>
+<body>
+
+<!-- sign-in -->
+<section id="v_login" class="center" hidden>
+  <form class="card" id="f_login" autocomplete="on">
+    <div class="brand"><span class="mark">RCL</span><div><b>RCL ERP</b><small>Rachana Construction Limited</small></div></div>
+    <h1>Sign in</h1>
+    <p class="mr">एकाच login ने सगळे modules.</p>
+    <p class="note" id="l_msg" hidden></p>
+    <div class="field"><label for="l_email">Email</label><input id="l_email" type="email" autocomplete="username" required></div>
+    <div class="field"><label for="l_pass">Password</label><input id="l_pass" type="password" autocomplete="current-password" required></div>
+    <p class="err" id="l_err" role="alert"></p>
+    <button class="btn primary" style="width:100%" id="l_btn" type="submit">Sign in</button>
+    <p class="note" style="margin-top:14px">Forgot your password? Ask the Super Admin to give you a one-time password.<br>
+      <button type="button" class="link" id="l_rec">Super Admin: set a new password with the recovery code</button></p>
+    <p class="note" id="l_setup" hidden><button type="button" class="link" id="l_setup_btn">First start: bring the users over from Mechanical</button></p>
+  </form>
+</section>
+
+<!-- first start: import from Mechanical -->
+<section id="v_setup" class="center" hidden>
+  <form class="card" id="f_setup">
+    <div class="brand"><span class="mark">RCL</span><div><b>RCL ERP</b><small>First start</small></div></div>
+    <h1>Bring the users over</h1>
+    <p class="note">The Portal copies from Mechanical, once: the companies, the sites, every user with the password he has now, who has which site, and the Super Admin. Mechanical is only read – nothing there changes.</p>
+    <p class="mr">Mechanical मधले users, त्यांचे आत्ताचे passwords, sites आणि Super Admin एकदाच इथे येतील. Mechanical मध्ये काहीही बदलत नाही.</p>
+    <div class="field"><label for="s_email">Super Admin email (Mechanical)</label><input id="s_email" type="email" autocomplete="username" required></div>
+    <div class="field"><label for="s_pass">Super Admin password (Mechanical)</label><input id="s_pass" type="password" autocomplete="current-password" required></div>
+    <p class="err" id="s_err" role="alert"></p>
+    <button class="btn primary" style="width:100%" id="s_btn" type="submit">Bring the users over</button>
+    <p class="note" style="margin-top:12px"><button type="button" class="link" id="s_back">Back to sign in</button></p>
+  </form>
+</section>
+
+<!-- the Super Admin's recovery code -->
+<section id="v_rec" class="center" hidden>
+  <form class="card" id="f_rec">
+    <div class="brand"><span class="mark">RCL</span><div><b>RCL ERP</b><small>Super Admin</small></div></div>
+    <h1>A new password with the recovery code</h1>
+    <p class="note">Only for the Super Admin: the recovery code written down when the Super Admin was made. You get a NEW recovery code – the old one stops working.</p>
+    <div id="rc_form">
+      <div class="field"><label for="rc_email">Super Admin email</label><input id="rc_email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="rc_code">Recovery code</label><input id="rc_code" autocomplete="off" placeholder="XXXX-XXXX-XXXX-XXXX" required></div>
+      <div class="field"><label for="rc_pw">New password – 8 or more, letters and numbers</label><input id="rc_pw" type="password" autocomplete="new-password" required></div>
+      <div class="field"><label for="rc_pw2">New password again</label><input id="rc_pw2" type="password" autocomplete="new-password" required></div>
+      <p class="err" id="rc_err" role="alert"></p>
+      <button class="btn primary" style="width:100%" id="rc_btn" type="submit">Set the new password</button>
+    </div>
+    <div id="rc_done" hidden><p><b>Password set.</b> Write your NEW recovery code on paper and keep it safe – it is shown only now:</p><p class="code" id="rc_code_new"></p></div>
+    <p class="note" style="margin-top:12px"><button type="button" class="link" id="rc_back">Back to sign in</button></p>
+  </form>
+</section>
+
+<!-- own password -->
+<section id="v_pw" class="center" hidden>
+  <form class="card" id="f_pw">
+    <div class="brand"><span class="mark">RCL</span><div><b>RCL ERP</b><small id="p_who"></small></div></div>
+    <h1 id="p_title">Set your own password</h1>
+    <p class="note" id="p_sub">Your password was set by the Super Admin. Choose a new one only you know.</p>
+    <div class="field" id="p_old_f"><label for="p_old">Current password</label><input id="p_old" type="password" autocomplete="current-password"></div>
+    <div class="field"><label for="p_new">New password – 8 or more, letters and numbers</label><input id="p_new" type="password" autocomplete="new-password" required></div>
+    <div class="field"><label for="p_new2">New password again</label><input id="p_new2" type="password" autocomplete="new-password" required></div>
+    <p class="err" id="p_err" role="alert"></p>
+    <button class="btn primary" style="width:100%" id="p_btn" type="submit">Save password</button>
+    <p class="note" style="margin-top:12px"><button type="button" class="link" id="p_cancel">Sign out</button></p>
+  </form>
+</section>
+
+<!-- a person's modules -->
+<section id="v_home" hidden>
+  <header class="top">
+    <div class="brand"><span class="mark">RCL</span><div><b>RCL ERP</b><small>My modules</small></div></div>
+    <div class="who"><b id="h_name"></b><small id="h_email"></small></div>
+    <button class="btn small" id="h_pw" type="button">Change password</button>
+    <button class="btn small" id="h_out" type="button">Sign out</button>
+  </header>
+  <main class="wrap">
+    <p class="note" id="h_msg" hidden></p>
+    <div id="h_sites"></div>
+    <div class="panel" id="h_none" hidden><h2>No module yet</h2><p class="note">The Super Admin has not given you a module on any site yet. Ask him.</p><p class="mr">तुम्हाला अजून कोणताही module दिलेला नाही – Super Admin ला सांगा.</p></div>
+  </main>
+</section>
+
+<!-- the Super Admin's console -->
+<section id="v_sa" hidden>
+  <header class="top">
+    <div class="brand"><span class="mark">RCL</span><div><b>Super Admin</b><small>RCL ERP – system design only</small></div></div>
+    <nav class="tabs" id="sa_tabs" role="tablist" aria-label="Super Admin">
+      <button type="button" role="tab" data-t="users" aria-selected="true">Users &amp; Access</button>
+      <button type="button" role="tab" data-t="sites" aria-selected="false">Sites</button>
+      <button type="button" role="tab" data-t="companies" aria-selected="false">Companies</button>
+      <button type="button" role="tab" data-t="modules" aria-selected="false">Modules</button>
+      <button type="button" role="tab" data-t="audit" aria-selected="false">Activity</button>
+      <button type="button" role="tab" data-t="me" aria-selected="false">My account</button>
+    </nav>
+    <div class="who"><b id="sa_name"></b><small id="sa_email"></small></div>
+    <button class="btn small" id="sa_out" type="button">Sign out</button>
+  </header>
+  <main class="wrap">
+    <section id="t_users" class="panel">
+      <div class="panel-head"><h2>Users &amp; Access</h2><span class="note">Pick a site: for every user, which module he may open there – <b>Admin</b>, <b>User</b> or <b>No access</b>. Access is separate on every site. Switched off = cannot sign in.</span></div>
+      <div class="bar"><div class="field"><label for="u_site">Site</label><select id="u_site"></select></div>
+        <button class="btn primary small" id="u_new" type="button">+ Add user</button><span class="note" id="u_count"></span></div>
+      <div class="tw"><table><thead id="u_head"></thead><tbody id="u_rows"></tbody></table></div>
+      <p class="note">A new user gets a <b>one-time password</b>: at his first sign-in he sets his own. A new one-time password ends his sign-ins.</p>
+    </section>
+    <section id="t_sites" class="panel" hidden>
+      <div class="panel-head"><h2>Sites</h2><span class="note">Every site of every module. A closed site cannot be opened by anybody.</span></div>
+      <div class="bar"><button class="btn primary small" id="st_new" type="button">+ Add site</button></div>
+      <div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>Company</th><th>State</th><th></th></tr></thead><tbody id="st_rows"></tbody></table></div>
+    </section>
+    <section id="t_companies" class="panel" hidden>
+      <div class="panel-head"><h2>Companies</h2><span class="note">The companies a site belongs to.</span></div>
+      <div class="tw"><table><thead><tr><th>Company</th><th>GSTIN</th><th>PAN</th><th>Address</th><th>Logo</th><th></th></tr></thead><tbody id="co_rows"></tbody></table></div>
+      <h2 style="margin-top:18px" id="co_title">Add a company</h2>
+      <div class="grid2" style="margin-top:10px">
+        <div class="field"><label for="co_name">Name *</label><input id="co_name" maxlength="80"></div>
+        <div class="field"><label for="co_gstin">GSTIN</label><input id="co_gstin" maxlength="15" placeholder="27ABCDE1234F1Z5"></div>
+        <div class="field"><label for="co_pan">PAN</label><input id="co_pan" maxlength="10" placeholder="ABCDE1234F"></div>
+        <div class="field"><label for="co_address">Address</label><input id="co_address" maxlength="300"></div>
+        <div class="field"><label for="co_logo">Logo (https link)</label><input id="co_logo" maxlength="300" placeholder="https://…"></div>
+      </div>
+      <div class="bar"><button class="btn primary" id="co_save" type="button">Save company</button><button class="btn" id="co_clear" type="button">New company</button></div>
+    </section>
+    <section id="t_modules" class="panel" hidden>
+      <div class="panel-head"><h2>Modules</h2><span class="note">A module shows on the dashboard only when it is <b>Live</b> and has its link.</span></div>
+      <div class="bar"><button class="btn primary small" id="m_new" type="button">+ Add module</button></div>
+      <div class="tw"><table><thead><tr><th>Module</th><th>Link</th><th>State</th><th></th></tr></thead><tbody id="m_rows"></tbody></table></div>
+    </section>
+    <section id="t_audit" class="panel" hidden>
+      <div class="panel-head"><h2>Activity</h2><span class="note">Sign-ins, users, access, sites, companies, modules – the last 200.</span></div>
+      <div class="tw"><table><thead><tr><th>When</th><th>Who</th><th>What</th><th>On</th><th>Detail</th></tr></thead><tbody id="a_rows"></tbody></table></div>
+    </section>
+    <section id="t_me" class="panel" hidden>
+      <div class="panel-head"><h2>My account</h2><span class="note">Forgot it? Sign-in screen → "Super Admin: … recovery code".</span></div>
+      <button class="btn primary" id="me_pw" type="button">Change my password</button>
+    </section>
+  </main>
+</section>
+
+<div id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s === undefined || s === null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const S = { me: null, data: null, site: '' };
+  // Marathi lines for the answers people meet most
+  const MR = { wrong: 'Email किंवा password चुकीचा आहे.', locked: 'खूप चुकीचे प्रयत्न झाले – 15 मिनिटांनी पुन्हा प्रयत्न करा.', busy: 'खूप जण एकदम sign in करत आहेत – एक मिनिट थांबा.',
+    policy: 'Password किमान 8 अक्षरांचा, अक्षरे आणि अंक दोन्ही असलेला हवा.', oldpw: 'सध्याचा password चुकीचा आहे.', recovery: 'Email किंवा recovery code चुकीचा आहे.', session: 'तुमचा login संपला आहे – पुन्हा sign in करा.' };
+  function toast(t, bad) { const e = $('toast'); e.textContent = t; e.className = bad ? 'bad' : ''; e.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { e.hidden = true; }, bad ? 6000 : 3500); }
+  async function api(path, body) {
+    let r;
+    try { r = await fetch(path, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-RCL': '1' }, body: JSON.stringify(body || {}) }); }
+    catch (e) { throw Object.assign(new Error('No connection – check the internet and try again.'), { code: 'net' }); }
+    let j = {}; try { j = await r.json(); } catch (e) { j = { error: 'The Portal did not answer properly (' + r.status + ').' }; }
+    if (!r.ok || j.error) { const er = new Error(j.error || ('Error ' + r.status)); er.code = j.code || ''; er.status = r.status; throw er; }
+    return j;
+  }
+  const msgOf = e => String(e.message) + (MR[e.code] ? ' · ' + MR[e.code] : '');
+  function show(v) { ['v_login', 'v_setup', 'v_rec', 'v_pw', 'v_home', 'v_sa'].forEach(id => { $(id).hidden = id !== v; }); window.scrollTo(0, 0); }
+  async function busy(btn, label, fn) { const t = btn.textContent; btn.disabled = true; btn.textContent = label; try { await fn(); } finally { btn.disabled = false; btn.textContent = t; } }
+  const params = new URLSearchParams(location.search);
+  const next = (() => { const n = params.get('next') || ''; return /^\/api\/go\?/.test(n) ? n : ''; })();
+
+  // ---------- start ----------
+  async function start() {
+    let me; try { me = await api('/api/auth', { action: 'me' }); } catch (e) { me = { signedIn: false }; }
+    S.me = me;
+    if (!me.signedIn) return loginView();
+    if (me.mustChange) return pwView(true);
+    if (me.user.super) return saView();
+    if (next) { location.replace(next); return; }
+    homeView();
+  }
+  async function loginView() {
+    show('v_login');
+    const m = params.get('msg'); $('l_msg').hidden = !m;
+    if (m === 'super') $('l_msg').textContent = 'The Super Admin opens no module – he only designs the system.';
+    try { const st = await api('/api/setup', { action: 'status' }); $('l_setup').hidden = !st.needed; } catch (e) { /* the sign-in still works */ }
+    setTimeout(() => $('l_email').focus(), 30);
+  }
+  $('f_login').addEventListener('submit', ev => { ev.preventDefault(); $('l_err').textContent = '';
+    busy($('l_btn'), 'Signing in…', async () => {
+      try { await api('/api/auth', { action: 'login', email: $('l_email').value.trim(), password: $('l_pass').value }); $('l_pass').value = ''; await start(); }
+      catch (e) { $('l_err').textContent = msgOf(e); }
+    }); });
+  $('l_setup_btn').addEventListener('click', () => { show('v_setup'); setTimeout(() => $('s_email').focus(), 30); });
+  $('s_back').addEventListener('click', () => loginView());
+  $('f_setup').addEventListener('submit', ev => { ev.preventDefault(); $('s_err').textContent = '';
+    busy($('s_btn'), 'Bringing them over…', async () => {
+      try { const r = await api('/api/setup', { action: 'import', email: $('s_email').value.trim(), password: $('s_pass').value });
+        $('s_pass').value = '';
+        toast('Done: ' + r.users + ' users, ' + r.sites + ' sites, ' + r.companies + ' companies, ' + r.access + ' access lines. Sign in now.');
+        $('l_email').value = $('s_email').value.trim(); loginView(); }
+      catch (e) { $('s_err').textContent = msgOf(e); }
+    }); });
+  $('l_rec').addEventListener('click', () => { show('v_rec'); $('rc_form').hidden = false; $('rc_done').hidden = true; ['rc_code', 'rc_pw', 'rc_pw2'].forEach(id => { $(id).value = ''; }); $('rc_err').textContent = ''; setTimeout(() => $('rc_email').focus(), 30); });
+  $('rc_back').addEventListener('click', () => loginView());
+  $('f_rec').addEventListener('submit', ev => { ev.preventDefault(); $('rc_err').textContent = '';
+    if ($('rc_pw').value !== $('rc_pw2').value) { $('rc_err').textContent = 'The two new passwords are not the same.'; return; }
+    busy($('rc_btn'), 'Saving…', async () => {
+      try { const r = await api('/api/auth', { action: 'recover', email: $('rc_email').value.trim(), code: $('rc_code').value, password: $('rc_pw').value });
+        $('rc_form').hidden = true; $('rc_done').hidden = false; $('rc_code_new').textContent = r.recovery; }
+      catch (e) { $('rc_err').textContent = msgOf(e); }
+    }); });
+
+  // ---------- own password ----------
+  let pwForced = false;
+  function pwView(forced) {
+    pwForced = !!forced; show('v_pw');
+    $('p_who').textContent = S.me && S.me.user ? S.me.user.name + ' · ' + S.me.user.email : '';
+    $('p_title').textContent = forced ? 'Set your own password' : 'Change password';
+    $('p_sub').textContent = forced ? 'Your password was set by the Super Admin. Type it once more below, then choose a new one only you know.' : 'After this you stay signed in here; your other sign-ins end.';
+    $('p_cancel').textContent = forced ? 'Sign out' : 'Cancel';
+    ['p_old', 'p_new', 'p_new2'].forEach(id => { $(id).value = ''; }); $('p_err').textContent = '';
+    setTimeout(() => $('p_old').focus(), 30);
+  }
+  $('f_pw').addEventListener('submit', ev => { ev.preventDefault(); $('p_err').textContent = '';
+    if ($('p_new').value !== $('p_new2').value) { $('p_err').textContent = 'The two new passwords are not the same.'; return; }
+    busy($('p_btn'), 'Saving…', async () => {
+      try { await api('/api/auth', { action: 'changePassword', old: $('p_old').value, password: $('p_new').value }); toast('Password saved.'); await start(); }
+      catch (e) { $('p_err').textContent = msgOf(e); if (e.code === 'session') loginView(); }
+    }); });
+  $('p_cancel').addEventListener('click', () => { if (pwForced) signOut(); else start(); });
+  async function signOut() { try { await api('/api/auth', { action: 'logout' }); } catch (e) { /* the cookie ends anyway */ } S.me = null; loginView(); }
+
+  // ---------- a person's modules ----------
+  function homeView() {
+    show('v_home');
+    const me = S.me, items = me.items || [];
+    $('h_name').textContent = me.user.name; $('h_email').textContent = me.user.email;
+    const m = params.get('msg'); $('h_msg').hidden = m !== 'noaccess'; $('h_msg').textContent = 'You do not have that module on that site. Ask the Super Admin.';
+    // one module on one site: open it straight away (from a module's "Modules" button: ?menu=1 – stay here)
+    if (items.length === 1 && !params.has('menu') && !m) { location.replace(goLink(items[0])); return; }
+    const bySite = {}; items.forEach(i => { (bySite[i.site] = bySite[i.site] || { name: i.siteName, company: i.company, mods: [] }).mods.push(i); });
+    $('h_sites').innerHTML = Object.keys(bySite).map(c => { const s = bySite[c];
+      return '<div class="site panel"><h3>' + esc(s.name) + ' <small>' + esc(c) + (s.company ? ' · ' + esc(s.company) : '') + '</small></h3><div class="mods">' +
+        s.mods.map(i => '<a class="mod" href="' + esc(goLink(i)) + '"><b>' + esc(i.moduleName) + '</b><span>' + esc(i.siteName) + '</span><span class="tag">' + (i.role === 'admin' ? 'Admin' : 'User') + '</span></a>').join('') + '</div></div>'; }).join('');
+    $('h_none').hidden = items.length > 0;
+  }
+  const goLink = i => '/api/go?module=' + encodeURIComponent(i.module) + '&site=' + encodeURIComponent(i.site);
+  $('h_out').addEventListener('click', signOut);
+  $('h_pw').addEventListener('click', () => pwView(false));
+
+  // ---------- the Super Admin ----------
+  async function saView() {
+    show('v_sa'); $('sa_name').textContent = S.me.user.name; $('sa_email').textContent = S.me.user.email;
+    await load(); tab(S.tab || 'users');
+  }
+  async function load() { try { S.data = await api('/api/admin', { action: 'overview' }); } catch (e) { fail(e); } }
+  function fail(e) { if (e.code === 'session' || e.status === 401) { toast(MR.session, true); return loginView(); } toast(msgOf(e), true); }
+  function tab(t) {
+    S.tab = t; document.querySelectorAll('#sa_tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === t)));
+    ['users', 'sites', 'companies', 'modules', 'audit', 'me'].forEach(k => { $('t_' + k).hidden = k !== t; });
+    if (t === 'users') users(); else if (t === 'sites') sites(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'audit') audit();
+  }
+  $('sa_tabs').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) tab(b.dataset.t); });
+  $('sa_out').addEventListener('click', signOut);
+  $('me_pw').addEventListener('click', () => pwView(false));
+
+  // users & access – one site at a time
+  const ROLE = (v, mod, dis) => '<select class="sel-r ' + (v || 'none') + '" data-m="' + esc(mod) + '"' + (dis ? ' disabled' : '') + '><option value=""' + (!v ? ' selected' : '') + '>No access</option><option value="user"' + (v === 'user' ? ' selected' : '') + '>User</option><option value="admin"' + (v === 'admin' ? ' selected' : '') + '>Admin</option></select>';
+  function users() {
+    const d = S.data; if (!d) return;
+    const sites = d.sites; S.site = sites.some(s => s.code === S.site) ? S.site : (sites[0] || {}).code || '';
+    $('u_site').innerHTML = sites.map(s => '<option value="' + esc(s.code) + '"' + (s.code === S.site ? ' selected' : '') + '>' + esc(s.name) + ' (' + esc(s.code) + ')' + (s.status === 'closed' ? ' – closed' : '') + '</option>').join('') || '<option value="">– no site yet –</option>';
+    $('u_head').innerHTML = '<tr><th>User</th><th>Active</th>' + d.modules.map(m => '<th>' + esc(m.name) + '</th>').join('') + '<th>One-time password</th><th></th></tr>';
+    const people = d.users.filter(u => !u.super);
+    $('u_rows').innerHTML = people.map(u => row(u, false)).join('');
+    $('u_count').textContent = people.length + ' users · ' + people.filter(u => u.active).length + ' active';
+  }
+  function row(u, isNew) {
+    const d = S.data, roleOf = m => ((d.access.find(a => a.email === u.email && a.site === S.site && a.module === m.key)) || {}).role || '';
+    return '<tr data-email="' + esc(u.email) + '"' + (isNew ? ' data-new="1"' : u.active ? '' : ' class="off"') + '>' +
+      '<td class="w">' + (isNew ? '<input class="u-email" type="email" placeholder="email"><input class="u-name" placeholder="name" style="margin-top:4px">' : '<b>' + esc(u.name) + '</b><small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + '</small>') + '</td>' +
+      '<td><input type="checkbox" class="u-active"' + (u.active !== false ? ' checked' : '') + ' aria-label="Active" style="width:20px;min-height:20px"></td>' +
+      d.modules.map(m => '<td>' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + '</td>').join('') +
+      '<td><input class="u-pw" placeholder="' + (isNew ? 'one-time password' : 'new one-time password') + '" autocomplete="new-password"></td>' +
+      '<td><button class="btn primary small u-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (isNew ? ' <button class="link u-cancel" type="button">Cancel</button>' : '') + '</td></tr>';
+  }
+  $('u_site').addEventListener('change', () => { S.site = $('u_site').value; users(); });
+  $('u_new').addEventListener('click', () => { if (document.querySelector('#u_rows tr[data-new]')) return; $('u_rows').insertAdjacentHTML('afterbegin', row({ email: '', name: '', active: true }, true)); document.querySelector('#u_rows .u-email').focus(); });
+  $('u_rows').addEventListener('change', e => { const tr = e.target.closest('tr'); if (tr) tr.classList.add('dirty'); if (e.target.classList.contains('sel-r')) e.target.className = 'sel-r ' + (e.target.value || 'none'); });
+  $('u_rows').addEventListener('click', e => {
+    const tr = e.target.closest('tr'); if (!tr) return;
+    if (e.target.classList.contains('u-cancel')) { tr.remove(); return; }
+    if (!e.target.classList.contains('u-save')) return;
+    const isNew = !!tr.dataset.new, email = isNew ? tr.querySelector('.u-email').value.trim().toLowerCase() : tr.dataset.email;
+    const cur = S.data.users.find(u => u.email === email) || {};
+    busy(e.target, 'Saving…', async () => {
+      try {
+        const pw1 = tr.querySelector('.u-pw').value, active = tr.querySelector('.u-active').checked;
+        await api('/api/admin', { action: 'userSave', isNew: isNew, email: email, name: isNew ? tr.querySelector('.u-name').value : cur.name, active: active, newPassword: pw1 });
+        for (const sel of tr.querySelectorAll('.sel-r')) {
+          const was = ((S.data.access.find(a => a.email === email && a.site === S.site && a.module === sel.dataset.m)) || {}).role || '';
+          if (S.site && sel.value !== was) await api('/api/admin', { action: 'accessSet', email: email, site: S.site, module: sel.dataset.m, role: sel.value });
+        }
+        toast((isNew ? 'User added: ' : 'Saved: ') + email + (pw1 ? ' – tell him the one-time password.' : ''));
+        await load(); users();
+      } catch (er) { fail(er); }
+    });
+  });
+  // sites
+  function sites() {
+    const d = S.data; if (!d) return;
+    const comp = c => '<select class="st-comp"><option value="">–</option>' + d.companies.map(x => '<option value="' + esc(x.id) + '"' + (x.id === c ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>';
+    const stat = v => '<select class="st-status"><option value="active"' + (v !== 'closed' ? ' selected' : '') + '>Active</option><option value="closed"' + (v === 'closed' ? ' selected' : '') + '>Closed</option></select>';
+    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<b>' + esc(s.code) + '</b>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><button class="btn primary small st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button></td></tr>';
+    $('st_rows').innerHTML = d.sites.map(s => S.siteRow(s, false)).join('') || '<tr><td colspan="5" class="note">No site yet.</td></tr>';
+  }
+  $('st_new').addEventListener('click', () => { if (document.querySelector('#st_rows tr[data-new]')) return; $('st_rows').insertAdjacentHTML('afterbegin', S.siteRow({ code: '', name: '', status: 'active' }, true)); document.querySelector('#st_rows .st-code').focus(); });
+  $('st_rows').addEventListener('click', e => { if (!e.target.classList.contains('st-save')) return; const tr = e.target.closest('tr'), isNew = !!tr.dataset.new;
+    busy(e.target, 'Saving…', async () => { try { await api('/api/admin', { action: 'siteSave', isNew: isNew, code: isNew ? tr.querySelector('.st-code').value : tr.dataset.code, name: tr.querySelector('.st-name').value, company: tr.querySelector('.st-comp').value, status: tr.querySelector('.st-status').value });
+      toast('Site saved.'); await load(); sites(); } catch (er) { fail(er); } }); });
+  // companies
+  function companies() {
+    const d = S.data; if (!d) return;
+    $('co_rows').innerHTML = d.companies.map(c => '<tr data-id="' + esc(c.id) + '"><td><b>' + esc(c.name) + '</b></td><td>' + esc(c.gstin || '–') + '</td><td>' + esc(c.pan || '–') + '</td><td>' + esc(c.address || '–') + '</td><td>' + (c.logo ? 'Yes' : '–') + '</td><td><button class="btn small co-edit" type="button">Change</button></td></tr>').join('') || '<tr><td colspan="6" class="note">No company yet – add Rachana and Sketchline below.</td></tr>';
+    coForm(null);
+  }
+  function coForm(c) { S.coId = c ? c.id : ''; $('co_title').textContent = c ? 'Change: ' + c.name : 'Add a company'; ['name', 'gstin', 'pan', 'address', 'logo'].forEach(k => { $('co_' + k).value = c ? (c[k] || '') : ''; }); }
+  $('co_rows').addEventListener('click', e => { if (!e.target.classList.contains('co-edit')) return; coForm(S.data.companies.find(c => c.id === e.target.closest('tr').dataset.id)); $('co_name').focus(); });
+  $('co_clear').addEventListener('click', () => coForm(null));
+  $('co_save').addEventListener('click', e => busy(e.target, 'Saving…', async () => { try { await api('/api/admin', { action: 'companySave', id: S.coId, name: $('co_name').value, gstin: $('co_gstin').value, pan: $('co_pan').value, address: $('co_address').value, logo: $('co_logo').value });
+    toast('Company saved.'); await load(); companies(); } catch (er) { fail(er); } }));
+  // modules
+  function modules() {
+    const d = S.data; if (!d) return;
+    S.modRow = (m, isNew) => '<tr data-key="' + esc(m.key) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="m-key" placeholder="key, e.g. store" style="width:130px"><input class="m-name" placeholder="name, e.g. Store" style="width:130px;margin-top:4px">' : '<b>' + esc(m.name) + '</b><small>' + esc(m.key) + '</small>') + '</td>' +
+      '<td class="w"><input class="m-url" placeholder="https://…" value="' + esc(m.url || '') + '"></td><td><select class="m-status"><option value="live"' + (m.status === 'live' ? ' selected' : '') + '>Live</option><option value="off"' + (m.status !== 'live' ? ' selected' : '') + '>Off</option></select></td>' +
+      '<td><button class="btn primary small m-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button></td></tr>';
+    $('m_rows').innerHTML = d.modules.map(m => S.modRow(m, false)).join('');
+  }
+  $('m_new').addEventListener('click', () => { if (document.querySelector('#m_rows tr[data-new]')) return; $('m_rows').insertAdjacentHTML('afterbegin', S.modRow({ key: '', name: '', status: 'off' }, true)); });
+  $('m_rows').addEventListener('click', e => { if (!e.target.classList.contains('m-save')) return; const tr = e.target.closest('tr'), isNew = !!tr.dataset.new;
+    busy(e.target, 'Saving…', async () => { try { await api('/api/admin', { action: 'moduleSave', isNew: isNew, key: isNew ? tr.querySelector('.m-key').value.trim() : tr.dataset.key, name: isNew ? tr.querySelector('.m-name').value : '', url: tr.querySelector('.m-url').value.trim(), status: tr.querySelector('.m-status').value });
+      toast('Module saved.'); await load(); modules(); } catch (er) { fail(er); } }); });
+  // activity
+  async function audit() {
+    $('a_rows').innerHTML = '<tr><td colspan="5" class="note">Loading…</td></tr>';
+    try { const r = await api('/api/admin', { action: 'audit' });
+      $('a_rows').innerHTML = r.rows.map(x => '<tr><td>' + esc(new Date(x.at).toLocaleString('en-IN')) + '</td><td>' + esc(x.actor) + '</td><td>' + esc(x.action) + '</td><td>' + esc(x.target) + '</td><td><small>' + esc(x.detail ? JSON.stringify(x.detail) : '') + '</small></td></tr>').join('') || '<tr><td colspan="5" class="note">Nothing yet.</td></tr>'; }
+    catch (e) { fail(e); }
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>
