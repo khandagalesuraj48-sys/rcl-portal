@@ -128,6 +128,20 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   r = await S.req('/api/admin', { action: 'userSave', email: 'sa@rcl.test', name: 'X', active: false });
   ok('   nor be switched off from the users list', r.status === 400, r.j);
 
+  // ---- the pages of Mechanical, given here (Mechanical :3000 is linked to this Portal on the rig) ----
+  r = await S.req('/api/admin', { action: 'mechPages', site: 'S1' });
+  ok('Pages: the Super Admin sees S1\'s users in Mechanical with their pages', r.status === 200 && r.j.pages.some(x => x.key === 'Diesel Issue') && r.j.users.some(u => u.email === 'view@rcl.test' && u.perms.Dashboard), r.j.error || r.j);
+  ok('   (no password in the answer)', !/scrypt|sha256/.test(JSON.stringify(r.j)));
+  const keepPg = sql('rcl', "select perm_diesel_issue from app_users where email = 'view@rcl.test'");
+  r = await S.req('/api/admin', { action: 'mechPagesSave', site: 'S1', email: 'view@rcl.test', perms: { 'Diesel Issue': 'Edit', Dashboard: 'View' } });
+  ok('   he sets view\'s pages: saved in Mechanical', r.status === 200 && sql('rcl', "select perm_diesel_issue from app_users where email = 'view@rcl.test'") === 'Edit', r.j);
+  ok('   written in the Activity record here', sql('rcl_portal', "select count(*) from audit where action = 'Pages' and target = 'view@rcl.test · S1'") === '1');
+  r = await S.req('/api/admin', { action: 'mechPagesSave', site: '18B', email: 'view@rcl.test', perms: { Dashboard: 'View' } });
+  ok('   a site where he does not have Mechanical: refused (give the site first)', r.status === 400 && r.j.code === 'noaccess', r.j);
+  r = await A.req('/api/admin', { action: 'mechPages', site: 'S1' });
+  ok('   nobody but the Super Admin', r.status === 403, r.status);
+  sql('rcl', "update app_users set perm_diesel_issue = '" + keepPg + "', updated_at = now() where email = 'view@rcl.test'");
+
   // ---- a brand-new user ----
   const R = browser();
   r = await R.req('/api/auth', { action: 'login', email: 'ravi@portal.test', password: 'Temp1234' });
