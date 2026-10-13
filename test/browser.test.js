@@ -17,13 +17,21 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
 (async () => {
   // the same start as test/api.test.js: an empty Portal, a fresh Mechanical Super Admin
   sql('rcl_portal', "truncate public.access, public.sessions, public.audit, public.counters, public.signing_keys, public.users, public.sites, public.companies cascade; update public.modules set url = null, status = 'live' where key = 'mechanical'; delete from public.modules where key <> 'mechanical';");
+  execSync('timeout 60 bash /home/claude/rig/portal_srv.sh');      // a fresh Portal server: it forgets the signing key of the emptied database
+  // Mechanical as the rig has it: users on the first site only (opening a module through the Portal adds a user's site there – an earlier run)
+  sql('rcl', "delete from public.rcl_user_sites where site <> 'S1'; delete from public.app_users where email = 'ravi@rcl.test'; delete from public.rcl_user_sites where email = 'ravi@rcl.test';");
   sql('rcl', "delete from rcl_super_admin; delete from web.cache where key like 'SA%' or key like 'F\\_%' or key like 'LG\\_%';");
+  // the new user of this test, if an earlier run brought him into Mechanical (opening it through the Portal writes him into its Users)
+  sql('rcl', "delete from public.app_users where email = 'ravi@rcl.test'; delete from public.rcl_user_sites where email = 'ravi@rcl.test';");
+  sql('rcl_s2', "delete from public.app_users where email = 'ravi@rcl.test';");
   const a = await mech('login', 'sujit@rcl.test', PW);
   const mk = await mech('api', a.result.token, 'createSuperAdmin', [{ email: 'sa@rcl.test', name: 'Owner', password: SAPW, password2: SAPW }]);
   ok('rig: a Mechanical Super Admin made', !!(mk.result && mk.result.recovery), mk.error);
 
   const browser = await chromium.launch({ timeout: 60000 });
   const errors = [];
+  // a view puts the cursor into its first box 30 ms after it opens: typing starts after that (otherwise letters land in the wrong box)
+  const settled = (pg, id) => pg.waitForFunction(x => document.activeElement && document.activeElement.id === x, id);
   // only the Portal's own page counts (Mechanical, opened at the end, is tested in its own repository); the one wrong password tried on purpose answers 401
     const watch = pg => { pg.on('pageerror', e => { if (pg.url().startsWith(P)) errors.push(String(e)); }); pg.on('console', m => { if (m.type() === 'error' && pg.url().startsWith(P) && !/favicon|status of 401/.test(m.text())) errors.push(m.text()); }); pg.setDefaultTimeout(20000); };
   try {
@@ -33,9 +41,11 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     await pg.waitForSelector('#l_setup:not([hidden])');
     ok('first start: the sign-in page offers "bring the users over"', await pg.isVisible('#l_setup_btn'));
     await pg.screenshot({ path: path.join(SHOTS, '01-login-first-start.png') });
-    await pg.click('#l_setup_btn'); await pg.fill('#s_email', 'sa@rcl.test'); await pg.fill('#s_pass', 'wrong-pass-9');
+    await pg.click('#l_setup_btn'); await settled(pg, 's_email'); await pg.fill('#s_email', 'sa@rcl.test'); await pg.fill('#s_pass', 'wrong-pass-9');
     // wait for the server's answer itself, so a slow or missing answer is told apart from a page that did not show it
-    const [ans] = await Promise.all([pg.waitForResponse(r => r.url() === P + '/api/setup' && r.request().method() === 'POST' && /"import"/.test(r.request().postData() || ''), { timeout: 30000 }), pg.click('#s_btn')]);
+    let ans;
+    try { [ans] = await Promise.all([pg.waitForResponse(r => r.url() === P + '/api/setup' && r.request().method() === 'POST' && /"import"/.test(r.request().postData() || ''), { timeout: 30000 }), pg.click('#s_btn')]); }
+    catch (e) { console.log('STATE ' + JSON.stringify(await pg.evaluate(() => ({ views: ['v_login', 'v_setup', 'v_home', 'v_sa'].filter(id => !document.getElementById(id).hidden), btn: document.getElementById('s_btn').textContent, dis: document.getElementById('s_btn').disabled, email: document.getElementById('s_email').value, pass: document.getElementById('s_pass').value.length, err: document.getElementById('s_err').textContent, active: (document.activeElement || {}).id, valid: document.getElementById('f_setup').checkValidity() })))); await pg.screenshot({ path: path.join(SHOTS, 'fail-setup.png') }); throw e; }
     ok('   the server answers a wrong import password with 401', ans.status() === 401, ans.status());
     await pg.waitForFunction(() => document.getElementById('s_err').textContent.length > 0);
     ok('   a wrong password: told plainly, in English and Marathi', /Wrong email or password/.test(await pg.textContent('#s_err')) && /[ऀ-ॿ]/.test(await pg.textContent('#s_err')), await pg.textContent('#s_err'));
@@ -66,34 +76,36 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     } else ok('   a second site on the rig to test per-site access', false, 'only one site');
     for (const t of ['sites', 'companies', 'modules', 'audit']) { await pg.click('#sa_tabs button[data-t="' + t + '"]'); await pg.waitForSelector('#t_' + t + ':not([hidden])'); await pg.screenshot({ path: path.join(SHOTS, '03-super-' + t + '.png'), fullPage: true }); }
     ok('   the Activity tab shows the import and the new user', /Import from Mechanical/.test(await pg.textContent('#a_rows')) && /ravi@rcl\.test/.test(await pg.textContent('#a_rows')));
-    await pg.click('#sa_out'); await pg.waitForSelector('#v_login:not([hidden])');
+    await pg.click('#sa_out'); await pg.waitForSelector('#v_login:not([hidden])'); await settled(pg, 'l_email');
     ok('   sign-out: back to the sign-in page', true);
     // the new user: one-time password → his own password → one module on one site → straight in
     await pg.fill('#l_email', 'ravi@rcl.test'); await pg.fill('#l_pass', 'Ravi#Temp2026'); await pg.click('#l_btn');
-    await pg.waitForSelector('#v_pw:not([hidden])');
+    await pg.waitForSelector('#v_pw:not([hidden])'); await settled(pg, 'p_old');
     ok('a new user must first set his own password', /Set your own password/.test(await pg.textContent('#p_title')));
     await pg.screenshot({ path: path.join(SHOTS, '04-set-own-password.png') });
     await pg.fill('#p_old', 'Ravi#Temp2026'); await pg.fill('#p_new', 'Ravi#Own2026x'); await pg.fill('#p_new2', 'Ravi#Own2026x');
-    await Promise.all([pg.waitForURL(u => u.href.startsWith(M) , { timeout: 30000 }), pg.click('#p_btn')]);
-    const url = pg.url();
+    // (the module takes the ticket out of its address at once – so the Portal's answer itself is looked at)
+    const goTo = r => r.url().startsWith(P + '/api/go?') && r.status() === 302;
+    const [g1] = await Promise.all([pg.waitForResponse(goTo, { timeout: 30000 }), pg.waitForURL(u => u.href.startsWith(M), { timeout: 30000 }), pg.click('#p_btn')]);
+    const url = g1.headers().location || '';
     ok('   one module on one site: he goes straight into Mechanical, with a sign-in ticket', url.startsWith(M + '/#sso=') && url.split('#sso=')[1].split('.').length === 3, url.slice(0, 80));
     // sujit: two sites → the dashboard
     await pg.goto(P + '/?menu=1'); // ravi still signed in here; sign out first through the page
     await pg.waitForSelector('#v_home:not([hidden])');
     ok('   from a module, "?menu=1" shows his dashboard instead of jumping again', (await pg.$$eval('#h_sites a.mod', x => x.length)) === 1);
-    await pg.click('#h_out'); await pg.waitForSelector('#v_login:not([hidden])');
+    await pg.click('#h_out'); await pg.waitForSelector('#v_login:not([hidden])'); await settled(pg, 'l_email');
     await pg.fill('#l_email', 'sujit@rcl.test'); await pg.fill('#l_pass', PW); await pg.click('#l_btn');
     await pg.waitForSelector('#v_home:not([hidden])');
     const cards = await pg.$$eval('#h_sites a.mod', x => x.map(a => a.textContent));
     ok('sujit (two sites) sees his dashboard: one card per site and module', cards.length === 2, cards);
     await pg.screenshot({ path: path.join(SHOTS, '05-dashboard-computer.png'), fullPage: true });
-    await Promise.all([pg.waitForURL(u => u.href.startsWith(M), { timeout: 30000 }), pg.click('#h_sites a.mod >> nth=0')]);
-    ok('   a card opens the module with a ticket', pg.url().includes('#sso='));
+    const [g2] = await Promise.all([pg.waitForResponse(goTo, { timeout: 30000 }), pg.waitForURL(u => u.href.startsWith(M), { timeout: 30000 }), pg.click('#h_sites a.mod >> nth=0')]);
+    ok('   a card opens the module with a ticket', (g2.headers().location || '').startsWith(M + '/#sso='));
     await ctx.close();
 
     // ---- phone ----
     const ph = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }), pp = await ph.newPage(); watch(pp);
-    await pp.goto(P + '/'); await pp.waitForSelector('#v_login:not([hidden])');
+    await pp.goto(P + '/'); await pp.waitForSelector('#v_login:not([hidden])'); await settled(pp, 'l_email');
     const wide = async () => pp.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     ok('phone: the sign-in page fits (no sideways scrolling)', (await wide()) <= 0, await wide());
     await pp.screenshot({ path: path.join(SHOTS, '06-phone-login.png') });
@@ -101,7 +113,7 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     await pp.waitForSelector('#v_home:not([hidden])');
     ok('phone: the dashboard fits', (await wide()) <= 0, await wide());
     await pp.screenshot({ path: path.join(SHOTS, '07-phone-dashboard.png'), fullPage: true });
-    await pp.click('#h_out'); await pp.waitForSelector('#v_login:not([hidden])');
+    await pp.click('#h_out'); await pp.waitForSelector('#v_login:not([hidden])'); await settled(pp, 'l_email');
     await pp.fill('#l_email', 'sa@rcl.test'); await pp.fill('#l_pass', SAPW); await pp.click('#l_btn');
     await pp.waitForSelector('#v_sa:not([hidden])'); await pp.waitForSelector('#u_rows tr');
     ok('phone: the Super Admin console – the page itself fits (the users table scrolls inside its own box)', (await wide()) <= 0, await wide());
@@ -109,6 +121,11 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     await ph.close();
     ok('no script error on any page', errors.length === 0, errors);
   } catch (e) { ok('the run finished', false, e.stack || String(e)); }
-  finally { await browser.close(); }
+  finally {
+    await browser.close();
+    // Mechanical back as it was: the new user of this test opened it (and was written into its Users), sujit opened T2
+    sql('rcl', "delete from public.app_users where email = 'ravi@rcl.test'; delete from public.rcl_user_sites where email = 'ravi@rcl.test' or site <> 'S1';");
+    sql('rcl_s2', "delete from public.app_users where email = 'ravi@rcl.test';");
+  }
   console.log(out.join('\n')); console.log('\nTOTAL ' + pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);
 })();

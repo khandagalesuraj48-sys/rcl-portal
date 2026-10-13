@@ -237,12 +237,17 @@
 
   // ---------- start ----------
   async function start() {
+    // a module's "Logout" comes here with ?signout=1: the Portal sign-in ends too (one sign-out for every module)
+    if (params.has('signout')) { params.delete('signout'); history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : ''));
+      try { await api('/api/auth', { action: 'logout' }); } catch (e) { /* the cookie ends anyway */ } S.me = null; loginView(); return; }
     let me; try { me = await api('/api/auth', { action: 'me' }); } catch (e) { me = { signedIn: false }; }
     S.me = me;
     if (!me.signedIn) return loginView();
     if (me.mustChange) return pwView(true);
     if (me.user.super) return saView();
     if (next) { location.replace(next); return; }
+    // a module's password button comes here with ?pw=1: the Portal's own "Change password" (one password for every module)
+    if (params.has('pw')) { params.delete('pw'); history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : '')); params.set('menu', '1'); homeView(); return pwView(false); }
     homeView();
   }
   async function loginView() {
