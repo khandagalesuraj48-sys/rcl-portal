@@ -20,7 +20,7 @@ async function signed(paths, seconds) {
   if (!c.url || !c.key) throw fail(500, 'The Portal server is not set up: SUPABASE_URL and SUPABASE_SECRET_KEY are missing in Vercel → Environment Variables.');
   let r;
   try {
-    r = await fetch(c.url + '/storage/v1/object/sign/' + BUCKET, { method: 'POST', headers: { apikey: c.key, Authorization: 'Bearer ' + c.key, 'Content-Type': 'application/json' },
+    r = await fetch(c.url + '/storage/v1/object/sign/' + BUCKET, { method: 'POST', headers: { apikey: c.key, 'Content-Type': 'application/json' },
       body: JSON.stringify({ expiresIn: seconds, paths: paths }), signal: AbortSignal.timeout(15000) });
   } catch (e) { throw fail(503, 'Could not reach the app store of the Portal – please try again in a moment.'); }
   const t = await r.text();
