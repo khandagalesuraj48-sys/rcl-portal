@@ -51,3 +51,14 @@ timeout 120 node --test test/unit.test.js     # no database
 timeout 300 node test/api.test.js             # rig: Portal :3010 + its database, Mechanical :3000 / :3100
 timeout 300 node test/browser.test.js         # rig + Chromium (Playwright); pictures in test/shots/
 ```
+
+## One address (13-10-2026)
+The Portal is also served under the main address, `https://oneclicksolution-erp.vercel.app/portal/`. Mechanical's
+`vercel.json` rewrites `/portal/:path*` here.
+* **The page:** every address it uses is relative (`api/…`, `oc-logo.webp`, `favicon.png`).
+* **The server:** its redirects are relative too (`../?next=api/go…`), so they are right at either address.
+* **`PUBLIC_URL`** (an address, not a secret): `https://oneclicksolution-erp.vercel.app/portal`.
+  * It is the ticket's issuer (`iss`); the modules' `PORTAL_URL` must be the same.
+  * The page at that address passes the origin check.
+* **`/api/go?…&page=KEY`:** the page travels on after the ticket (`#sso=…&page=KEY`).
+* **The ticket's `mods`** carry each module's address (`url`), so a module can show the others' pages in its menu.

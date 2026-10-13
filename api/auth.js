@@ -17,7 +17,7 @@ async function myItems(email) {
   const items = [];
   (sites || []).filter(s => s.status === 'active').forEach(s => (mods || []).filter(m => m.status === 'live' && m.url).forEach(m => {
     const a = (acc || []).find(x => x.site === s.code && x.module === m.key);
-    if (a) items.push({ site: s.code, siteName: s.name, company: ((comps || []).find(c => c.id === s.company_id) || {}).name || '', module: m.key, moduleName: m.name, role: a.role });
+    if (a) items.push({ site: s.code, siteName: s.name, company: ((comps || []).find(c => c.id === s.company_id) || {}).name || '', module: m.key, moduleName: m.name, url: m.url, role: a.role });
   }));
   return items;
 }
