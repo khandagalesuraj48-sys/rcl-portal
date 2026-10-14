@@ -69,6 +69,8 @@ The Portal is also served under the main address, `https://oneclicksolution-erp.
   * The page at that address passes the origin check.
 * **`/api/go?…&page=KEY`:** the page travels on after the ticket (`#sso=…&page=KEY`).
 * **The ticket's `mods`** carry each module's address (`url`), so a module can show the others' pages in its menu.
+* **The ticket's `super`** (14-10-2026): `true` only for the Super Admin. Mechanical then lets him change entries of a submitted
+  bill and approve the changes others send (its Approvals page); every other module ignores it.
 
 ## The mobile app's versions (14-10-2026)
 `POST /api/app { action: 'latest', platform }` (signed-in people only) answers with the newest app from the private
