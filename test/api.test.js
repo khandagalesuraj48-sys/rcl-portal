@@ -84,7 +84,7 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   const jw = await (await fetch(P + '/api/jwks')).json(), key = jw.keys.find(k => k.kid === head.kid);
   const good = !!key && crypto.verify('sha256', Buffer.from(h + '.' + b), { key: crypto.createPublicKey({ key: key, format: 'jwk' }), dsaEncoding: 'ieee-p1363' }, Buffer.from(sg, 'base64url'));
   ok('   the ticket is signed (ES256) and checks out with the Portal\'s PUBLIC key (/api/jwks)', head.alg === 'ES256' && good);
-  ok('   it says who, which site, which module, as what – and is good for 60 seconds only', cl.sub === 'sujit@rcl.test' && cl.site === 'S1' && cl.aud === 'mechanical' && cl.role === 'admin' && cl.exp - cl.iat === 60 && /^[0-9a-f]{32}$/.test(cl.jti) && Array.isArray(cl.mods) && cl.mods.every(m => /^http:\/\/127\.0\.0\.1:\d+/.test(m.url)), cl);
+  ok('   it says who, which site, which module, as what – and is good for 60 seconds only', cl.sub === 'sujit@rcl.test' && cl.site === 'S1' && cl.aud === 'mechanical' && cl.role === 'admin' && cl.exp - cl.iat === 60 && cl.super === undefined && /^[0-9a-f]{32}$/.test(cl.jti) && Array.isArray(cl.mods) && cl.mods.every(m => /^http:\/\/127\.0\.0\.1:\d+/.test(m.url)), cl);
   r = await A.req('/api/go?module=mechanical&site=S1&page=lg');
   ok('   a page asked for goes along after the ticket (#sso=…&page=lg); a strange page name is dropped', /#sso=[\w.-]+&page=lg$/.test(r.loc || '') && /#sso=[\w.-]+$/.test((await A.req('/api/go?module=mechanical&site=S1&page=' + encodeURIComponent('x"><b'))).loc || ''), r.loc);
   // (13-10-2026, in the same view) a module shown inside another asks for its ticket as an answer, not a page change
@@ -118,6 +118,7 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   // (14-10-2026, asked) the Super Admin opens every module of every site, as its Admin
   const saT = (r.loc.split('#sso=')[1] || '').split('&')[0], saC = saT ? JSON.parse(Buffer.from(saT.split('.')[1], 'base64url').toString()) : {};
   ok('   he opens a module of a site (14-10-2026): a ticket as its Admin', r.status === 302 && /#sso=/.test(r.loc) && saC.sub === 'sa@rcl.test' && saC.role === 'admin' && saC.aud === 'mechanical' && saC.site === 'S1', r.loc);
+  ok('   (14-10-2026) his ticket says he is the Super Admin (Mechanical: billed entries, Approvals)', saC.super === true, saC);
   r = await S.req('/api/auth', { action: 'me' });
   ok('   his "My modules": every live module of every active site, as Admin', r.j.items.length > 0 && r.j.items.every(i => i.role === 'admin') && r.j.items.some(i => i.site === 'S1' && i.module === 'mechanical'), r.j.items);
   r = await S.req('/api/admin', { action: 'overview' });

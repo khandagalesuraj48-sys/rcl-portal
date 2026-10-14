@@ -44,6 +44,8 @@ module.exports = handler(async (req, res) => {
     sites: items.filter(x => x.module === mod).map(x => ({ code: x.site, name: x.siteName })),
     // (14-10-2026) the pages the Super Admin gave him in this module on this site (Users & Access → Pages); none = every page
     pages: it.role === 'admin' ? undefined : (it.pages || undefined),
+    // (14-10-2026) the Super Admin – Mechanical lets him change entries of a billed period and approve others' changes there
+    super: u.is_super ? true : undefined,
     iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') });
   await audit(u.email, 'Opened module', mod + ' · ' + site, null);
   if (asJson) return send(res, 200, { ticket: ticket });
