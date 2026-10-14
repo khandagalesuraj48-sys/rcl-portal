@@ -1,7 +1,7 @@
 /* POST /api/admin { action, … } – the Super Admin's console: users, who may open which module on which site, sites,
  * companies, modules, the activity record. Only the Super Admin; he himself opens no module (no entries, no reports). */
 'use strict';
-const { handler, readBody, send, sameSite, fail, origin } = require('../lib/http');
+const { handler, readBody, send, sameSite, fail, origin, publicUrl } = require('../lib/http');
 const crypto = require('crypto');
 const keys = require('../lib/keys');
 const { db, enc } = require('../lib/db');
@@ -36,7 +36,9 @@ async function mechAsk(req, me, claims) {
   const m = ((await db('GET', 'modules?select=url,status&key=eq.mechanical')) || [])[0];
   if (!m || !m.url) throw fail(400, 'Mechanical has no link yet – set it under Modules.', 'nolink');
   const now = Math.floor(Date.now() / 1000);
-  const t = await keys.sign(Object.assign({ iss: origin(req), aud: 'mechanical-admin', sub: me.email, iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') }, claims));
+  // (14-10-2026) the issuer is the Portal's public address when it has one (ONE ADDRESS: <main>/portal) – the same as /api/go and as
+  // Mechanical's PORTAL_URL; before, it was the address this request came to, and Mechanical said "made by another Portal"
+  const t = await keys.sign(Object.assign({ iss: publicUrl() || origin(req), aud: 'mechanical-admin', sub: me.email, iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') }, claims));
   let r, j = {};
   try { r = await fetch(String(m.url).replace(/\/+$/, '') + '/api/rpc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fn: 'portalAdmin', args: [t] }), signal: AbortSignal.timeout(25000) }); }
   catch (e) { throw fail(503, 'Mechanical could not be reached – try again in a moment.', 'mech'); }
