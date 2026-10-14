@@ -29,9 +29,9 @@ module.exports = handler(async (req, res) => {
   if (!s && asJson) return back('', 'signin');
   if (!s) return redirect(res, '../?next=' + enc('api/go?module=' + enc(mod) + '&site=' + enc(site) + (page ? '&page=' + enc(page) : '')));
   const u = s.user;
-  if (u.is_super) return back('../?msg=super', 'super');
+  // (14-10-2026) the Super Admin opens every module of every site, as its Admin (myItems: all)
   if (pw.mustChange(u.password_hash)) return back('../', 'signin');
-  const items = await myItems(u.email);
+  const items = await myItems(u.email, !!u.is_super);
   const it = items.find(x => x.module === mod && x.site === site);
   if (!it) return back('../?msg=noaccess', 'noaccess');
   const m = ((await db('GET', 'modules?select=url&key=eq.' + enc(mod))) || [])[0];
@@ -42,6 +42,8 @@ module.exports = handler(async (req, res) => {
     // (with each one's address: a module's menu lists the pages of the others and opens them in the same window)
     mods: items.filter(x => x.site === site).map(x => ({ key: x.module, name: x.moduleName, url: x.url })),
     sites: items.filter(x => x.module === mod).map(x => ({ code: x.site, name: x.siteName })),
+    // (14-10-2026) the pages the Super Admin gave him in this module on this site (Users & Access → Pages); none = every page
+    pages: it.role === 'admin' ? undefined : (it.pages || undefined),
     iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') });
   await audit(u.email, 'Opened module', mod + ' · ' + site, null);
   if (asJson) return send(res, 200, { ticket: ticket });

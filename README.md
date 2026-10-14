@@ -3,7 +3,14 @@
 One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … later).
 
 * **Everyone signs in here.** The Portal shows each person his own modules, site by site. A person with exactly one module on one site goes straight into it.
-* **The Super Admin** designs the system here and only here: users, which module each user may open on which site (Admin / User / No access), sites, companies, modules, the activity log. He opens no module himself.
+* **The Super Admin** designs the system here and only here: users, which module each user may open on which site (Admin / User / No access), sites, companies, modules, the activity log.
+  **(14-10-2026)** He also opens every module of every site, as its Admin: "Open modules" in his console shows them all (and
+  "Super Admin console" goes back). A module creates him as its Admin on that site the first time he opens it.
+* **Pages (Users & Access → Pages):**
+  * Mechanical: Edit / View / No access per page, kept in Mechanical (as before).
+  * **Store (14-10-2026):** for a Store User – Dashboard (View / No access) and Item Master (Edit = add / View = see and export /
+    No access). Kept with his access line here (`access.pages`, **SQL step 3: `sql/portal_step3_pages.sql`**), carried in his
+    ticket, applied by the Store at his next opening. A Store Admin has every page.
 * **Opening a module:** the Portal hands the module a one-minute signed ticket (`/api/go` → `<module>/#sso=…`). The module checks the signature with the Portal's public key (`/api/jwks`). No password travels to the module.
 * **My start:** on his dashboard a person marks one module ("☆ Open this at sign-in"); from then on that module opens straight after he signs in. One module on one site opens straight away anyway.
 * **A new site (Super Admin → Sites → + New site):** he makes the site's Supabase project himself, then gives its link here.
