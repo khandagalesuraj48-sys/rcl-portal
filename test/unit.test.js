@@ -69,3 +69,10 @@ test('the page: every view is there, no secret, no outside script', () => {
   assert.ok(!/sb_secret_|PORTAL_SECRET=|eyJhbGciOi/.test(html), 'no key in the page');
   assert.ok(!/localStorage\.setItem\([^)]*token/i.test(html), 'the sign-in is never kept where scripts can read it');
 });
+
+test('(14-10-2026) every ticket the Portal signs has the same issuer: its public address (one address) – else Mechanical says "made by another Portal"', () => {
+  const api = path.join(__dirname, '..', 'api');
+  const signs = fs.readdirSync(api).filter(f => f.endsWith('.js')).map(f => fs.readFileSync(path.join(api, f), 'utf8')).join('\n').match(/keys\.sign\([\s\S]{0,160}?iss: [^,]+,/g) || [];
+  assert.ok(signs.length >= 2, 'tickets found: ' + signs.length);
+  signs.forEach(s => assert.match(s, /iss: publicUrl\(\) \|\| origin\(req\),/, s));
+});
