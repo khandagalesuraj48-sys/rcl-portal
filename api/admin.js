@@ -11,16 +11,20 @@ const { audit } = require('../lib/audit');
 const { EMAIL, lc, clean, GSTIN, PAN, okUrl } = require('../lib/util');
 
 const ROLES = ['admin', 'user'];
+const { accessRows } = require('./auth');
+/* (14-10-2026) THE STORE'S PAGES, given here (Users & Access → Pages, for a Store User): what each may be. Kept with his access
+ * line (access.pages, step 3) and carried in the ticket; the Store applies it. Mechanical keeps its own pages (mechPages). */
+const STORE_PAGES = [{ key: 'dashboard', label: 'Dashboard', opts: ['View', 'None'] }, { key: 'items', label: 'Item Master', opts: ['Edit', 'View', 'None'] }];
 async function overview() {
   const [users, sites, mods, comps, acc] = await Promise.all([
     db('GET', 'users?select=email,name,active,is_super,password_hash,last_login_at&order=name.asc'),
     db('GET', 'sites?select=code,name,company_id,status,sort&order=sort.asc,code.asc'),
     db('GET', 'modules?select=key,name,url,status,sort&order=sort.asc,key.asc'),
     db('GET', 'companies?select=id,name,address,gstin,pan,logo&order=name.asc'),
-    db('GET', 'access?select=email,site,module,role')]);
+    accessRows('')]);
   return {
     users: (users || []).map(u => ({ email: u.email, name: u.name, active: !!u.active, super: !!u.is_super, mustChange: !u.is_super && pw.mustChange(u.password_hash), noPassword: !u.password_hash, lastLogin: u.last_login_at })),
-    sites: sites || [], modules: mods || [], companies: comps || [], access: acc || [] };
+    sites: sites || [], modules: mods || [], companies: comps || [], access: acc || [], storePages: STORE_PAGES };
 }
 const userOf = async email => ((await db('GET', 'users?select=email,name,active,is_super&email=eq.' + enc(email))) || [])[0] || null;
 
@@ -43,6 +47,19 @@ async function mechAsk(req, me, claims) {
 const siteOk = async code => ((await db('GET', 'sites?select=code&code=eq.' + enc(code))) || []).length > 0;
 
 const ACTIONS = {
+  // a Store User's pages on one site (he must have the Store there; an Admin has every page)
+  async storePagesSave(me, x) {
+    const site = String(x.site || '').toUpperCase(), email = lc(x.email);
+    const acc = ((await db('GET', 'access?select=role&module=eq.store&site=eq.' + enc(site) + '&email=eq.' + enc(email))) || [])[0];
+    if (!acc) throw fail(400, 'First give him the Store on this site (Admin or User), then his pages.', 'noaccess');
+    if (acc.role === 'admin') throw fail(400, 'A Store Admin has every page. To give single pages, make him User first.', 'admin');
+    const pages = {}, given = x.pages && typeof x.pages === 'object' ? x.pages : {};
+    STORE_PAGES.forEach(p => { pages[p.key] = p.opts.indexOf(given[p.key]) > -1 ? given[p.key] : p.opts[0]; });
+    try { await db('PATCH', 'access?module=eq.store&site=eq.' + enc(site) + '&email=eq.' + enc(email), { pages: pages, granted_by: me.email }, 'return=minimal'); }
+    catch (e) { if (/42703|pages/.test(String(e && e.message))) throw fail(500, 'This needs one database step first: run sql/portal_step3_pages.sql once in the Portal\'s Supabase → SQL Editor.', 'nostep'); throw e; }
+    await audit(me.email, 'Pages', email + ' · ' + site + ' · store', { pages: pages });
+    return { ok: true, pages: pages };
+  },
   // one site's users in Mechanical with their pages, and the list of Mechanical's pages
   async mechPages(me, x, req) {
     const site = String(x.site || '').toUpperCase();
@@ -95,7 +112,7 @@ const ACTIONS = {
   async accessSet(me, x) {
     const email = lc(x.email), site = String(x.site || '').toUpperCase(), mod = String(x.module || ''), role = String(x.role || '');
     const u = await userOf(email); if (!u) throw fail(404, 'User ' + email + ' was not found.');
-    if (u.is_super) throw fail(400, 'The Super Admin opens no module – he only designs the system.');
+    if (u.is_super) throw fail(400, 'The Super Admin opens every module of every site already – he needs no access line.');
     if (!((await db('GET', 'sites?select=code&code=eq.' + enc(site))) || []).length) throw fail(404, 'This site is not in the list.');
     if (!((await db('GET', 'modules?select=key&key=eq.' + enc(mod))) || []).length) throw fail(404, 'This module is not in the list.');
     if (role && ROLES.indexOf(role) === -1) throw fail(400, 'Choose Admin, User or No access.');

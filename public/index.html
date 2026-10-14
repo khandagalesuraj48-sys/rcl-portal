@@ -176,6 +176,7 @@
   <header class="top">
     <div class="brand"><span class="mark">RCL</span><div><b>RCL ERP</b><small>My modules</small></div></div>
     <div class="who"><b id="h_name"></b><small id="h_email"></small></div>
+    <button class="btn small" id="h_sa" type="button" hidden>Super Admin console</button>
     <button class="btn small" id="h_pw" type="button">Change password</button>
     <button class="btn small" id="h_out" type="button">Sign out</button>
   </header>
@@ -192,7 +193,7 @@
 <!-- the Super Admin's console -->
 <section id="v_sa" hidden>
   <header class="top">
-    <div class="brand"><span class="mark">RCL</span><div><b>Super Admin</b><small>RCL ERP – system design only</small></div></div>
+    <div class="brand"><span class="mark">RCL</span><div><b>Super Admin</b><small>RCL ERP – the whole system</small></div></div>
     <nav class="tabs" id="sa_tabs" role="tablist" aria-label="Super Admin">
       <button type="button" role="tab" data-t="users" aria-selected="true">Users &amp; Access</button>
       <button type="button" role="tab" data-t="sites" aria-selected="false">Sites</button>
@@ -202,6 +203,7 @@
       <button type="button" role="tab" data-t="me" aria-selected="false">My account</button>
     </nav>
     <div class="who"><b id="sa_name"></b><small id="sa_email"></small></div>
+    <button class="btn small" id="sa_mods" type="button" title="Open any module of any site (as its Admin)">Open modules</button>
     <button class="btn small" id="sa_out" type="button">Sign out</button>
   </header>
   <main class="wrap">
@@ -298,8 +300,8 @@
     S.me = me;
     if (!me.signedIn) return loginView();
     if (me.mustChange) return pwView(true);
-    if (me.user.super) return saView();
-    if (next) { location.replace(next); return; }
+    if (next) { location.replace(next); return; }      // (a module asked for the sign-in – the Super Admin too opens it now)
+    if (me.user.super && !params.has('menu')) return saView();
     // "My start": the module he chose opens straight after sign-in (from a module's "Modules" button, ?menu=1: the dashboard)
     if (me.start && !params.has('menu') && !params.has('msg') && !params.has('pw')) { const [mo, si] = me.start.split('|'); location.replace(goLink({ module: mo, site: si })); return; }
     // a module's password button comes here with ?pw=1: the Portal's own "Change password" (one password for every module)
@@ -376,10 +378,10 @@
   function homeView() {
     show('v_home'); appPanel();
     const me = S.me, items = me.items || [];
-    $('h_name').textContent = me.user.name; $('h_email').textContent = me.user.email;
+    $('h_name').textContent = me.user.name; $('h_email').textContent = me.user.email; $('h_sa').hidden = !me.user.super;
     const m = params.get('msg'); $('h_msg').hidden = m !== 'noaccess'; $('h_msg').textContent = 'You do not have that module on that site. Ask the Super Admin.';
     // one module on one site: open it straight away (from a module's "Modules" button: ?menu=1 – stay here)
-    if (items.length === 1 && !params.has('menu') && !m) { location.replace(goLink(items[0])); return; }
+    if (items.length === 1 && !params.has('menu') && !m && !me.user.super) { location.replace(goLink(items[0])); return; }
     const bySite = {}; items.forEach(i => { (bySite[i.site] = bySite[i.site] || { name: i.siteName, company: i.company, mods: [] }).mods.push(i); });
     $('h_sites').innerHTML = Object.keys(bySite).map(c => { const s = bySite[c];
       return '<div class="site panel"><h3>' + esc(s.name) + ' <small>' + esc(c) + (s.company ? ' · ' + esc(s.company) : '') + '</small></h3><div class="mods">' +
@@ -409,6 +411,9 @@
   }
   $('sa_tabs').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) tab(b.dataset.t); });
   $('sa_out').addEventListener('click', signOut);
+  // (14-10-2026) the Super Admin opens the modules too: every site, every live module, as its Admin – and back to the console
+  $('sa_mods').addEventListener('click', () => { params.set('menu', '1'); homeView(); });
+  $('h_sa').addEventListener('click', () => saView());
   $('me_pw').addEventListener('click', () => pwView(false));
 
   // users & access – one site at a time
@@ -431,7 +436,7 @@
     return '<tr data-email="' + esc(u.email) + '"' + (isNew ? ' data-new="1"' : u.active ? '' : ' class="off"') + '>' +
       '<td class="w">' + (isNew ? '<input class="u-email" type="email" placeholder="email"><input class="u-name" placeholder="name" style="margin-top:4px">' : '<b>' + esc(u.name) + '</b><small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + '</small>') + '</td>' +
       '<td><input type="checkbox" class="u-active"' + (u.active !== false ? ' checked' : '') + ' aria-label="Active" style="width:20px;min-height:20px"></td>' +
-      mods().map(m => '<td><div class="rolebox">' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + (m.key === 'mechanical' && !isNew && roleOf(m) ? '<button type="button" class="link u-pages" data-email="' + esc(u.email) + '">Pages</button>' : '') + '</div></td>').join('') +
+      mods().map(m => '<td><div class="rolebox">' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + (m.key === 'mechanical' && !isNew && roleOf(m) ? '<button type="button" class="link u-pages" data-email="' + esc(u.email) + '">Pages</button>' : m.key === 'store' && !isNew && roleOf(m) ? '<button type="button" class="link u-spages" data-email="' + esc(u.email) + '">Pages</button>' : '') + '</div></td>').join('') +
       '<td><input class="u-pw" placeholder="' + (isNew ? 'one-time password' : 'new one-time password') + '" autocomplete="new-password"></td>' +
       '<td><button class="btn primary small u-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (isNew ? ' <button class="link u-cancel" type="button">Cancel</button>' : '') + '</td></tr>';
   }
@@ -443,6 +448,7 @@
     const tr = e.target.closest('tr'); if (!tr) return;
     if (e.target.classList.contains('u-cancel')) { tr.remove(); return; }
     if (e.target.classList.contains('u-pages')) { pagesOpen(e.target.dataset.email); return; }
+    if (e.target.classList.contains('u-spages')) { storePagesOpen(e.target.dataset.email); return; }
     if (!e.target.classList.contains('u-save')) return;
     const isNew = !!tr.dataset.new, email = isNew ? tr.querySelector('.u-email').value.trim().toLowerCase() : tr.dataset.email;
     const cur = S.data.users.find(u => u.email === email) || {};
@@ -476,9 +482,23 @@
         return '<label>' + esc(p.label) + '<select class="pg-sel ' + v + '" data-k="' + esc(p.key) + '">' + ['Edit', 'View', 'None'].map(o => '<option value="' + o + '"' + (o === v ? ' selected' : '') + '>' + PG_WORD[o] + '</option>').join('') + '</select></label>'; }).join('') + '</div>' +
       '<div class="bar" style="margin:14px 0 0"><button class="btn primary small" type="button" id="pg_save" data-email="' + esc(email) + '" data-site="' + esc(site) + '">Save pages</button><button class="btn small" type="button" id="pg_close">Close</button></div>';
   }
+  // (14-10-2026) the Store's pages for one Store User on the chosen site – kept here (Portal), applied by the Store at his next opening
+  function storePagesOpen(email) {
+    const box = $('pg_panel'), site = S.site, siteName = (S.data.sites.find(x => x.code === site) || {}).name || site;
+    const u = S.data.users.find(x => x.email === email) || { email: email, name: email };
+    const a = S.data.access.find(x => x.email === email && x.site === site && x.module === 'store') || {}, cur = a.pages || {};
+    const head = '<div class="panel-head"><h2>Pages in the Store – ' + esc(u.name) + '</h2><span class="note">' + esc(siteName) + ' (' + esc(site) + ') · Item Master: <b>Edit</b> = add items · <b>View</b> = see and export · <b>No access</b> = page hidden</span></div>';
+    box.hidden = false; box.scrollIntoView({ block: 'nearest' });
+    if (a.role === 'admin') { box.innerHTML = head + '<p class="note"><b>Store Admin</b> has every page (and changes, deletes, imports items). To give single pages, make him <b>User</b> above and save, then open Pages again.</p><button class="btn small" type="button" id="pg_close">Close</button>'; return; }
+    box.innerHTML = head + '<div class="pg-grid">' + (S.data.storePages || []).map(p => { const v = cur[p.key] || p.opts[0];
+      return '<label>' + esc(p.label) + '<select class="pg-sel ' + v + '" data-k="' + esc(p.key) + '">' + p.opts.map(o => '<option value="' + o + '"' + (o === v ? ' selected' : '') + '>' + PG_WORD[o] + '</option>').join('') + '</select></label>'; }).join('') + '</div>' +
+      '<p class="note">He gets these at his next opening of the Store.</p><div class="bar" style="margin:14px 0 0"><button class="btn primary small" type="button" id="pg_ssave" data-email="' + esc(email) + '" data-site="' + esc(site) + '">Save pages</button><button class="btn small" type="button" id="pg_close">Close</button></div>';
+  }
   $('pg_panel').addEventListener('change', e => { if (e.target.classList.contains('pg-sel')) e.target.className = 'pg-sel ' + e.target.value; });
   $('pg_panel').addEventListener('click', e => {
     if (e.target.id === 'pg_close') { $('pg_panel').hidden = true; return; }
+    if (e.target.id === 'pg_ssave') { const b = e.target, pages = {}; document.querySelectorAll('#pg_panel .pg-sel').forEach(x => { pages[x.dataset.k] = x.value; });
+      busy(b, 'Saving…', async () => { try { await api('/api/admin', { action: 'storePagesSave', site: b.dataset.site, email: b.dataset.email, pages: pages }); toast('Store pages saved.'); $('pg_panel').hidden = true; await load(); } catch (er) { fail(er); } }); return; }
     if (e.target.id !== 'pg_save') return;
     const b = e.target, perms = {}; document.querySelectorAll('#pg_panel .pg-sel').forEach(x => { perms[x.dataset.k] = x.value; });
     busy(b, 'Saving…', async () => { try { const r = await api('/api/admin', { action: 'mechPagesSave', site: b.dataset.site, email: b.dataset.email, perms: perms });

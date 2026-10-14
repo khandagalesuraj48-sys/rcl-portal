@@ -7,21 +7,27 @@ const ses = require('../lib/session');
 const { audit } = require('../lib/audit');
 const { EMAIL, lc, recoveryCode, codeClean } = require('../lib/util');
 
-// what the dashboard shows: the sites and modules this person may open (only active sites, only modules that are live)
-async function myItems(email) {
+// what the dashboard shows: the sites and modules this person may open (only active sites, only modules that are live).
+// (14-10-2026, asked: "super admin la pages … disle pahijet") the Super Admin (all = true) opens EVERY module of every site, as its Admin.
+async function myItems(email, all) {
   const [acc, sites, mods, comps] = await Promise.all([
-    db('GET', 'access?select=site,module,role&email=eq.' + enc(email)),
+    accessRows('email=eq.' + enc(email)),
     db('GET', 'sites?select=code,name,company_id,status,sort&order=sort.asc,code.asc'),
     db('GET', 'modules?select=key,name,url,status,sort&order=sort.asc,key.asc'),
     db('GET', 'companies?select=id,name')]);
   const items = [];
   (sites || []).filter(s => s.status === 'active').forEach(s => (mods || []).filter(m => m.status === 'live' && m.url).forEach(m => {
-    const a = (acc || []).find(x => x.site === s.code && x.module === m.key);
-    if (a) items.push({ site: s.code, siteName: s.name, company: ((comps || []).find(c => c.id === s.company_id) || {}).name || '', module: m.key, moduleName: m.name, url: m.url, role: a.role });
+    const a = all ? { role: 'admin' } : (acc || []).find(x => x.site === s.code && x.module === m.key);
+    if (a) items.push({ site: s.code, siteName: s.name, company: ((comps || []).find(c => c.id === s.company_id) || {}).name || '', module: m.key, moduleName: m.name, url: m.url, role: a.role, pages: a.pages || null });
   }));
   return items;
 }
 
+// access rows with their pages (step 3); without the step-3 SQL: the same rows without pages (every page, as before)
+async function accessRows(where) {
+  try { return await db('GET', 'access?select=email,site,module,role,pages' + (where ? '&' + where : '')); }
+  catch (e) { if (/42703|pages/.test(String(e && e.message))) return db('GET', 'access?select=email,site,module,role' + (where ? '&' + where : '')); throw e; }
+}
 // his start ('module|SITE' or ''), or null where the step-2 SQL is not run yet (the column is not there)
 async function startOf(email) {
   try { const r = ((await db('GET', 'users?select=start_item&email=eq.' + enc(email))) || [])[0]; return (r && r.start_item) || ''; }
@@ -62,7 +68,7 @@ const ACTIONS = {
   async me(req) {
     const s = await ses.read(req);
     if (!s) return { body: { signedIn: false } };
-    const u = s.user, must = pw.mustChange(u.password_hash), items = u.is_super || must ? [] : await myItems(u.email);
+    const u = s.user, must = pw.mustChange(u.password_hash), items = must ? [] : await myItems(u.email, !!u.is_super);
     // his start (the module that opens straight after sign-in) – only while he still has it
     const st = items.length ? await startOf(u.email) : null, start = st === null ? '' : st;
     return { body: { signedIn: true, user: { email: u.email, name: u.name, super: !!u.is_super }, mustChange: must, items: items,
@@ -71,9 +77,8 @@ const ACTIONS = {
   // "My start": the module (on a site) that opens straight after his sign-in – one of his own; empty = the dashboard
   async setStart(req, x) {
     const s = await ses.need(req), u = s.user;
-    if (u.is_super) throw fail(400, 'The Super Admin opens no module.', 'super');
     const want = x.module ? String(x.module) + '|' + String(x.site || '').toUpperCase() : '';
-    if (want && !(await myItems(u.email)).some(i => i.module + '|' + i.site === want)) throw fail(403, 'You do not have that module on that site.', 'noaccess');
+    if (want && !(await myItems(u.email, !!u.is_super)).some(i => i.module + '|' + i.site === want)) throw fail(403, 'You do not have that module on that site.', 'noaccess');
     if (await startOf(u.email) === null) throw fail(500, 'This needs one database step first: run sql/portal_step2_start.sql once in the Portal\'s Supabase → SQL Editor.', 'nostep');
     await db('PATCH', 'users?email=eq.' + enc(u.email), { start_item: want || null }, 'return=minimal');
     await audit(u.email, 'Start module', want || '(dashboard)', null);
@@ -120,3 +125,4 @@ module.exports = handler(async (req, res) => {
   send(res, 200, out.body, out.headers);
 });
 module.exports.myItems = myItems;
+module.exports.accessRows = accessRows;

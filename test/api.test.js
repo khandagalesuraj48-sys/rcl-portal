@@ -115,7 +115,11 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   r = await S.req('/api/auth', { action: 'login', email: 'sa@rcl.test', password: SAPW });
   ok('the Super Admin signs in on the same page', r.status === 200 && r.j.user.super === true, r.j);
   r = await S.req('/api/go?module=mechanical&site=S1');
-  ok('   he opens no module (no entries, no reports)', r.status === 302 && r.loc === '../?msg=super', r.loc);
+  // (14-10-2026, asked) the Super Admin opens every module of every site, as its Admin
+  const saT = (r.loc.split('#sso=')[1] || '').split('&')[0], saC = saT ? JSON.parse(Buffer.from(saT.split('.')[1], 'base64url').toString()) : {};
+  ok('   he opens a module of a site (14-10-2026): a ticket as its Admin', r.status === 302 && /#sso=/.test(r.loc) && saC.sub === 'sa@rcl.test' && saC.role === 'admin' && saC.aud === 'mechanical' && saC.site === 'S1', r.loc);
+  r = await S.req('/api/auth', { action: 'me' });
+  ok('   his "My modules": every live module of every active site, as Admin', r.j.items.length > 0 && r.j.items.every(i => i.role === 'admin') && r.j.items.some(i => i.site === 'S1' && i.module === 'mechanical'), r.j.items);
   r = await S.req('/api/admin', { action: 'overview' });
   ok('   his console: users (no kept password in the answer), sites, modules, companies, access', r.status === 200 && r.j.users.length >= 4 && !JSON.stringify(r.j).includes('scrypt$') && r.j.sites.length >= 2 && r.j.modules.length === 1, Object.keys(r.j));
   r = await S.req('/api/admin', { action: 'companySave', name: 'Sketchline Industries', gstin: '27ABC' });
@@ -220,8 +224,9 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   r = await A.req('/api/auth', { action: 'setStart' });
   ok('   taken away: his modules page opens again', r.status === 200 && sql('rcl_portal', "select coalesce(start_item, '-') from users where email = 'sujit@rcl.test'") === '-', r.j);
   r = await X.req('/api/auth', { action: 'setStart', module: 'mechanical', site: 'S1' });
-  ok('   the Super Admin has no start (he opens no module)', r.status === 400, r.j);
-  ok('   written in the Activity record', sql('rcl_portal', "select count(*) from audit where action = 'Start module'") === '2');
+  ok('   the Super Admin may have a start too (he opens every module – 14-10-2026)', r.status === 200 && sql('rcl_portal', "select start_item from users where is_super") === 'mechanical|S1', r.j);
+  await X.req('/api/auth', { action: 'setStart' });
+  ok('   written in the Activity record', sql('rcl_portal', "select count(*) from audit where action = 'Start module'") === '4');
   // ---- (asked 13-10-2026) change, switch off and delete: sites, companies, modules; the Module picker is the page's ----
   r = await X.req('/api/admin', { action: 'companySave', name: 'Delete Me Pvt Ltd' });
   const delCo = r.j.id;
@@ -259,6 +264,33 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   await X.req('/api/admin', { action: 'moduleSave', key: 'mechanical', name: 'Mechanical', url: sql('rcl_portal', "select url from modules where key = 'mechanical'"), status: 'live' });
   r = await A.req('/api/admin', { action: 'siteDelete', code: 'S1', confirm: 'S1' });
   ok('   nobody but the Super Admin can delete', r.status === 403 || r.status === 401, r.status);
+  // ---- (14-10-2026) the Store's pages for a Store User, set here (step 3) and carried in his ticket ----
+  sql('rcl_portal', 'alter table public.access drop column if exists pages; notify pgrst, \'reload schema\';'); await new Promise(z => setTimeout(z, 800));
+  const storeWas = sql('rcl_portal', "select status || '|' || coalesce(url, '') from modules where key = 'store'");      // (another test may have made it)
+  if ((await X.req('/api/admin', { action: 'moduleSave', isNew: true, key: 'store', name: 'Store', url: 'https://store.example.com', status: 'live' })).status === 409)
+    await X.req('/api/admin', { action: 'moduleSave', key: 'store', name: 'Store', url: 'https://store.example.com', status: 'live' });
+  await X.req('/api/admin', { action: 'accessSet', email: 'sujit@rcl.test', site: 'S1', module: 'store', role: 'user' });
+  r = await X.req('/api/admin', { action: 'storePagesSave', email: 'sujit@rcl.test', site: 'S1', pages: { dashboard: 'None', items: 'View' } });
+  ok('Store pages before step 3: says which SQL file to run', r.status === 500 && r.j.code === 'nostep' && /portal_step3_pages\.sql/.test(r.j.error), r.j);
+  r = await X.req('/api/admin', { action: 'overview' });
+  ok('   the console still works without the step (no pages column yet)', r.status === 200 && Array.isArray(r.j.access) && r.j.storePages.length === 2, r.j.error);
+  const step3 = require('fs').readFileSync(require('path').join(__dirname, '..', 'sql', 'portal_step3_pages.sql'), 'utf8');
+  sql('rcl_portal', step3); sql('rcl_portal', step3); await new Promise(z => setTimeout(z, 800));
+  r = await X.req('/api/admin', { action: 'storePagesSave', email: 'sujit@rcl.test', site: 'S1', pages: { dashboard: 'None', items: 'View', other: 'Edit' } });
+  ok('step 3 run (twice): his Store pages are saved with his access line (only the Store\'s pages)', r.status === 200 && sql('rcl_portal', "select pages::text from access where email = 'sujit@rcl.test' and site = 'S1' and module = 'store'") === '{"items": "View", "dashboard": "None"}', r.j);
+  r = await A.req('/api/go?module=store&site=S1');
+  const stT = (r.loc.split('#sso=')[1] || '').split('&')[0], stC = stT ? JSON.parse(Buffer.from(stT.split('.')[1], 'base64url').toString()) : {};
+  ok('   his Store ticket carries them (User)', r.status === 302 && stC.role === 'user' && stC.pages && stC.pages.items === 'View' && stC.pages.dashboard === 'None', { loc: r.loc, st: r.status, stC });
+  await X.req('/api/admin', { action: 'accessSet', email: 'sujit@rcl.test', site: 'S1', module: 'store', role: 'admin' });
+  r = await X.req('/api/admin', { action: 'storePagesSave', email: 'sujit@rcl.test', site: 'S1', pages: { items: 'View' } });
+  ok('   a Store Admin has every page: refused, said why', r.status === 400 && r.j.code === 'admin', r.j);
+  r = await A.req('/api/go?module=store&site=S1');
+  const stA = JSON.parse(Buffer.from(((r.loc.split('#sso=')[1] || '').split('&')[0]).split('.')[1], 'base64url').toString());
+  ok('   as Admin his ticket has no pages (every page)', stA.role === 'admin' && stA.pages === undefined, stA);
+  await X.req('/api/admin', { action: 'accessSet', email: 'sujit@rcl.test', site: 'S1', module: 'store', role: '' });
+  await X.req('/api/admin', { action: 'moduleSave', key: 'store', name: 'Store', url: 'https://store.example.com', status: 'off' });
+  if (!storeWas) await X.req('/api/admin', { action: 'moduleDelete', key: 'store', confirm: 'store' });
+  else sql('rcl_portal', "update modules set status = '" + storeWas.split('|')[0] + "', url = nullif('" + storeWas.split('|')[1] + "', '') where key = 'store'");
   // ---- sign out ----
   r = await A.req('/api/auth', { action: 'logout' });
   ok('sign out: the cookie is emptied and the sign-in is gone from the database', r.status === 200 && /Max-Age=0/.test(r.setCookie) && sql('rcl_portal', "select count(*) from sessions where email = 'sujit@rcl.test'") === '0', r.setCookie);
