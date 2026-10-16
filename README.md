@@ -18,6 +18,11 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
   (Mechanical's project) as `SITE_<CODE>_KEY`, never here. The SQL is copied from the form into that project's SQL Editor.
   Mechanical's company settings come over with the new name; no data and no users. The site stays Closed until it is Ready, then Active.
   No code change is needed for a new site.
+* **Diesel places of a site (with Mechanical's update-117, 16-10-2026):** where diesel is kept – the pump, each dispenser, a
+  store – each with its tank size (18B: Camp Pump 18,000 Ltr; MH12ZE1739 and MH12WJ1381 2,650 Ltr each). Given in "New site"
+  (step 6) and changed under **Sites → Diesel places** (the stock now is shown). Mechanical keeps them in the site's own database
+  and checks them: a place that has entries keeps its name and cannot be removed. A site without its own places has the first
+  site's Dispenser + VTR Store.
 * **Change, switch off, delete (Super Admin):**
   * **Sites:** Closed = switched off, nobody can open it. Only a Closed site can be deleted, and only with its code typed again.
     It leaves the lists here and in Mechanical, with the access given on it. Its own database (its data) is never touched:

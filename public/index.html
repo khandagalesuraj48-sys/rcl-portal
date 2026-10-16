@@ -97,6 +97,7 @@
   .steps li.wait { opacity: .55; } .steps li.wait .st-t::before { content: "· "; }
   .steps li code { background: #EEF3FF; padding: 1px 6px; border-radius: 6px; font-weight: 700; }
   .steps .bar { margin: 8px 0 0; }
+  .pl-box td input.pl-name { min-width: 200px; } .pl-box td input[readonly] { background: #F6F8FB; color: var(--muted); }      /* (with Mechanical update-117) diesel places */
   .sel-r { font-weight: 600; } .sel-r.admin { color: var(--blue); } .sel-r.user { color: var(--ok); } .sel-r.none { color: var(--muted); }
   @media (max-width: 640px) { .top .who { margin-left: 0; text-align: left; } }
 </style>
@@ -228,9 +229,11 @@
           <div class="field"><label for="ns_url">Supabase project link</label><input id="ns_url" placeholder="https://….supabase.co" autocomplete="off"></div>
           <div class="field"><label for="ns_sheet">Google Sheet for its backup (can be added later)</label><input id="ns_sheet" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off"></div>
         </div>
+        <div class="field" style="margin-top:6px"><label>Diesel places of this site</label><p class="note" style="margin:0 0 8px">Where diesel is kept – the pump, each dispenser, a store – with its tank size. Diesel Inward, Issue and Transfer use these. The first one is chosen first on the forms. Later: Sites → <b>Diesel places</b>.</p><div class="pl-box" id="ns_places"></div></div>
         <div class="bar" style="margin:4px 0 0"><button class="btn primary small" id="ns_check" type="button">Check &amp; set up</button><button class="btn small" id="ns_close" type="button">Close</button></div>
         <ol class="steps" id="ns_steps" hidden></ol>
       </div>
+      <div class="panel pg" id="dp_panel" hidden></div>
       <div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>Company</th><th>State</th><th></th></tr></thead><tbody id="st_rows"></tbody></table></div>
     </section>
     <section id="t_companies" class="panel" hidden>
@@ -509,31 +512,31 @@
     const d = S.data; if (!d) return;
     const comp = c => '<select class="st-comp"><option value="">–</option>' + d.companies.map(x => '<option value="' + esc(x.id) + '"' + (x.id === c ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>';
     const stat = v => '<select class="st-status"><option value="active"' + (v !== 'closed' ? ' selected' : '') + '>Active</option><option value="closed"' + (v === 'closed' ? ' selected' : '') + '>Closed</option></select>';
-    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<b>' + esc(s.code) + '</b>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="btn primary small st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>';
+    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<b>' + esc(s.code) + '</b>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="btn primary small st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>';
     $('st_rows').innerHTML = d.sites.map(s => S.siteRow(s, false)).join('') || '<tr><td colspan="5" class="note">No site yet.</td></tr>';
   }
   // ---- New site (with Mechanical): a checklist the system works through – pressed again, it goes on where it stopped ----
-  const NS_STEP = { link: '1. The Supabase project link', key: '2. The secret key – in Vercel, never here', connect: '3. The database answers with that key', tables: '4. Mechanical\'s tables in the new database', company: '5. Company settings (as the first site; the new name)', ready: '6. Ready' };
+  const NS_STEP = { link: '1. The Supabase project link', key: '2. The secret key – in Vercel, never here', connect: '3. The database answers with that key', tables: '4. Mechanical\'s tables in the new database', company: '5. Company settings (as the first site; the new name)', places: '6. Diesel places (name and tank size)', ready: '7. Ready' };
   $('st_new').addEventListener('click', () => { const p = $('ns_panel'); p.hidden = false;
     $('ns_comp').innerHTML = '<option value="">–</option>' + S.data.companies.map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>').join('');
-    $('ns_steps').hidden = true; p.scrollIntoView({ block: 'nearest' }); setTimeout(() => $('ns_code').focus(), 30); });
+    $('ns_steps').hidden = true; if (!$('ns_places').innerHTML) $('ns_places').innerHTML = placesHtml([{}], false); p.scrollIntoView({ block: 'nearest' }); setTimeout(() => $('ns_code').focus(), 30); });
   $('ns_close').addEventListener('click', () => { $('ns_panel').hidden = true; });
   // a site row's "Set up" opens the same form for that site (one that is not Ready yet, or to check it again)
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-setup'); if (!b) return; const st = S.data.sites.find(x => x.code === b.dataset.code) || {};
     $('st_new').click(); $('ns_code').value = st.code || ''; $('ns_name').value = st.name || ''; $('ns_comp').value = st.company_id || ''; $('ns_url').focus(); });
   function nsShow(r) {
     const box = $('ns_steps'), done = {}; (r.steps || []).forEach(x => { done[x.step] = x; });
-    const order = ['link', 'key', 'connect', 'tables', 'company', 'ready'], firstBad = order.find(k => done[k] && !done[k].ok);
+    const order = ['link', 'key', 'connect', 'tables', 'company', 'places', 'ready'], firstBad = order.find(k => done[k] && !done[k].ok);
     box.hidden = false;
     box.innerHTML = order.map(k => { const d = done[k], cls = d ? (d.ok ? 'ok' : 'bad') : 'wait';
-      let more = d && d.note && (!d.ok || k === 'company') ? '<div class="note">' + esc(d.note) + '</div>' : '';
+      let more = d && d.note && (!d.ok || k === 'company' || k === 'places') ? '<div class="note">' + esc(d.note) + '</div>' : '';
       if (k === 'key' && d && !d.ok) more = '<div class="note">Vercel → <b>rclerp</b> (Mechanical) → Settings → Environment Variables → add <code>' + esc(r.keyName) + '</code> = this project\'s <b>Secret key</b> (Supabase → Project Settings → API Keys → Secret keys) → Save → Deployments → <b>Redeploy</b>. Then press <b>Check &amp; set up</b> again.</div>' + (r.keysLink ? '<div class="bar"><a class="btn small" target="_blank" rel="noopener" href="' + esc(r.keysLink) + '">Open the project\'s API keys</a></div>' : '');
       if (k === 'tables' && d && !d.ok) more = '<div class="note">Run Mechanical\'s SQL once in the NEW project: copy it, open its SQL Editor, paste, Run. Then press <b>Check &amp; set up</b> again.' + (d.note ? '<br><small>' + esc(d.note) + '</small>' : '') + '</div><div class="bar"><button class="btn primary small" type="button" id="ns_sql">Copy the SQL</button>' + (r.sqlLink ? '<a class="btn small" target="_blank" rel="noopener" href="' + esc(r.sqlLink) + '">Open its SQL Editor</a>' : '') + '</div>';
       if (k === 'ready' && d && d.ok) more = '<div class="note">The site is Active. Give it to people under <b>Users &amp; Access</b> (pick the site).' + (r.backupEmail && $('ns_sheet').value.trim() ? ' For its backup, share the Google Sheet with <code>' + esc(r.backupEmail) + '</code> as Editor.' : '') + '</div>';
       return '<li class="' + cls + '"><span class="st-t">' + esc(NS_STEP[k]) + '</span>' + (d || k === firstBad ? more : '') + '</li>'; }).join('');
   }
   $('ns_check').addEventListener('click', () => busy($('ns_check'), 'Checking…', async () => {
-    try { const r = await api('/api/admin', { action: 'siteSetup', code: $('ns_code').value, name: $('ns_name').value, company: $('ns_comp').value, url: $('ns_url').value, sheet: $('ns_sheet').value });
+    try { const r = await api('/api/admin', { action: 'siteSetup', code: $('ns_code').value, name: $('ns_name').value, company: $('ns_comp').value, url: $('ns_url').value, sheet: $('ns_sheet').value, places: placesRead($('ns_places')) });
       nsShow(r); if (r.ready) toast('Site ' + r.site + ' is ready.'); await load(); sites(); }
     catch (er) { fail(er); } }));
   $('ns_panel').addEventListener('click', e => { if (e.target.id !== 'ns_sql') return; const b = e.target;
@@ -541,6 +544,39 @@
       try { await navigator.clipboard.writeText(r.sql); toast('The SQL is copied (' + Math.round(r.sql.length / 1024) + ' KB) – paste it in the new project\'s SQL Editor and Run.'); }
       catch (e2) { const t = document.createElement('textarea'); t.value = r.sql; t.readOnly = true; t.style.cssText = 'width:100%;height:160px;margin-top:8px'; b.closest('li').appendChild(t); t.select(); toast('Select all in the box below and copy it (Ctrl + C).'); } }
     catch (er) { fail(er); } }); });
+  /* ---- (with Mechanical's update-117, asked 16-10-2026) a site's DIESEL PLACES: name + tank size, in order (the first is chosen
+   * first on the forms). Mechanical keeps them and checks them: a place that has entries keeps its name and cannot be removed. ---- */
+  const ltr = n => Number(n || 0).toLocaleString('en-IN');
+  function placesRow(p, live) {
+    return '<tr><td><input class="pl-name" maxlength="40" value="' + esc(p.name || '') + '" placeholder="e.g. Camp Pump"' + (p.used ? ' readonly' : '') + '>' + (p.used ? '<small>has entries – the name stays</small>' : '') + '</td>' +
+      '<td><input class="pl-cap" type="number" min="1" step="1" value="' + esc(p.cap || '') + '" placeholder="e.g. 18000" style="width:130px"></td>' +
+      (live ? '<td>' + (p.name && p.stock !== undefined ? ltr(p.stock) + ' Ltr' : '–') + '</td>' : '') +
+      '<td>' + (p.used ? '' : '<button class="link del pl-del" type="button">Remove</button>') + '</td></tr>';
+  }
+  function placesHtml(list, live) {
+    return '<div class="tw"><table><thead><tr><th>Diesel place</th><th>Tank size (Ltr)</th>' + (live ? '<th>Stock now</th>' : '') + '<th></th></tr></thead><tbody class="pl-rows" data-live="' + (live ? '1' : '') + '">' +
+      list.map(p => placesRow(p, live)).join('') + '</tbody></table></div><div class="bar" style="margin:8px 0 0"><button class="btn small pl-add" type="button">+ Add place</button></div>';
+  }
+  const placesRead = box => [...box.querySelectorAll('.pl-rows tr')].map(tr => ({ name: tr.querySelector('.pl-name').value.trim(), cap: Number(tr.querySelector('.pl-cap').value) || 0 })).filter(p => p.name || p.cap);
+  document.addEventListener('click', e => { const box = e.target.closest('.pl-box'); if (!box) return;
+    if (e.target.classList.contains('pl-add')) { const tb = box.querySelector('.pl-rows'); tb.insertAdjacentHTML('beforeend', placesRow({}, !!tb.dataset.live)); tb.lastElementChild.querySelector('.pl-name').focus(); }
+    if (e.target.classList.contains('pl-del')) { const tr = e.target.closest('tr'), tb = tr.parentElement; tr.remove(); if (!tb.children.length) tb.insertAdjacentHTML('beforeend', placesRow({}, !!tb.dataset.live)); } });
+  function placesPanel(site, d) {
+    const st = S.data.sites.find(x => x.code === site) || {};
+    $('dp_panel').innerHTML = '<div class="panel-head"><h2>Diesel places – ' + esc(st.name || site) + ' (' + esc(site) + ')</h2><span class="note">Where diesel is kept on this site, with the tank size. Diesel Inward, Issue and Transfer use these; the first one is chosen first on the forms.' +
+      (d.entries ? ' A place that has entries keeps its name and cannot be removed' + (d.firstFixed ? '; the first place stays the first (old entries without a place count there)' : '') + '.' : '') + (!d.set ? ' <b>Not set yet</b> – this site still has the places of the first site.' : '') + '</span></div>' +
+      '<div class="pl-box" id="dp_box">' + placesHtml(d.places || [], true) + '</div>' +
+      '<div class="bar" style="margin:14px 0 0"><button class="btn primary small" type="button" id="dp_save" data-site="' + esc(site) + '">Save diesel places</button><button class="btn small" type="button" id="dp_close">Close</button></div>';
+  }
+  $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-places'); if (!b) return; const site = b.dataset.code, box = $('dp_panel');
+    box.hidden = false; box.innerHTML = '<p class="note">Loading the diesel places from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
+    api('/api/admin', { action: 'placesGet', site: site }).then(d => placesPanel(site, d))
+      .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="btn small" type="button" id="dp_close">Close</button>'; }); });
+  $('dp_panel').addEventListener('click', e => {
+    if (e.target.id === 'dp_close') { $('dp_panel').hidden = true; return; }
+    if (e.target.id !== 'dp_save') return; const b = e.target, site = b.dataset.site;
+    busy(b, 'Saving…', async () => { try { const d = await api('/api/admin', { action: 'placesSave', site: site, places: placesRead($('dp_box')) });
+      placesPanel(site, Object.assign({ set: true }, d)); toast('Diesel places of ' + site + ' saved: ' + d.places.map(p => p.name).join(', ') + '.'); } catch (er) { fail(er); } }); });
   // delete a Closed site – its code typed again; its own database (the data) stays as it is
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-del'); if (!b) return; const code = b.dataset.code, st = S.data.sites.find(x => x.code === code) || {};
     const n = S.data.access.filter(a => a.site === code).length;
