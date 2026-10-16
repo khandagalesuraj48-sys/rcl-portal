@@ -76,3 +76,18 @@ test('(14-10-2026) every ticket the Portal signs has the same issuer: its public
   assert.ok(signs.length >= 2, 'tickets found: ' + signs.length);
   signs.forEach(s => assert.match(s, /iss: publicUrl\(\) \|\| origin\(req\),/, s));
 });
+
+test('(with Mechanical update-117) a site\'s diesel places: set in New site and under Sites → Diesel places, sent to Mechanical inside the signed ticket', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8'), adm = fs.readFileSync(path.join(__dirname, '..', 'api', 'admin.js'), 'utf8');
+  assert.match(adm, /async placesGet\(me, x, req\) \{[\s\S]*?mechAsk\(req, me, \{ act: 'places', site: site \}\)/);
+  assert.match(adm, /async placesSave\(me, x, req\) \{[\s\S]*?mechAsk\(req, me, \{ act: 'placesSave', site: site, places: places \}\);\n    await audit\(me\.email, 'Diesel places', site/);
+  assert.match(adm, /act: 'siteSetup', [^\n]*, places: placesIn\(x\.places\) \}\);/);
+  ['id="ns_places"', 'id="dp_panel"', "places: '6. Diesel places (name and tank size)', ready: '7. Ready'", "['link', 'key', 'connect', 'tables', 'company', 'places', 'ready']", "places: placesRead($('ns_places'))", 'class="link st-places"'].forEach(t => assert.ok(html.includes(t), t));
+  // the page's editor, run on its own
+  const at = html.indexOf('  const ltr = n => '), to = html.indexOf("  document.addEventListener('click', e => { const box = e.target.closest('.pl-box');");
+  const f = new Function('esc', html.slice(at, to) + '; return { placesRow, placesHtml };')(s => String(s));
+  const one = f.placesRow({ name: 'Camp Pump', cap: 18000, used: true, stock: 3940 }, true);
+  assert.ok(/value="Camp Pump" placeholder="e.g. Camp Pump" readonly>/.test(one) && /has entries – the name stays/.test(one) && /3,940 Ltr/.test(one) && !/pl-del/.test(one), one);
+  assert.ok(/pl-del/.test(f.placesRow({ name: 'MH12ZE1739', cap: 2650 }, true)), 'a place without entries can be removed');
+  assert.strictEqual((f.placesHtml([{}, {}], false).match(/<tr><td>/g) || []).length, 2);
+});

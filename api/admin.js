@@ -47,6 +47,10 @@ async function mechAsk(req, me, claims) {
   return j.result;
 }
 const siteOk = async code => ((await db('GET', 'sites?select=code&code=eq.' + enc(code))) || []).length > 0;
+/* (with Mechanical's update-117, asked 16-10-2026) a site's DIESEL PLACES – the pump, the dispensers, a store – each with its tank
+ * size (18B: Camp Pump 18,000 Ltr; MH12ZE1739 and MH12WJ1381 2,650 Ltr each). Set in "New site" and under Sites → Diesel places;
+ * Mechanical keeps them in the site's own database and checks them (a place that has entries keeps its name). */
+const placesIn = v => (Array.isArray(v) ? v : []).slice(0, 20).map(p => ({ name: clean(p && p.name, 60), cap: Number(p && p.cap) || 0 })).filter(p => p.name || p.cap);
 
 const ACTIONS = {
   // a Store User's pages on one site (he must have the Store there; an Admin has every page)
@@ -82,6 +86,21 @@ const ACTIONS = {
     const r = await mechAsk(req, me, { act: 'pages', site: site, email: email, name: u.name, admin: acc.role === 'admin', perms: perms });
     await audit(me.email, 'Pages', email + ' · ' + site, { changes: String(r.changes || '').slice(0, 1500), added: !!r.added });
     return { ok: true, added: !!r.added, changes: r.changes || '', user: r.user };
+  },
+  async placesGet(me, x, req) {
+    const site = String(x.site || '').toUpperCase();
+    if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
+    const r = await mechAsk(req, me, { act: 'places', site: site });
+    return { site: site, places: r.places || [], set: !!r.set, entries: !!r.entries, firstFixed: !!r.firstFixed };
+  },
+  async placesSave(me, x, req) {
+    const site = String(x.site || '').toUpperCase();
+    if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
+    const places = placesIn(x.places);
+    if (!places.length) throw fail(400, 'Add at least one diesel place (its name and tank size).');
+    const r = await mechAsk(req, me, { act: 'placesSave', site: site, places: places });
+    await audit(me.email, 'Diesel places', site, { places: (r.places || []).map(p => p.name + ' ' + p.cap + ' Ltr') });
+    return { ok: true, site: site, places: r.places || [], set: !!r.set, entries: !!r.entries, firstFixed: !!r.firstFixed };
   },
   overview: async () => overview(),
   async userSave(me, x) {
@@ -161,7 +180,7 @@ const ACTIONS = {
       await db('POST', 'sites', [{ code: code, name: name, company_id: comp || null, status: 'closed', sort: (last ? last.sort : 0) + 1 }], 'return=minimal');
       await audit(me.email, 'Site added', code, { name: name, company: comp, by: 'New site' });
     } else await db('PATCH', 'sites?code=eq.' + enc(code), { name: name, company_id: comp || null }, 'return=minimal');
-    const r = await mechAsk(req, me, { act: 'siteSetup', site: code, name: name, url: url, sheet: m ? m[1] : '', company: c ? { id: c.id, name: c.name } : {} });
+    const r = await mechAsk(req, me, { act: 'siteSetup', site: code, name: name, url: url, sheet: m ? m[1] : '', company: c ? { id: c.id, name: c.name } : {}, places: placesIn(x.places) });
     if (r.ready) {
       if (!cur || cur.status !== 'active') { await db('PATCH', 'sites?code=eq.' + enc(code), { status: 'active' }, 'return=minimal'); await audit(me.email, 'Site ready', code, { name: name, module: 'mechanical' }); }
     }
