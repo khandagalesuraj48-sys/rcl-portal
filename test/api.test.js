@@ -72,7 +72,7 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   ok('a sign-in sent from another web page is refused', r.status === 403, r.j);
   r = await A.req('/api/auth', { action: 'login', email: 'sujit@rcl.test', password: PW });
   ok('sujit signs in with his Mechanical password', r.status === 200 && r.j.user.email === 'sujit@rcl.test' && !r.j.mustChange, r.j);
-  ok('   the cookie: HttpOnly, SameSite=Lax, 30 days (Secure on https)', /HttpOnly/.test(r.setCookie) && /SameSite=Lax/.test(r.setCookie) && /Max-Age=2592000/.test(r.setCookie), r.setCookie);
+  ok('   the cookie: HttpOnly, SameSite=Lax, kept 400 days – the most a browser keeps (Secure on https)', /HttpOnly/.test(r.setCookie) && /SameSite=Lax/.test(r.setCookie) && /Max-Age=34560000/.test(r.setCookie), r.setCookie);
   ok('   the database keeps only a fingerprint of the sign-in, never the sign-in itself', !sql('rcl_portal', 'select string_agg(id_hash, \',\') from sessions').includes(decodeURIComponent(A.cookie.split('=')[1])));
   r = await A.req('/api/auth', { action: 'me' });
   ok('   his dashboard: Mechanical on S1 as Admin', r.j.signedIn && r.j.items.some(i => i.site === 'S1' && i.module === 'mechanical' && i.role === 'admin'), r.j.items);
@@ -181,12 +181,27 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   r = await R.req('/api/auth', { action: 'login', email: 'ravi@portal.test', password: 'Ravi#Own2026' });
   ok('   and he cannot sign in', r.status === 401);
   await S.req('/api/admin', { action: 'userSave', email: 'ravi@portal.test', name: 'Ravi', active: true });
-  // ---- the idle limit ----
+  // ---- (18-10-2026) a sign-in stays until "Sign out": no 6 hours without use, no 30 days ----
   const V = browser();
   await V.req('/api/auth', { action: 'login', email: 'view@rcl.test', password: VPW });
   sql('rcl_portal', "update sessions set last_seen_at = now() - interval '7 hours' where email = 'view@rcl.test'");
   r = await V.req('/api/auth', { action: 'me' });
-  ok('6 hours without use: the sign-in ends', r.j.signedIn === false);
+  ok('7 hours without use: still signed in (no 6-hour limit any more)', r.j.signedIn === true && r.j.user && r.j.user.email === 'view@rcl.test', r.j);
+  ok('   the answer gives the cookie again – the same sign-in, kept another 400 days', /Max-Age=34560000/.test(r.setCookie || '') && V.cookie && r.setCookie.split(';')[0] === V.cookie, r.setCookie);
+  ok('   its end in the database is moved on too (about 400 days from now)', sql('rcl_portal', "select (expires_at > now() + interval '399 days')::text from sessions where email = 'view@rcl.test'") === 'true');
+  r = await V.req('/api/auth', { action: 'me' });
+  ok('   used again within 5 minutes: nothing written, no cookie sent again', r.j.signedIn === true && !r.setCookie, r.setCookie);
+  sql('rcl_portal', "update sessions set created_at = now() - interval '45 days', last_seen_at = now() - interval '20 days', expires_at = now() + interval '10 days' where email = 'view@rcl.test'");
+  r = await V.req('/api/auth', { action: 'me' });
+  ok('45 days after the sign-in, 20 days without use: still signed in (no 30-day limit any more)', r.j.signedIn === true, r.j);
+  r = await V.req('/api/go?module=mechanical&site=S1');
+  ok('   and a module opens with a ticket at once – nothing typed', r.status === 302 && /#sso=/.test(r.loc || ''), r.loc);
+  sql('rcl_portal', "update sessions set expires_at = now() - interval '1 minute' where email = 'view@rcl.test'");
+  r = await V.req('/api/auth', { action: 'me' });
+  ok('only a sign-in left unused for 400 days ends by itself', r.j.signedIn === false);
+  await V.req('/api/auth', { action: 'login', email: 'view@rcl.test', password: VPW });
+  r = await V.req('/api/auth', { action: 'logout' });
+  ok('"Sign out" ends it at once', r.status === 200 && /Max-Age=0/.test(r.setCookie || '') && sql('rcl_portal', "select count(*) from sessions where email = 'view@rcl.test'") === '0', r.setCookie);
   // ---- the lock ----
   for (let i = 0; i < 5; i++) await V.req('/api/auth', { action: 'login', email: 'view@rcl.test', password: 'wrong-' + i });
   r = await V.req('/api/auth', { action: 'login', email: 'view@rcl.test', password: VPW });
