@@ -3,6 +3,13 @@
 One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … later).
 
 * **Everyone signs in here.** The Portal shows each person his own modules, site by site. A person with exactly one module on one site goes straight into it.
+* **A sign-in stays until "Sign out" (18-10-2026, asked: "user jo prynt log out krt nahi to prynt log in rahil mg app aso ki
+  web").** No more "6 hours without use" and no more "30 days" – on the web, in the phone app and in the Windows app. It ends
+  only at "Sign out" (here or in a module), when the Super Admin switches the person off or gives him a new password, or when
+  the person changes his password (`lib/session.js`). A browser keeps a cookie 400 days at most, so the cookie and the sign-in's
+  end are moved on while it is used: only a sign-in left unused for 400 days ends by itself. The modules' own sign-ins stay as
+  they are; when one ends, the module gets a new ticket from this sign-in by itself – nothing is typed.
+  **A lost phone:** the Super Admin gives that person a new password (or switches him off) – every sign-in of his ends at once.
 * **The Super Admin** designs the system here and only here: users, which module each user may open on which site (Admin / User / No access), sites, companies, modules, the activity log.
   **(14-10-2026)** He also opens every module of every site, as its Admin: "Open modules" in his console shows them all (and
   "Super Admin console" goes back). A module creates him as its Admin on that site the first time he opens it.
@@ -62,6 +69,7 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
 timeout 120 node --test test/unit.test.js     # no database
 timeout 300 node test/api.test.js             # rig: Portal :3010 + its database, Mechanical :3000 / :3100
 timeout 300 node test/browser.test.js         # rig + Chromium (Playwright); pictures in test/shots/
+timeout 400 node test/keep18.js               # after browser.test.js: the sign-in stays until "Sign out" (the next morning: back in, nothing typed)
 ```
 
 ## One address (13-10-2026)
