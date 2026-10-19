@@ -3,6 +3,7 @@
 const { handler, readBody, send, sameSite, fail } = require('../lib/http');
 const { db, rpc, enc } = require('../lib/db');
 const pw = require('../lib/pw');
+const { isPreview } = require('../lib/preview');
 const ses = require('../lib/session');
 const { audit } = require('../lib/audit');
 const { EMAIL, lc, recoveryCode, codeClean } = require('../lib/util');
@@ -67,11 +68,11 @@ const ACTIONS = {
   },
   async me(req) {
     const s = await ses.read(req);
-    if (!s) return { body: { signedIn: false } };
+    if (!s) return { body: { signedIn: false, preview: isPreview() || undefined } };
     const u = s.user, must = pw.mustChange(u.password_hash), items = must ? [] : await myItems(u.email, !!u.is_super);
     // his start (the module that opens straight after sign-in) – only while he still has it
     const st = items.length ? await startOf(u.email) : null, start = st === null ? '' : st;
-    return { body: { signedIn: true, user: { email: u.email, name: u.name, super: !!u.is_super }, mustChange: must, items: items,
+    return { body: { signedIn: true, preview: isPreview() || undefined, user: { email: u.email, name: u.name, super: !!u.is_super }, mustChange: must, items: items,
       start: items.some(i => i.module + '|' + i.site === start) ? start : '', startReady: st !== null } };
   },
   // "My start": the module (on a site) that opens straight after his sign-in – one of his own; empty = the dashboard
