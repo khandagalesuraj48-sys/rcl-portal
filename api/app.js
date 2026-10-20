@@ -9,6 +9,7 @@
 'use strict';
 const { handler, readBody, send, sameSite, fail } = require('../lib/http');
 const ses = require('../lib/session');
+const { guard } = require('../lib/preview');      // (20-10-2026) a Preview works only with the test database
 
 const BUCKET = 'app-releases';
 // the store is the Portal's own Supabase (APP_STORE_URL / APP_STORE_KEY only for a test copy)
@@ -18,6 +19,7 @@ const store = () => ({ url: String(process.env.APP_STORE_URL || process.env.SUPA
 async function signed(paths, seconds) {
   const c = store();
   if (!c.url || !c.key) throw fail(500, 'The Portal server is not set up: SUPABASE_URL and SUPABASE_SECRET_KEY are missing in Vercel → Environment Variables.');
+  await guard(c);
   let r;
   try {
     r = await fetch(c.url + '/storage/v1/object/sign/' + BUCKET, { method: 'POST', headers: { apikey: c.key, 'Content-Type': 'application/json' },

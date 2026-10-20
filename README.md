@@ -85,6 +85,15 @@ The Portal is also served under the main address, `https://oneclicksolution-erp.
 * **The ticket's `super`** (14-10-2026): `true` only for the Super Admin. Mechanical then lets him change entries of a submitted
   bill and approve the changes others send (its Approvals page); every other module ignores it.
 
+## A Preview = the staging (TEST) copy (20-10-2026)
+* On a Vercel **Preview** (`VERCEL_ENV=preview`), `lib/preview.js` asks the database first: it must have the row
+  `app_settings.THIS_IS_A_TEST_DATABASE = 'yes'`. Only the staging database `rcl-staging` has it.
+* A database without it (any live one) is refused with 503, "This is a Preview …". Nothing is read or written.
+* The page shows an orange TEST band on a Preview.
+* Live (`production`) asks nothing.
+* The staging copy is the Preview of the branch `staging`. Its set-up (one SQL for Mechanical + Portal + Store, the Vercel
+  Preview settings): `rclerp/staging/STAGING_SETUP.md`.
+
 ## The mobile app's versions (14-10-2026)
 `POST /api/app { action: 'latest', platform }` (signed-in people only) answers with the newest app from the private
 Supabase bucket **app-releases**:
