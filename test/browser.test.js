@@ -82,7 +82,7 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     await pg.click('#u_rows tr[data-email="view@rcl.test"] .u-pages');
     await pg.waitForSelector('#pg_panel .pg-sel');
     const nPg = await pg.$$eval('#pg_panel .pg-sel', x => x.length);
-    ok('"Pages" next to Mechanical: every page of Mechanical with Edit / View / No access', nPg >= 15, nPg);
+    ok('his name opens his Module Access: every page of Mechanical with Edit / View / No access', nPg >= 15, nPg);
     await pg.selectOption('#pg_panel .pg-sel[data-k="Diesel Issue"]', 'Edit');
     await pg.screenshot({ path: path.join(SHOTS, '02b-super-pages.png'), fullPage: true });
     await pg.click('#pg_save'); await pg.waitForSelector('#pg_panel', { state: 'hidden' });
@@ -93,7 +93,7 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     ok('Users & Access: a Module picker – "All modules" and each module', modOpts[0] === 'All modules' && modOpts.some(t => /Mechanical/.test(t)), modOpts);
     await pg.selectOption('#u_mod', 'mechanical');
     const cols = await pg.$$eval('#u_head th', x => x.map(t => t.textContent));
-    ok('   one module picked: only its column', cols.join('|') === 'User|Active|Mechanical|One-time password|', cols);
+    ok('   one module picked: only its column', cols.join('|') === '#|User|Email|Status|Mechanical|One-time password|Actions', cols);
     await pg.screenshot({ path: path.join(SHOTS, '02c-super-users-module.png'), fullPage: true });
     await pg.selectOption('#u_mod', '');
     // "New site": the form and its checklist (the whole way to Ready is tested in Mechanical's test/newsite95.js)
@@ -118,7 +118,7 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     ok('Companies: the name is in view and the table needs no sideways scrolling (the address wraps)', coFit.none || (coFit.fits && coFit.nameIn), coFit);
     for (const t of ['sites', 'companies', 'modules', 'audit']) { await pg.click('#sa_tabs button[data-t="' + t + '"]'); await pg.waitForSelector('#t_' + t + ':not([hidden])'); await pg.screenshot({ path: path.join(SHOTS, '03-super-' + t + '.png'), fullPage: true }); }
     ok('   the Activity tab shows the import and the new user', /Import from Mechanical/.test(await pg.textContent('#a_rows')) && /ravi@rcl\.test/.test(await pg.textContent('#a_rows')));
-    await pg.click('#sa_out'); await pg.waitForSelector('#v_login:not([hidden])'); await settled(pg, 'l_email');
+    await pg.click('#sa_who'); await pg.click('#sa_out'); await pg.waitForSelector('#v_login:not([hidden])'); await settled(pg, 'l_email');      // (23-10-2026: Sign out is in his menu, top right)
     ok('   sign-out: back to the sign-in page', true);
     // the new user: one-time password → his own password → one module on one site → straight in
     await pg.fill('#l_email', 'ravi@rcl.test'); await pg.fill('#l_pass', 'Ravi#Temp2026'); await pg.click('#l_btn');
@@ -163,7 +163,8 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     // ---- phone ----
     const ph = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }), pp = await ph.newPage(); watch(pp);
     await pp.goto(P + '/'); await pp.waitForSelector('#v_login:not([hidden])'); await settled(pp, 'l_email');
-    const wide = async () => pp.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    // (23-10-2026) against the phone's own width too: a page wider than the phone also widens innerWidth, and then the two are equal
+    const wide = async () => pp.evaluate(() => Math.max(document.documentElement.scrollWidth, window.innerWidth) - 390);
     ok('phone: the sign-in page fits (no sideways scrolling)', (await wide()) <= 0, await wide());
     await pp.screenshot({ path: path.join(SHOTS, '06-phone-login.png') });
     await pp.fill('#l_email', 'sujit@rcl.test'); await pp.fill('#l_pass', PW); await pp.click('#l_btn');

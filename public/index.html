@@ -100,6 +100,181 @@
   .pl-box td input.pl-name { min-width: 200px; } .pl-box td input[readonly] { background: #F6F8FB; color: var(--muted); }      /* (with Mechanical update-117) diesel places */
   .sel-r { font-weight: 600; } .sel-r.admin { color: var(--blue); } .sel-r.user { color: var(--ok); } .sel-r.none { color: var(--muted); }
   @media (max-width: 640px) { .top .who { margin-left: 0; text-align: left; } }
+  /* ===== (23-10-2026) THE SUPER ADMIN CONSOLE – the new look (his picture: "super admin page chi purn design redesign … fkt ui
+     changes"): a navy sidebar, a white top bar, light page, white cards. Only the look: every button calls the server as before. ===== */
+  .sa { --s-ink: #0F172A; --s-muted: #64748B; --s-faint: #94A3B8; --s-line: #E6EAF2; --s-bg: #F4F6FB; --s-blue: #1D4ED8; --s-blue2: #2563EB; --s-soft: #EEF4FF;
+    --s-green: #15803D; --s-gsoft: #DCFCE7; --s-red: #DC2626; --s-rsoft: #FEE2E2; --s-amber: #F59E0B; --s-side: #0B1A3E;
+    display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 100vh; min-height: 100dvh; background: linear-gradient(90deg, #0A1838 0 236px, var(--s-bg) 236px); color: var(--s-ink); }
+  .sa[hidden] { display: none !important; }
+  .sa svg { width: 18px; height: 18px; flex: 0 0 auto; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  /* sidebar */
+  .sa-side { position: sticky; top: 0; height: 100vh; height: 100dvh; display: flex; flex-direction: column; gap: 6px; padding: 16px 14px; color: #E5ECFF; overflow: hidden;
+    background: linear-gradient(180deg, #0B1A3E 0%, #0C2350 55%, #0A1838 100%); z-index: 20; }
+  .sa-logo { display: flex; align-items: center; gap: 10px; padding: 2px 4px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .sa-mark { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #2563EB, #1D4ED8); display: grid; place-items: center; box-shadow: 0 6px 16px rgba(37,99,235,.45); }
+  .sa-mark svg { width: 22px; height: 22px; stroke: #fff; stroke-width: 2.4; }
+  .sa-logo b { display: block; font-size: 17px; color: #fff; line-height: 1.15; } .sa-logo small { color: #9FB0D8; font-size: 11.5px; }
+  .sa-role { display: flex; align-items: center; gap: 10px; margin: 10px 2px 8px; padding: 10px 12px; font-weight: 700; color: #fff; font-size: 15px; }
+  .sa-role svg { width: 22px; height: 22px; stroke: none; fill: #F5B82E; }
+  .sa-nav { display: flex; flex-direction: column; gap: 4px; }
+  .sa-nav button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 42px; padding: 9px 12px; border: 0; border-radius: 10px; background: transparent; color: #D6E0FA;
+    font-weight: 600; font-size: 14.5px; text-align: left; cursor: pointer; }
+  .sa-nav button:hover { background: rgba(255,255,255,.07); color: #fff; }
+  .sa-nav button[aria-selected="true"] { background: linear-gradient(135deg, #2563EB, #1D4ED8); color: #fff; box-shadow: 0 8px 18px rgba(29,78,216,.45); }
+  .sa-scene { margin: auto -14px 0; height: 150px; flex: 0 0 auto; opacity: .9; }
+  .sa-scene svg { width: 100%; height: 100%; stroke: none; }
+  .sa-badge { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid rgba(255,255,255,.14); border-radius: 12px; background: rgba(10,22,52,.72); }
+  .sa-badge svg { width: 28px; height: 28px; stroke: #7FB2FF; } .sa-badge b { display: block; color: #fff; font-size: 14px; } .sa-badge small { color: #9FB0D8; font-size: 12px; }
+  /* top bar */
+  .sa-main { min-width: 0; display: flex; flex-direction: column; }
+  .sa-top { position: sticky; top: 0; z-index: 15; display: flex; align-items: center; gap: 14px; padding: 12px 24px; background: rgba(255,255,255,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--s-line); }
+  .sa-burger { display: none; border: 1px solid var(--s-line); background: #fff; border-radius: 10px; width: 40px; height: 40px; place-items: center; cursor: pointer; color: var(--s-ink); }
+  .sa-search { flex: 0 1 460px; display: flex; align-items: center; gap: 8px; padding: 0 12px; min-height: 42px; border: 1px solid var(--s-line); border-radius: 12px; background: #F8FAFD; color: var(--s-faint); }
+  .sa-search input { border: 0; background: transparent; min-height: 40px; padding: 0; outline: none; color: var(--s-ink); }
+  .sa-top-end { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .sa-bell { position: relative; width: 40px; height: 40px; display: grid; place-items: center; border: 0; background: transparent; border-radius: 10px; cursor: pointer; color: #334155; }
+  .sa-bell:hover { background: var(--s-soft); } .sa-bell svg { width: 21px; height: 21px; }
+  .sa-me { position: relative; }
+  .sa-who { display: flex; align-items: center; gap: 10px; border: 0; background: transparent; cursor: pointer; padding: 4px 6px; border-radius: 12px; color: var(--s-ink); text-align: left; }
+  .sa-who:hover { background: var(--s-soft); }
+  .sa-av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, #3B82F6, #1D4ED8); color: #fff; font-weight: 800; flex: 0 0 auto; }
+  .sa-who b { display: block; font-size: 14px; line-height: 1.2; } .sa-who small { color: var(--s-muted); font-size: 12px; }
+  .sa-menu { position: absolute; right: 0; top: calc(100% + 6px); min-width: 230px; padding: 8px; background: #fff; border: 1px solid var(--s-line); border-radius: 12px; box-shadow: 0 16px 40px rgba(15,23,42,.16); z-index: 30; }
+  .sa-menu small { display: block; padding: 6px 10px 8px; color: var(--s-muted); border-bottom: 1px solid var(--s-line); margin-bottom: 6px; overflow-wrap: anywhere; }
+  .sa-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: 0; background: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--s-ink); text-align: left; }
+  .sa-menu button:hover { background: var(--s-soft); } .sa-menu .out { color: var(--s-red); }
+  /* pages */
+  .sa-body { padding: 22px 24px 48px; max-width: 1400px; width: 100%; }
+  .sa-page[hidden] { display: none !important; }
+  .sa-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px; margin-bottom: 18px; }
+  .sa-head > div { flex: 1 1 320px; min-width: 0; }
+  .sa-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; color: var(--s-muted); text-transform: uppercase; }
+  .sa-eyebrow svg { width: 14px; height: 14px; }
+  .sa-head h1 { font-size: 28px; line-height: 1.2; margin: 6px 0 4px; letter-spacing: -.01em; }
+  .sa-head p { margin: 0; color: var(--s-muted); }
+  .sa-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 9px 18px; border-radius: 10px; border: 1px solid var(--s-line); background: #fff; color: var(--s-ink); font-weight: 700; cursor: pointer; }
+  .sa-btn.primary { background: linear-gradient(135deg, #2563EB, #1D4ED8); border-color: #1D4ED8; color: #fff; box-shadow: 0 8px 18px rgba(29,78,216,.28); }
+  .sa-btn.outline { border-color: #BFD3FF; color: var(--s-blue); background: #fff; }
+  .sa-btn.danger { border-color: #FCA5A5; color: var(--s-red); background: #FFF5F5; }
+  .sa-btn.sm { min-height: 34px; padding: 5px 12px; font-size: 13.5px; }
+  .sa-btn:disabled { opacity: .6; cursor: default; }
+  .sa-card { background: #fff; border: 1px solid var(--s-line); border-radius: 16px; box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 24px rgba(15,23,42,.04); padding: 18px; margin-bottom: 18px; }
+  .sa-card h2 { font-size: 17px; margin: 0 0 6px; }
+  /* the counts on top of Users & Access */
+  .sa-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .sa-stat { display: flex; align-items: center; gap: 14px; padding: 16px; background: #fff; border: 1px solid var(--s-line); border-radius: 16px; box-shadow: 0 8px 24px rgba(15,23,42,.04); min-width: 0; }
+  .sa-stat .ic { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; flex: 0 0 auto; }
+  .sa-stat .ic svg { width: 22px; height: 22px; }
+  .sa-stat span { display: block; color: var(--s-muted); font-size: 13px; } .sa-stat b { display: block; font-size: 24px; line-height: 1.2; }
+  .sa-stat small { display: block; font-size: 12px; font-weight: 600; } .sa-stat .lnk { border: 0; background: none; padding: 0; color: var(--s-muted); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .ic.blue { background: #E0EAFF; color: #1D4ED8; } .ic.green { background: #DCFCE7; color: #15803D; } .ic.red { background: #FEE2E2; color: #DC2626; } .ic.purple { background: #EDE9FE; color: #6D28D9; } .ic.amber { background: #FEF3C7; color: #B45309; }
+  small.up { color: var(--s-green); } small.down { color: var(--s-red); }
+  /* filters */
+  .sa-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; margin-bottom: 14px; }
+  .sa-filters .field { margin: 0; flex: 0 1 220px; min-width: 160px; }
+  .sa-filters label { font-size: 12.5px; color: var(--s-muted); }
+  .sa select, .sa input { border-color: var(--s-line); border-radius: 10px; }
+  .sa select { appearance: auto; }
+  .sa-find { flex: 1 1 240px; display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border: 1px solid var(--s-line); border-radius: 10px; background: #fff; color: var(--s-faint); margin: 0; }
+  .sa-find input { border: 0; min-height: 38px; padding: 0; outline: none; }
+  /* tables */
+  .sa .tw { border: 1px solid var(--s-line); border-radius: 14px; background: #fff; }
+  .sa table { font-size: 14px; }
+  .sa th { background: #F8FAFD; color: #334155; font-size: 12px; font-weight: 700; letter-spacing: .05em; padding: 12px 12px; border-bottom: 1px solid var(--s-line); }
+  .sa td { padding: 10px 12px; border-bottom: 1px solid #EEF1F6; }
+  .sa tbody tr:last-child td { border-bottom: 0; }
+  .sa tbody tr:hover td { background: #FAFBFE; }
+  .sa tr.dirty td { background: #FFFBEA; } .sa tr.off td { opacity: .62; }
+  .sa td.num { color: var(--s-muted); width: 36px; }
+  .sa-user { display: flex; align-items: center; gap: 10px; min-width: 200px; }
+  .sa-user .sa-av { width: 32px; height: 32px; font-size: 14px; }
+  .sa-user b { display: block; font-size: 14px; } .sa-user small { display: block; color: var(--s-muted); font-size: 12.5px; }
+  .sa-user .u-pages { border: 0; background: none; padding: 0; font: inherit; color: var(--s-ink); font-weight: 700; cursor: pointer; text-align: left; }
+  .sa-user .u-pages:hover { color: var(--s-blue); text-decoration: underline; }
+  .sa-mail { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; color: var(--s-green); }
+  .sa-mail:hover { background: var(--s-gsoft); }
+  .sa-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+  .sa-pill.on { background: var(--s-gsoft); color: var(--s-green); } .sa-pill.off { background: #F1F5F9; color: var(--s-muted); }
+  .sa-pill.dot::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  label.sa-pill { cursor: pointer; margin: 0; position: relative; }      /* (its hidden box stays inside the table's box) */ label.sa-pill input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+  .sa td select { min-height: 36px; border-radius: 8px; padding: 4px 8px; min-width: 112px; }
+  .sa .sel-r.admin { color: var(--s-blue); } .sa .sel-r.user { color: var(--s-green); } .sa .sel-r.none { color: var(--s-muted); }
+  .sa-pw { display: flex; align-items: center; gap: 6px; min-width: 170px; padding: 0 10px; border: 1px solid var(--s-line); border-radius: 8px; background: #fff; color: var(--s-faint); }
+  .sa-pw input { border: 0; min-height: 34px; padding: 0; outline: none; }
+  .sa-acts { display: flex; align-items: center; gap: 8px; position: relative; }
+  .sa-dots { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--s-line); background: #fff; border-radius: 8px; cursor: pointer; color: #334155; }
+  .sa-dots:hover { background: var(--s-soft); }
+  .sa-pop { position: absolute; right: 0; top: calc(100% + 4px); min-width: 190px; padding: 6px; background: #fff; border: 1px solid var(--s-line); border-radius: 10px; box-shadow: 0 14px 34px rgba(15,23,42,.16); z-index: 12; }
+  .sa-pop button { display: block; width: 100%; padding: 8px 10px; border: 0; background: none; border-radius: 6px; text-align: left; cursor: pointer; font-weight: 600; color: var(--s-ink); }
+  .sa-pop button:hover { background: var(--s-soft); } .sa-pop .del { color: var(--s-red); }
+  #u_rows .u-save { display: none; } #u_rows tr.dirty .u-save, #u_rows tr[data-new] .u-save { display: inline-flex; }
+  .sa-foot { margin: 12px 2px 0; }
+  /* one user: Module Access · User Details · Login Activity */
+  .sa-crumb { display: flex; align-items: center; gap: 8px; color: var(--s-muted); font-size: 13.5px; margin-bottom: 14px; }
+  .sa-crumb button { border: 0; background: none; padding: 0; color: var(--s-blue); font: inherit; font-weight: 600; cursor: pointer; }
+  .sa-crumb b { color: var(--s-ink); }
+  .sa-uhead { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; }
+  .sa-uhead .sa-av { width: 56px; height: 56px; font-size: 22px; }
+  .sa-uhead .who { flex: 1 1 240px; min-width: 0; } .sa-uhead h2 { font-size: 20px; margin: 0; display: inline; text-transform: uppercase; } .sa-uhead .who small { display: block; color: var(--s-muted); }
+  .sa-uhead .sa-pill { margin-left: 10px; vertical-align: 2px; }
+  .sa-tabs2 { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+  .sa-tabs2 button { min-height: 40px; padding: 8px 18px; border: 1px solid var(--s-line); border-radius: 10px; background: #F8FAFD; color: #334155; font-weight: 700; cursor: pointer; }
+  .sa-tabs2 button[aria-selected="true"] { background: linear-gradient(135deg, #2563EB, #1D4ED8); border-color: #1D4ED8; color: #fff; }
+  .sa-ma-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; color: var(--s-muted); }
+  .sa-switch { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; color: var(--s-ink); cursor: pointer; margin: 0; }
+  .sa-switch input { appearance: none; -webkit-appearance: none; width: 42px; height: 24px; min-height: 0; padding: 0; border: 0; border-radius: 999px; background: #CBD5E1; position: relative; cursor: pointer; transition: background .15s; }
+  .sa-switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .15s; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+  .sa-switch input:checked { background: var(--s-blue2); } .sa-switch input:checked::after { left: 21px; }
+  .sa-pgg { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 14px; }
+  .sa-pgc { display: flex; flex-direction: column; gap: 12px; padding: 14px; border: 1px solid var(--s-line); border-radius: 14px; background: #fff; box-shadow: 0 4px 14px rgba(15,23,42,.04); margin: 0; color: var(--s-ink); font-weight: 700; }
+  .sa-pgc .t { display: flex; align-items: center; gap: 10px; font-size: 13.5px; line-height: 1.25; }
+  .sa-pgc .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; flex: 0 0 auto; } .sa-pgc .ic svg { width: 20px; height: 20px; }
+  .sa-pgc select { min-height: 38px; font-weight: 600; }
+  .sa .pg-sel.Edit { color: var(--s-green); } .sa .pg-sel.View { color: var(--s-blue); } .sa .pg-sel.None { color: var(--s-muted); }
+  .sa-grp { margin: 22px 0 10px; font-size: 15px; } .sa-grp:first-child { margin-top: 0; }
+  .sa-dl { display: grid; grid-template-columns: minmax(130px, 220px) 1fr; gap: 10px 18px; margin: 0; }
+  .sa-dl dt { color: var(--s-muted); font-weight: 600; } .sa-dl dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+  /* sites, companies, modules, activity */
+  .sa-scene-strip { height: 130px; margin: 14px -18px -18px; border-radius: 0 0 16px 16px; overflow: hidden; background: linear-gradient(180deg, #EEF3FB, #DCE6F4); }
+  .sa-scene-strip svg { width: 100%; height: 100%; stroke: none; }
+  .sa .co-t td.co-a { font-size: 13px; color: #334155; }
+  .sa-link-t { color: #334155; max-width: 520px; overflow: hidden; text-overflow: ellipsis; }
+  .sa-edit-row td { background: #FBFCFF; }
+  .sa-code { display: inline-block; padding: 3px 10px; border-radius: 8px; background: var(--s-soft); color: var(--s-blue); font-weight: 800; letter-spacing: .02em; }
+  .sa-code.sm { padding: 1px 7px; font-size: 12.5px; margin: 1px 0; }
+  .sa .st-status.active, .sa .m-status.live { color: var(--s-green); font-weight: 700; } .sa .st-status.closed { color: var(--s-red); font-weight: 700; } .sa .m-status.off { color: var(--s-muted); font-weight: 700; }
+  .sa-co { display: flex; align-items: center; gap: 10px; } .sa-co b { display: block; } .sa-co small { display: block; color: var(--s-muted); }
+  .sa-co .sa-av { width: 30px; height: 30px; font-size: 13px; } .sa-av.sq { border-radius: 9px; }
+  .sa-co .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: 0 0 auto; }
+  .sa-pill.act { background: var(--s-soft); color: var(--s-blue); }
+  .sa-btn svg { width: 16px; height: 16px; }
+  .sa-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 4px 16px; margin-top: 8px; }
+  .sa-form .field { margin: 0 0 12px; }
+  .sa .panel.pg { border-radius: 16px; border-color: #D6E2FF; background: #FBFCFF; }
+  .sa-detail-txt { white-space: normal; min-width: 160px; max-width: 360px; color: #334155; font-size: 13px; }
+  /* my account */
+  .sa-acc { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 18px; align-items: start; }
+  .sa-acc .me { display: flex; align-items: center; gap: 12px; padding-bottom: 14px; margin-bottom: 10px; border-bottom: 1px solid var(--s-line); }
+  .sa-acc .me .sa-av { width: 48px; height: 48px; font-size: 20px; } .sa-acc .me b { display: block; } .sa-acc .me small { color: var(--s-muted); display: block; overflow-wrap: anywhere; }
+  .sa-tag { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 6px; background: #E0EAFF; color: var(--s-blue); font-size: 11.5px; font-weight: 800; }
+  .sa-accnav { display: flex; flex-direction: column; gap: 4px; }
+  .sa-accnav button { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 0; border-radius: 10px; background: none; font-weight: 600; color: #334155; text-align: left; cursor: pointer; }
+  .sa-accnav button[aria-selected="true"] { background: var(--s-soft); color: var(--s-blue); }
+  .sa-acc .pass input { padding-right: 44px; }
+  @media (max-width: 960px) {
+    .sa { grid-template-columns: minmax(0, 1fr); background: var(--s-bg); }
+    .sa-side { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; transform: translateX(-102%); transition: transform .2s; }
+    .sa.nav-open .sa-side { transform: none; box-shadow: 0 0 0 100vmax rgba(15,23,42,.45); }
+    .sa-burger { display: grid; }
+    .sa-top { padding: 10px 14px; gap: 10px; } .sa-search { flex: 1 1 auto; min-width: 0; } .sa-who .sa-mewho { display: none; }
+    .sa-body { padding: 16px 14px 40px; } .sa-head h1 { font-size: 23px; }
+    .sa-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .sa-stat { padding: 12px; gap: 10px; } .sa-stat .ic { width: 38px; height: 38px; } .sa-stat b { font-size: 20px; }
+    .sa-filters .field { flex: 1 1 140px; min-width: 0; }
+    .sa-pgg { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .sa-pgc { padding: 10px; gap: 8px; } .sa-pgc .t { font-size: 12.5px; gap: 8px; } .sa-pgc .ic { width: 32px; height: 32px; }
+    .sa-uhead .sa-btn { flex: 1 1 140px; white-space: nowrap; padding: 9px 10px; }
+    .sa-acc { grid-template-columns: minmax(0, 1fr); }
+    .sa-dl { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } .sa-dl dd { margin-bottom: 10px; }
+  }
 </style>
 </head>
 <body>
@@ -191,78 +366,144 @@
   </main>
 </section>
 
-<!-- the Super Admin's console -->
-<section id="v_sa" hidden>
-  <header class="top">
-    <div class="brand"><span class="mark">RCL</span><div><b>Super Admin</b><small>RCL ERP – the whole system</small></div></div>
-    <nav class="tabs" id="sa_tabs" role="tablist" aria-label="Super Admin">
-      <button type="button" role="tab" data-t="users" aria-selected="true">Users &amp; Access</button>
-      <button type="button" role="tab" data-t="sites" aria-selected="false">Sites</button>
-      <button type="button" role="tab" data-t="companies" aria-selected="false">Companies</button>
-      <button type="button" role="tab" data-t="modules" aria-selected="false">Modules</button>
-      <button type="button" role="tab" data-t="audit" aria-selected="false">Activity</button>
-      <button type="button" role="tab" data-t="me" aria-selected="false">My account</button>
+<!-- the Super Admin's console – (23-10-2026) the new look: sidebar, top bar, cards (only the look changed; every action as before) -->
+<section id="v_sa" class="sa" hidden>
+  <aside class="sa-side" id="sa_side">
+    <div class="sa-logo"><span class="sa-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 7.2A7 7 0 1 0 18 16.4"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/></svg></span><div><b>RCL ERP</b><small>Fleet Management</small></div></div>
+    <div class="sa-role"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5L3 7z"/><rect x="5" y="19" width="14" height="2" rx="1"/></svg>Super Admin</div>
+    <nav class="sa-nav" id="sa_tabs" role="tablist" aria-label="Super Admin">
+      <button type="button" id="sa_mods" title="Open any module of any site (as its Admin)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>Dashboard</button>
+      <button type="button" role="tab" data-t="users" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.3c2.6.2 4.4 1.9 5 4.7"/></svg>Users &amp; Access</button>
+      <button type="button" role="tab" data-t="sites" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Sites</button>
+      <button type="button" role="tab" data-t="companies" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="11" height="18" rx="1.5"/><path d="M15 9h4.5a.5.5 0 0 1 .5.5V21H15"/><path d="M8 7h3M8 11h3M8 15h3"/></svg>Companies</button>
+      <button type="button" role="tab" data-t="modules" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Modules</button>
+      <button type="button" role="tab" data-t="audit" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Activity</button>
+      <button type="button" role="tab" data-t="me" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 4-6.5 8-6.5s7.2 2.3 8 6.5"/></svg>My Account</button>
     </nav>
-    <div class="who"><b id="sa_name"></b><small id="sa_email"></small></div>
-    <button class="btn small" id="sa_mods" type="button" title="Open any module of any site (as its Admin)">Open modules</button>
-    <button class="btn small" id="sa_out" type="button">Sign out</button>
-  </header>
-  <main class="wrap">
-    <section id="t_users" class="panel">
-      <div class="panel-head"><h2>Users &amp; Access</h2><span class="note">Pick a site: for every user, which module he may open there – <b>Admin</b>, <b>User</b> or <b>No access</b>. Access is separate on every site. Switched off = cannot sign in.</span></div>
-      <div class="bar"><div class="field"><label for="u_site">Site</label><select id="u_site"></select></div><div class="field"><label for="u_mod">Module</label><select id="u_mod"></select></div>
-        <button class="btn primary small" id="u_new" type="button">+ Add user</button><span class="note" id="u_count"></span></div>
-      <div class="tw"><table><thead id="u_head"></thead><tbody id="u_rows"></tbody></table></div>
-      <div class="panel pg" id="pg_panel" hidden></div>
-      <p class="note">A new user gets a <b>one-time password</b>: at his first sign-in he sets his own. A new one-time password ends his sign-ins.</p>
-    </section>
-    <section id="t_sites" class="panel" hidden>
-      <div class="panel-head"><h2>Sites</h2><span class="note">Every site of every module. <b>Closed</b> = switched off: nobody can open it. A closed site can be deleted – its data stays in its own database.</span></div>
-      <div class="bar"><button class="btn primary small" id="st_new" type="button">+ New site</button></div>
-      <div class="panel pg" id="ns_panel" hidden>
-        <div class="panel-head"><h2>New site</h2><span class="note">Mechanical for a new site – the same app, its own database. Nothing of another site is copied and no user is made; afterwards you give the site to people under Users &amp; Access.</span></div>
-        <p class="note" style="margin-top:0"><b>Before:</b> make the site's Supabase project yourself (Supabase → New project · region Mumbai). Its secret key is never typed here – the steps below say where it goes.</p>
-        <div class="grid2">
-          <div class="field"><label for="ns_code">Site code</label><input id="ns_code" maxlength="12" placeholder="e.g. 18B" autocomplete="off"></div>
-          <div class="field"><label for="ns_name">Site name</label><input id="ns_name" maxlength="80" placeholder="e.g. Kolhapur 18B" autocomplete="off"></div>
-          <div class="field"><label for="ns_comp">Company</label><select id="ns_comp"></select></div>
-          <div class="field"><label for="ns_url">Supabase project link</label><input id="ns_url" placeholder="https://….supabase.co" autocomplete="off"></div>
-          <div class="field"><label for="ns_sheet">Google Sheet for its backup (can be added later)</label><input id="ns_sheet" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off"></div>
+    <div class="sa-scene" aria-hidden="true"><svg viewBox="0 0 240 150" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sn_sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0C2350" stop-opacity="0"/><stop offset="1" stop-color="#16346E"/></linearGradient><radialGradient id="sn_glow"><stop offset="0" stop-color="#FFC86B" stop-opacity=".85"/><stop offset="1" stop-color="#FFC86B" stop-opacity="0"/></radialGradient></defs><rect width="240" height="150" fill="url(#sn_sky)"/><path d="M0 96h14v-18h10v10h12V70h9v26h16V82h12v14h20V76h8v20h18V86h14v10h22V72h10v24h22V84h12v12h22v54H0z" fill="#132C5C"/><g fill="url(#sn_glow)"><circle cx="40" cy="64" r="16"/><circle cx="128" cy="60" r="16"/><circle cx="210" cy="64" r="16"/></g><g fill="#2A4A86"><rect x="39" y="64" width="2" height="40"/><rect x="127" y="60" width="2" height="44"/><rect x="209" y="64" width="2" height="40"/></g><g fill="#FFD27A"><circle cx="40" cy="64" r="2.6"/><circle cx="128" cy="60" r="2.6"/><circle cx="210" cy="64" r="2.6"/></g><path d="M0 112l240-8v46H0z" fill="#0E2147"/><path d="M0 128l240-10" stroke="#F2B632" stroke-width="1.4" stroke-dasharray="10 9" opacity=".65"/><g fill="#1D3B76"><path d="M18 110h34l6 8v6H14v-8z"/><rect x="30" y="100" width="14" height="10" rx="1.5"/><path d="M44 102l18-14 4 4-14 12z"/><path d="M62 88l8 10-6 3-6-8z"/><circle cx="24" cy="125" r="5"/><circle cx="50" cy="125" r="5"/></g><g fill="#22427F"><rect x="92" y="104" width="40" height="14" rx="2"/><rect x="118" y="96" width="14" height="10" rx="1.5"/><circle cx="100" cy="122" r="6"/><circle cx="126" cy="122" r="6"/></g><g fill="#1A3670"><rect x="160" y="100" width="50" height="16" rx="2"/><rect x="200" y="92" width="16" height="12" rx="1.5"/><circle cx="170" cy="121" r="5.5"/><circle cx="186" cy="121" r="5.5"/><circle cx="206" cy="121" r="5.5"/></g><g fill="#FFD27A" opacity=".9"><circle cx="131" cy="111" r="1.6"/><circle cx="215" cy="108" r="1.6"/><circle cx="57" cy="117" r="1.4"/></g></svg></div>
+    <div class="sa-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.6-3.4 8.2-8 9-4.6-.8-8-4.4-8-9V6l8-3z"/><path d="M8.8 12.2l2.2 2.2 4.4-4.6"/></svg><div><b>RCL ERP</b><small>One Click Solution</small></div></div>
+  </aside>
+  <div class="sa-main">
+    <header class="sa-top">
+      <button class="sa-burger" id="sa_burger" type="button" aria-label="Menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <label class="sa-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="sa_q" type="search" placeholder="Search users, sites, modules…" aria-label="Search users, sites, modules" autocomplete="off"></label>
+      <div class="sa-top-end">
+        <button class="sa-bell" id="sa_bell" type="button" title="Activity" aria-label="Activity"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6.5 2 6.5H4S6 14 6 9z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></button>
+        <div class="sa-me">
+          <button class="sa-who" id="sa_who" type="button" aria-haspopup="menu" aria-expanded="false"><span class="sa-av" id="sa_av">S</span><span class="sa-mewho"><b id="sa_name"></b><small>Super Admin</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="sa-menu" id="sa_menu" role="menu" hidden>
+            <small id="sa_email"></small>
+            <button type="button" role="menuitem" id="sa_mods2"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Open modules</button>
+            <button type="button" role="menuitem" id="sa_acc"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 4-6.5 8-6.5s7.2 2.3 8 6.5"/></svg>My account</button>
+            <button type="button" role="menuitem" class="out" id="sa_out"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/></svg>Sign out</button>
+          </div>
         </div>
-        <div class="field" style="margin-top:6px"><label>Diesel places of this site</label><p class="note" style="margin:0 0 8px">Where diesel is kept – the pump, each dispenser, a store – with its tank size. Diesel Inward, Issue and Transfer use these. The first one is chosen first on the forms. Later: Sites → <b>Diesel places</b>.</p><div class="pl-box" id="ns_places"></div></div>
-        <div class="bar" style="margin:4px 0 0"><button class="btn primary small" id="ns_check" type="button">Check &amp; set up</button><button class="btn small" id="ns_close" type="button">Close</button></div>
-        <ol class="steps" id="ns_steps" hidden></ol>
       </div>
-      <div class="panel pg" id="dp_panel" hidden></div>
-      <div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>Company</th><th>State</th><th></th></tr></thead><tbody id="st_rows"></tbody></table></div>
-    </section>
-    <section id="t_companies" class="panel" hidden>
-      <div class="panel-head"><h2>Companies</h2><span class="note">The companies a site belongs to.</span></div>
-      <div class="tw"><table class="co-t"><thead><tr><th>Company</th><th>GSTIN</th><th>PAN</th><th>Address</th><th>Logo</th><th>Sites</th><th></th></tr></thead><tbody id="co_rows"></tbody></table></div>
-      <h2 style="margin-top:18px" id="co_title">Add a company</h2>
-      <div class="grid2" style="margin-top:10px">
-        <div class="field"><label for="co_name">Name *</label><input id="co_name" maxlength="80"></div>
-        <div class="field"><label for="co_gstin">GSTIN</label><input id="co_gstin" maxlength="15" placeholder="27ABCDE1234F1Z5"></div>
-        <div class="field"><label for="co_pan">PAN</label><input id="co_pan" maxlength="10" placeholder="ABCDE1234F"></div>
-        <div class="field"><label for="co_address">Address</label><input id="co_address" maxlength="300"></div>
-        <div class="field"><label for="co_logo">Logo (https link)</label><input id="co_logo" maxlength="300" placeholder="https://…"></div>
-      </div>
-      <div class="bar"><button class="btn primary" id="co_save" type="button">Save company</button><button class="btn" id="co_clear" type="button">New company</button></div>
-    </section>
-    <section id="t_modules" class="panel" hidden>
-      <div class="panel-head"><h2>Modules</h2><span class="note">A module shows on the dashboard only when it is <b>Live</b> and has its link. A module that is <b>Off</b> can be deleted (not Mechanical).</span></div>
-      <div class="bar"><button class="btn primary small" id="m_new" type="button">+ Add module</button></div>
-      <div class="tw"><table><thead><tr><th>Module</th><th>Link</th><th>State</th><th></th></tr></thead><tbody id="m_rows"></tbody></table></div>
-    </section>
-    <section id="t_audit" class="panel" hidden>
-      <div class="panel-head"><h2>Activity</h2><span class="note">Sign-ins, users, access, sites, companies, modules – the last 200.</span></div>
-      <div class="tw"><table><thead><tr><th>When</th><th>Who</th><th>What</th><th>On</th><th>Detail</th></tr></thead><tbody id="a_rows"></tbody></table></div>
-    </section>
-    <section id="t_me" class="panel" hidden>
-      <div class="panel-head"><h2>My account</h2><span class="note">Forgot it? Sign-in screen → "Super Admin: … recovery code".</span></div>
-      <button class="btn primary" id="me_pw" type="button">Change my password</button>
-    </section>
-  </main>
+    </header>
+    <main class="sa-body">
+      <section id="t_users" class="sa-page">
+        <div id="u_top">
+          <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>User management</span><h1>Users &amp; Access</h1><p>Manage users and control their access to modules and sites. Access is separate on every site; switched off = cannot sign in.</p></div>
+            <button class="sa-btn primary" id="u_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add User</button></div>
+          <div class="sa-stats" id="u_stats"></div>
+          <div class="sa-card">
+            <div class="sa-filters">
+              <div class="field"><label for="u_site">Site</label><select id="u_site"></select></div>
+              <div class="field"><label for="u_mod">Module</label><select id="u_mod"></select></div>
+              <div class="field"><label for="u_stat">Status</label><select id="u_stat"><option value="">All users</option><option value="on">Active</option><option value="off">Inactive</option></select></div>
+              <label class="sa-find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="u_q" type="search" placeholder="Search by name or email…" aria-label="Search by name or email" autocomplete="off"></label>
+            </div>
+            <div class="tw"><table><thead id="u_head"></thead><tbody id="u_rows"></tbody></table></div>
+            <p class="note sa-foot">A new user gets a <b>one-time password</b>: at his first sign-in he sets his own. A new one-time password ends his sign-ins. <span id="u_count"></span></p>
+          </div>
+        </div>
+        <div id="pg_panel" hidden></div>
+      </section>
+      <section id="t_sites" class="sa-page" hidden>
+        <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Site management</span><h1>Sites</h1><p>Every site of every module. <b>Closed</b> = switched off: nobody can open it. A closed site can be deleted – its data stays in its own database.</p></div>
+          <button class="sa-btn primary" id="st_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New site</button></div>
+        <div class="panel pg" id="ns_panel" hidden>
+          <div class="panel-head"><h2>New site</h2><span class="note">Mechanical for a new site – the same app, its own database. Nothing of another site is copied and no user is made; afterwards you give the site to people under Users &amp; Access.</span></div>
+          <p class="note" style="margin-top:0"><b>Before:</b> make the site's Supabase project yourself (Supabase → New project · region Mumbai). Its secret key is never typed here – the steps below say where it goes.</p>
+          <div class="grid2">
+            <div class="field"><label for="ns_code">Site code</label><input id="ns_code" maxlength="12" placeholder="e.g. 18B" autocomplete="off"></div>
+            <div class="field"><label for="ns_name">Site name</label><input id="ns_name" maxlength="80" placeholder="e.g. Kolhapur 18B" autocomplete="off"></div>
+            <div class="field"><label for="ns_comp">Company</label><select id="ns_comp"></select></div>
+            <div class="field"><label for="ns_url">Supabase project link</label><input id="ns_url" placeholder="https://….supabase.co" autocomplete="off"></div>
+            <div class="field"><label for="ns_sheet">Google Sheet for its backup (can be added later)</label><input id="ns_sheet" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off"></div>
+          </div>
+          <div class="field" style="margin-top:6px"><label>Diesel places of this site</label><p class="note" style="margin:0 0 8px">Where diesel is kept – the pump, each dispenser, a store – with its tank size. Diesel Inward, Issue and Transfer use these. The first one is chosen first on the forms. Later: Sites → <b>Diesel places</b>.</p><div class="pl-box" id="ns_places"></div></div>
+          <div class="bar" style="margin:4px 0 0"><button class="sa-btn primary sm" id="ns_check" type="button">Check &amp; set up</button><button class="sa-btn sm" id="ns_close" type="button">Close</button></div>
+          <ol class="steps" id="ns_steps" hidden></ol>
+        </div>
+        <div class="panel pg" id="dp_panel" hidden></div>
+        <div class="sa-card">
+          <div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>Company</th><th>State</th><th>Actions</th></tr></thead><tbody id="st_rows"></tbody></table></div>
+          <div class="sa-scene-strip" aria-hidden="true"><svg viewBox="0 0 900 130" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg"><path d="M0 70h40V52h26v14h30V40h20v30h44V58h28v12h50V46h18v24h40V54h30v16h60V44h22v26h50V56h26v14h40V48h20v22h60V58h30v12h70V50h24v20h44v60H0z" fill="#D3DEEE"/><path d="M0 92l900-10v48H0z" fill="#B9C7DC"/><path d="M0 106l900-12" stroke="#F2B632" stroke-width="2.4" stroke-dasharray="22 16" opacity=".8"/><g fill="#8EA3C2"><path d="M80 88h70l12 14v10H72V96z"/><rect x="104" y="70" width="28" height="18" rx="3"/><path d="M132 74l38-26 7 7-30 24z"/><path d="M170 48l16 20-12 6-11-15z"/><circle cx="92" cy="114" r="9"/><circle cx="142" cy="114" r="9"/></g><g fill="#7D93B6"><rect x="300" y="82" width="86" height="26" rx="4"/><rect x="356" y="66" width="30" height="20" rx="3"/><circle cx="318" cy="114" r="11"/><circle cx="370" cy="114" r="11"/></g><g fill="#94A8C6"><rect x="520" y="76" width="110" height="30" rx="4"/><rect x="610" y="60" width="34" height="22" rx="3"/><circle cx="540" cy="113" r="10"/><circle cx="572" cy="113" r="10"/><circle cx="626" cy="113" r="10"/></g><g fill="#869BBC"><rect x="740" y="86" width="72" height="20" rx="4"/><rect x="752" y="70" width="30" height="16" rx="3"/><rect x="800" y="98" width="40" height="16" rx="8"/><circle cx="756" cy="114" r="8"/></g></svg></div>
+        </div>
+      </section>
+      <section id="t_companies" class="sa-page" hidden>
+        <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="11" height="18" rx="1.5"/><path d="M15 9h4.5a.5.5 0 0 1 .5.5V21H15"/></svg>Companies</span><h1>Companies</h1><p>The companies a site belongs to.</p></div>
+          <button class="sa-btn primary" id="co_add" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add company</button></div>
+        <div class="panel pg" id="co_panel" hidden>
+          <h2 id="co_title">Add a company</h2>
+          <div class="sa-form">
+            <div class="field"><label for="co_name">Name *</label><input id="co_name" maxlength="80"></div>
+            <div class="field"><label for="co_gstin">GSTIN</label><input id="co_gstin" maxlength="15" placeholder="27ABCDE1234F1Z5"></div>
+            <div class="field"><label for="co_pan">PAN</label><input id="co_pan" maxlength="10" placeholder="ABCDE1234F"></div>
+            <div class="field"><label for="co_address">Address</label><input id="co_address" maxlength="300"></div>
+            <div class="field"><label for="co_logo">Logo (https link)</label><input id="co_logo" maxlength="300" placeholder="https://…"></div>
+          </div>
+          <div class="bar"><button class="sa-btn primary sm" id="co_save" type="button">Save company</button><button class="sa-btn sm" id="co_clear" type="button">Close</button></div>
+        </div>
+        <div class="sa-card"><div class="tw"><table class="co-t"><thead><tr><th>Company</th><th>GSTIN</th><th>PAN</th><th>Address</th><th>Sites</th><th>Actions</th></tr></thead><tbody id="co_rows"></tbody></table></div></div>
+      </section>
+      <section id="t_modules" class="sa-page" hidden>
+        <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Module management</span><h1>Modules</h1><p>A module shows on the dashboard only when it is <b>Live</b> and has its link. A module that is <b>Off</b> can be deleted (not Mechanical).</p></div>
+          <button class="sa-btn primary" id="m_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add module</button></div>
+        <div class="sa-card"><div class="tw"><table><thead><tr><th>Module</th><th>Link</th><th>Status</th><th>Actions</th></tr></thead><tbody id="m_rows"></tbody></table></div></div>
+      </section>
+      <section id="t_audit" class="sa-page" hidden>
+        <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Audit logs</span><h1>Activity</h1><p>Sign-ins, users, access, sites, companies, modules – the last 200.</p></div>
+          <button class="sa-btn primary" id="a_user" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add User</button></div>
+        <div class="sa-card">
+          <div class="sa-filters">
+            <div class="field"><label for="a_act">What</label><select id="a_act"><option value="">All actions</option></select></div>
+            <div class="field"><label for="a_from">From</label><input id="a_from" type="date"></div>
+            <div class="field"><label for="a_to">To</label><input id="a_to" type="date"></div>
+            <label class="sa-find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="a_q" type="search" placeholder="Search by user or detail…" aria-label="Search by user or detail" autocomplete="off"></label>
+          </div>
+          <div class="tw"><table><thead><tr><th>When</th><th>Who</th><th>What</th><th>On</th><th>Detail</th></tr></thead><tbody id="a_rows"></tbody></table></div>
+        </div>
+      </section>
+      <section id="t_me" class="sa-page" hidden>
+        <div class="sa-head"><div><h1>My Account</h1><p>Manage your account and security settings.</p></div></div>
+        <div class="sa-acc">
+          <div class="sa-card">
+            <div class="me"><span class="sa-av" id="me_av">S</span><div><b id="me_name"></b><small id="me_email"></small><span class="sa-tag">Super Admin</span></div></div>
+            <div class="sa-accnav" role="tablist" aria-label="My account">
+              <button type="button" role="tab" data-a="info" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 4-6.5 8-6.5s7.2 2.3 8 6.5"/></svg>Account Information</button>
+              <button type="button" role="tab" data-a="pw" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Change Password</button>
+              <button type="button" role="tab" data-a="rec" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Sign-in Recovery</button>
+            </div>
+          </div>
+          <div class="sa-card">
+            <div id="me_info" hidden><h2>Account Information</h2><dl class="sa-dl" style="margin-top:12px"><dt>Name</dt><dd id="me_i_name"></dd><dt>Email</dt><dd id="me_i_email"></dd><dt>Role</dt><dd>Super Admin – the whole system</dd></dl></div>
+            <form id="me_pwf" autocomplete="off">
+              <h2>Change Password</h2>
+              <p class="note" style="margin:0 0 14px">After this you stay signed in here; your other sign-ins end.</p>
+              <div class="field"><label for="me_old">Current Password</label><div class="pass"><input id="me_old" type="password" autocomplete="current-password" placeholder="Enter current password"><button type="button" class="eye" data-eye="me_old" aria-label="Show password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+              <div class="field"><label for="me_new">New Password – 8 or more, letters and numbers</label><div class="pass"><input id="me_new" type="password" autocomplete="new-password" placeholder="Enter new password"><button type="button" class="eye" data-eye="me_new" aria-label="Show password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+              <div class="field"><label for="me_new2">Confirm New Password</label><div class="pass"><input id="me_new2" type="password" autocomplete="new-password" placeholder="Confirm new password"><button type="button" class="eye" data-eye="me_new2" aria-label="Show password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+              <p class="err" id="me_err" role="alert"></p>
+              <button class="sa-btn primary" id="me_pw" type="submit" style="width:100%">Update Password</button>
+            </form>
+            <div id="me_rec" hidden><h2>Sign-in Recovery</h2><p class="note" style="margin-top:10px">Forgot your password? On the sign-in screen press <b>"Super Admin: set a new password with the recovery code"</b> and type the recovery code written down when the Super Admin was made. You then get a NEW recovery code – the old one stops working.</p></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
 </section>
 
 <div id="toast" role="status" hidden></div>
@@ -290,7 +531,7 @@
   }
   const msgOf = e => String(e.message) + (MR[e.code] ? ' · ' + MR[e.code] : '');
   function show(v) { ['v_login', 'v_setup', 'v_rec', 'v_pw', 'v_home', 'v_sa'].forEach(id => { $(id).hidden = id !== v; }); window.scrollTo(0, 0); }
-  async function busy(btn, label, fn) { const t = btn.textContent; btn.disabled = true; btn.textContent = label; try { await fn(); } finally { btn.disabled = false; btn.textContent = t; } }
+  async function busy(btn, label, fn) { const t = btn.innerHTML; btn.disabled = true; btn.textContent = label; try { await fn(); } finally { btn.disabled = false; btn.innerHTML = t; } }      // (its picture comes back too)
   const params = new URLSearchParams(location.search);
   const next = (() => { const n = params.get('next') || ''; return /^\/?api\/go\?/.test(n) ? BASE + n.replace(/^\//, '') : ''; })();
 
@@ -404,61 +645,142 @@
   $('h_pw').addEventListener('click', () => pwView(false));
 
   // ---------- the Super Admin ----------
+  /* (23-10-2026) the new look of his console ("super admin page chi purn design redesign … fkt ui changes"): a sidebar, a top bar
+   * (search, Activity, his menu), Users & Access with its counts and filters, one user's page (Module Access · User Details · Login
+   * Activity), Sites, Companies, Modules, Activity and My Account as cards. Every button sends to the server what it sent before. */
+  const initial = s => (String(s || '').trim().charAt(0) || '?').toUpperCase();
+  const AVC = ['#2563EB', '#7C3AED', '#0891B2', '#EA580C', '#DB2777', '#059669', '#4F46E5', '#CA8A04'];
+  const avBg = s => { let h = 0; String(s || '').split('').forEach(c => { h = (h * 31 + c.charCodeAt(0)) >>> 0; }); return AVC[h % AVC.length]; };
+  const av = (name, email) => '<span class="sa-av" style="background:' + avBg(email || name) + '">' + esc(initial(name || email)) + '</span>';
+  const IC = { plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>', dots: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>',
+    mail: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/></svg>', key: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M15 8l2 2"/></svg>',
+    back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>', save: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>', pen: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>',
+    users: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.3c2.6.2 4.4 1.9 5 4.7"/></svg>',
+    ucheck: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5 1.4 0 2.6.3 3.7.9"/><path d="M15 18l2.2 2.2L21.5 16"/></svg>',
+    ux: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5 1.4 0 2.6.3 3.7.9"/><path d="M16 15l5 5M21 15l-5 5"/></svg>',
+    pin: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+    grid: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>' };
+  // the picture and colour of a page of Mechanical / the Store (by its name)
+  const PG_IC = [[/dash/i, 'blue', '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>'], [/vendor master|vendors/i, 'green', '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/>'],
+    [/asset|master|item/i, 'amber', '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>'], [/boq/i, 'red', '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>'],
+    [/compliance|vehicle/i, 'blue', '<rect x="2" y="7" width="12" height="9" rx="1.5"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>'], [/breakdown/i, 'red', '<path d="M14.5 5.5a4 4 0 0 0-5 5L4 16l4 4 5.5-5.5a4 4 0 0 0 5-5l-2.5 2.5-3-3z"/>'],
+    [/transfer/i, 'blue', '<path d="M4 8h14l-3-3M20 16H6l3 3"/>'], [/diesel|tank|inward|issue/i, 'amber', '<path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16H5z"/><path d="M15 9h2a2 2 0 0 1 2 2v6a1.5 1.5 0 0 0 3 0V9l-3-3M8 7h4"/>'],
+    [/log ?book/i, 'purple', '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>'], [/billing|bill summary/i, 'green', '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>'],
+    [/saved|bills/i, 'blue', '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>'], [/payment/i, 'purple', '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h3"/>'],
+    [/ledger/i, 'amber', '<path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h6M8 11h6"/>'], [/outstanding|report/i, 'blue', '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
+    [/approv|verif/i, 'green', '<path d="M5 12.5l4.5 4.5L19 7.5"/>'], [/user|setting/i, 'purple', '<circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 4-6.5 8-6.5s7.2 2.3 8 6.5"/>']];
+  const pgIcon = label => { const f = PG_IC.find(x => x[0].test(label)) || [null, 'blue', '<rect x="4" y="4" width="16" height="16" rx="3"/>']; return '<span class="ic ' + f[1] + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + f[2] + '</svg></span>'; };
   async function saView() {
     show('v_sa'); $('sa_name').textContent = S.me.user.name; $('sa_email').textContent = S.me.user.email;
+    [$('sa_av'), $('me_av')].forEach(e => { e.textContent = initial(S.me.user.name || S.me.user.email); e.style.background = avBg(S.me.user.email); });
+    $('me_name').textContent = $('me_i_name').textContent = S.me.user.name; $('me_email').textContent = $('me_i_email').textContent = S.me.user.email;
     await load(); tab(S.tab || 'users');
   }
   async function load() { try { S.data = await api('/api/admin', { action: 'overview' }); } catch (e) { fail(e); } }
   function fail(e) { if (e.code === 'session' || e.status === 401) { toast(MR.session, true); return loginView(); } toast(msgOf(e), true); }
   function tab(t) {
-    S.tab = t; document.querySelectorAll('#sa_tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === t)));
+    S.tab = t; document.querySelectorAll('#sa_tabs button[data-t]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === t)));
     ['users', 'sites', 'companies', 'modules', 'audit', 'me'].forEach(k => { $('t_' + k).hidden = k !== t; });
-    if (t === 'users') users(); else if (t === 'sites') sites(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'audit') audit();
+    $('v_sa').classList.remove('nav-open'); menuClose(); $('sa_q').value = '';
+    if (t === 'users') { userClose(); users(); } else if (t === 'sites') sites(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'audit') audit(); else if (t === 'me') meTab(S.meTab || 'pw');
+    window.scrollTo(0, 0);
   }
   $('sa_tabs').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) tab(b.dataset.t); });
   $('sa_out').addEventListener('click', signOut);
   // (14-10-2026) the Super Admin opens the modules too: every site, every live module, as its Admin – and back to the console
-  $('sa_mods').addEventListener('click', () => { params.set('menu', '1'); homeView(); });
+  const openMods = () => { params.set('menu', '1'); homeView(); };
+  $('sa_mods').addEventListener('click', openMods); $('sa_mods2').addEventListener('click', openMods);
   $('h_sa').addEventListener('click', () => saView());
-  $('me_pw').addEventListener('click', () => pwView(false));
+  $('sa_acc').addEventListener('click', () => tab('me'));
+  $('sa_bell').addEventListener('click', () => tab('audit'));
+  $('sa_burger').addEventListener('click', () => $('v_sa').classList.toggle('nav-open'));
+  // his menu (name → Open modules · My account · Sign out); the row menus (…)
+  function menuClose() { $('sa_menu').hidden = true; $('sa_who').setAttribute('aria-expanded', 'false'); document.querySelectorAll('#v_sa .sa-pop').forEach(p => { p.hidden = true; }); }
+  $('sa_who').addEventListener('click', e => { e.stopPropagation(); const open = $('sa_menu').hidden; menuClose(); $('sa_menu').hidden = !open; $('sa_who').setAttribute('aria-expanded', String(open)); });
+  $('v_sa').addEventListener('click', e => { const d = e.target.closest('.sa-dots');
+    if (d) { e.stopPropagation(); const p = d.nextElementSibling, open = p.hidden; menuClose(); if (open) { p.hidden = false; popAt(p, d); } return; }
+    if (!e.target.closest('.sa-menu') && !e.target.closest('.sa-pop')) menuClose();
+    if (e.target.closest('.sa-pop button')) setTimeout(menuClose, 0);
+    if ($('v_sa').classList.contains('nav-open') && !e.target.closest('.sa-side') && !e.target.closest('#sa_burger')) $('v_sa').classList.remove('nav-open'); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') menuClose(); });
+  // a row's menu (…) is placed by the page, not inside the table's box (which would cut it off); scrolling closes it
+  function popAt(p, d) { const r = d.getBoundingClientRect(); p.style.position = 'fixed'; p.style.right = 'auto'; const w = p.offsetWidth, h = p.offsetHeight;
+    p.style.left = Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8)) + 'px';
+    p.style.top = (r.bottom + 4 + h > window.innerHeight - 8 && r.top - 4 - h > 8 ? r.top - 4 - h : r.bottom + 4) + 'px'; }
+  window.addEventListener('scroll', () => document.querySelectorAll('#v_sa .sa-pop').forEach(p => { p.hidden = true; }), true);
+  // the search on top: the rows of the page that is open (users: by name or email)
+  $('sa_q').addEventListener('input', () => { const q = $('sa_q').value;
+    if (S.tab === 'users') { if (!$('pg_panel').hidden) userClose(); $('u_q').value = q; usersFilter(); return; }
+    if (S.tab === 'audit') { $('a_q').value = q; auditShow(); return; }
+    const tb = { sites: 'st_rows', companies: 'co_rows', modules: 'm_rows' }[S.tab]; if (!tb) return;
+    const w = q.trim().toLowerCase(); [...$(tb).rows].forEach(tr => { tr.hidden = !!w && !tr.textContent.toLowerCase().includes(w) && ![...tr.querySelectorAll('input')].some(i => i.value.toLowerCase().includes(w)); }); });
 
   // users & access – one site at a time
-  const ROLE = (v, mod, dis) => '<select class="sel-r ' + (v || 'none') + '" data-m="' + esc(mod) + '"' + (dis ? ' disabled' : '') + '><option value=""' + (!v ? ' selected' : '') + '>No access</option><option value="user"' + (v === 'user' ? ' selected' : '') + '>User</option><option value="admin"' + (v === 'admin' ? ' selected' : '') + '>Admin</option></select>';
+  const ROLE = (v, mod, dis) => '<select class="sel-r ' + (v || 'none') + '" data-m="' + esc(mod) + '"' + (dis ? ' disabled' : '') + ' aria-label="' + esc(mod) + '"><option value=""' + (!v ? ' selected' : '') + '>No access</option><option value="user"' + (v === 'user' ? ' selected' : '') + '>User</option><option value="admin"' + (v === 'admin' ? ' selected' : '') + '>Admin</option></select>';
+  const pct = (a, b) => b ? Math.round(a * 100 / b) : 0;
   function users() {
     const d = S.data; if (!d) return;
     const sites = d.sites; S.site = sites.some(s => s.code === S.site) ? S.site : (sites[0] || {}).code || '';
     $('u_site').innerHTML = sites.map(s => '<option value="' + esc(s.code) + '"' + (s.code === S.site ? ' selected' : '') + '>' + esc(s.name) + ' (' + esc(s.code) + ')' + (s.status === 'closed' ? ' – closed' : '') + '</option>').join('') || '<option value="">– no site yet –</option>';
     S.mod = d.modules.some(m => m.key === S.mod) ? S.mod : '';
     $('u_mod').innerHTML = '<option value="">All modules</option>' + d.modules.map(m => '<option value="' + esc(m.key) + '"' + (m.key === S.mod ? ' selected' : '') + '>' + esc(m.name) + (m.status !== 'live' ? ' – off' : '') + '</option>').join('');
-    $('u_head').innerHTML = '<tr><th>User</th><th>Active</th>' + mods().map(m => '<th>' + esc(m.name) + '</th>').join('') + '<th>One-time password</th><th></th></tr>';
-    const people = d.users.filter(u => !u.super);
-    $('u_rows').innerHTML = people.map(u => row(u, false)).join('');
-    $('u_count').textContent = people.length + ' users · ' + people.filter(u => u.active).length + ' active';
+    $('u_head').innerHTML = '<tr><th>#</th><th>User</th><th>Email</th><th>Status</th>' + mods().map(m => '<th>' + esc(m.name) + '</th>').join('') + '<th>One-time password</th><th>Actions</th></tr>';
+    const people = d.users.filter(u => !u.super), on = people.filter(u => u.active).length, month = new Date().toISOString().slice(0, 7);
+    const signedMonth = people.filter(u => u.lastLogin && String(u.lastLogin).slice(0, 7) === month).length;
+    const stat = (ic, cls, label, n, sub, subCls, go) => '<div class="sa-stat"><span class="ic ' + cls + '">' + ic + '</span><div><span>' + label + '</span><b>' + n + '</b>' +
+      (go ? '<button type="button" class="lnk" data-go="' + go + '">' + sub + '</button>' : '<small class="' + (subCls || '') + '">' + sub + '</small>') + '</div></div>';
+    $('u_stats').innerHTML = stat(IC.users, 'blue', 'Total Users', people.length, signedMonth + ' signed in this month', 'up') + stat(IC.ucheck, 'green', 'Active Users', on, pct(on, people.length) + '% active', 'up') +
+      stat(IC.ux, 'red', 'Inactive Users', people.length - on, pct(people.length - on, people.length) + '% inactive', 'down') + stat(IC.pin, 'purple', 'Sites', d.sites.length, 'Manage sites', '', 'sites') + stat(IC.grid, 'amber', 'Modules', d.modules.length, 'Manage modules', '', 'modules');
+    $('u_rows').innerHTML = people.map((u, i) => row(u, false, i + 1)).join('');
+    S.uCount = people.length + ' users · ' + on + ' active';
+    usersFilter();
   }
+  $('u_stats').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) tab(b.dataset.go); });
+  // Status and the search: only which rows show (nothing is sent)
+  function usersFilter() { const st = $('u_stat').value, q = $('u_q').value.trim().toLowerCase(); let n = 0;
+    [...$('u_rows').rows].forEach(tr => { if (tr.dataset.new) return; const u = S.data.users.find(x => x.email === tr.dataset.email) || {};
+      const hide = (st === 'on' && !u.active) || (st === 'off' && u.active) || (q && !((u.name || '') + ' ' + (u.email || '')).toLowerCase().includes(q)); tr.hidden = hide; if (!hide) n++; });
+    $('u_count').textContent = st || q ? n + ' shown' : S.uCount; }
+  $('u_stat').addEventListener('change', usersFilter); $('u_q').addEventListener('input', usersFilter);
   // the modules shown as columns: the one picked, or all of them
   const mods = () => S.data.modules.filter(m => !S.mod || m.key === S.mod);
-  function row(u, isNew) {
+  function row(u, isNew, n) {
     const d = S.data, roleOf = m => ((d.access.find(a => a.email === u.email && a.site === S.site && a.module === m.key)) || {}).role || '';
-    return '<tr data-email="' + esc(u.email) + '"' + (isNew ? ' data-new="1"' : u.active ? '' : ' class="off"') + '>' +
-      '<td class="w">' + (isNew ? '<input class="u-email" type="email" placeholder="email"><input class="u-name" placeholder="name" style="margin-top:4px">' : '<b>' + esc(u.name) + '</b><small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + '</small>') + '</td>' +
-      '<td><input type="checkbox" class="u-active"' + (u.active !== false ? ' checked' : '') + ' aria-label="Active" style="width:20px;min-height:20px"></td>' +
-      mods().map(m => '<td><div class="rolebox">' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + (m.key === 'mechanical' && !isNew && roleOf(m) ? '<button type="button" class="link u-pages" data-email="' + esc(u.email) + '">Pages</button>' : m.key === 'store' && !isNew && roleOf(m) ? '<button type="button" class="link u-spages" data-email="' + esc(u.email) + '">Pages</button>' : '') + '</div></td>').join('') +
-      '<td><input class="u-pw" placeholder="' + (isNew ? 'one-time password' : 'new one-time password') + '" autocomplete="new-password"></td>' +
-      '<td><button class="btn primary small u-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (isNew ? ' <button class="link u-cancel" type="button">Cancel</button>' : '') + '</td></tr>';
+    const on = u.active !== false;
+    return '<tr data-email="' + esc(u.email) + '"' + (isNew ? ' data-new="1"' : on ? '' : ' class="off"') + '>' +
+      '<td class="num">' + (isNew ? '+' : n) + '</td>' +
+      '<td class="w">' + (isNew ? '<input class="u-email" type="email" placeholder="email" aria-label="Email"><input class="u-name" placeholder="name" aria-label="Name" style="margin-top:4px">'
+        : '<div class="sa-user">' + av(u.name, u.email) + '<div><button type="button" class="u-pages" data-email="' + esc(u.email) + '" title="Module access of this user">' + esc(u.name) + '</button><small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + '</small></div></div>') + '</td>' +
+      '<td>' + (isNew ? '' : '<a class="sa-mail" href="mailto:' + esc(u.email) + '" title="' + esc(u.email) + '" aria-label="Email ' + esc(u.email) + '">' + IC.mail + '</a>') + '</td>' +
+      '<td><label class="sa-pill ' + (on ? 'on' : 'off') + '"><input type="checkbox" class="u-active"' + (on ? ' checked' : '') + ' aria-label="Active"><span>' + (on ? 'Active' : 'Inactive') + '</span></label></td>' +
+      mods().map(m => '<td>' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + '</td>').join('') +
+      '<td><label class="sa-pw">' + IC.key + '<input class="u-pw" placeholder="' + (isNew ? 'one-time password' : 'Set password') + '" autocomplete="new-password" aria-label="One-time password"></label></td>' +
+      '<td><div class="sa-acts"><button class="sa-btn primary sm u-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' +
+        (isNew ? '<button class="sa-btn sm u-cancel" type="button">Cancel</button>' : '<button type="button" class="sa-dots" aria-label="More">' + IC.dots + '</button><div class="sa-pop" hidden>' +
+          '<button type="button" class="u-open" data-email="' + esc(u.email) + '">Module access</button><button type="button" class="u-det" data-email="' + esc(u.email) + '">User details</button>' +
+          '<button type="button" class="u-act" data-email="' + esc(u.email) + '">Login activity</button><button type="button" class="u-setpw">Set a one-time password</button>' +
+          '<button type="button" class="u-onoff' + (on ? ' del' : '') + '">' + (on ? 'Switch off' : 'Switch on') + '</button></div>') + '</div></td></tr>';
   }
-  $('u_site').addEventListener('change', () => { S.site = $('u_site').value; $('pg_panel').hidden = true; users(); });
-  $('u_mod').addEventListener('change', () => { S.mod = $('u_mod').value; $('pg_panel').hidden = true; users(); });
-  $('u_new').addEventListener('click', () => { if (document.querySelector('#u_rows tr[data-new]')) return; $('u_rows').insertAdjacentHTML('afterbegin', row({ email: '', name: '', active: true }, true)); document.querySelector('#u_rows .u-email').focus(); });
-  $('u_rows').addEventListener('change', e => { const tr = e.target.closest('tr'); if (tr) tr.classList.add('dirty'); if (e.target.classList.contains('sel-r')) e.target.className = 'sel-r ' + (e.target.value || 'none'); });
+  $('u_site').addEventListener('change', () => { S.site = $('u_site').value; userClose(); users(); });
+  $('u_mod').addEventListener('change', () => { S.mod = $('u_mod').value; userClose(); users(); });
+  const addUser = () => { if (S.tab !== 'users') tab('users'); userClose(); if (document.querySelector('#u_rows tr[data-new]')) return; $('u_rows').insertAdjacentHTML('afterbegin', row({ email: '', name: '', active: true }, true)); document.querySelector('#u_rows .u-email').focus(); };
+  $('u_new').addEventListener('click', addUser); $('a_user').addEventListener('click', addUser);
+  $('u_rows').addEventListener('change', e => { const tr = e.target.closest('tr'); if (tr) tr.classList.add('dirty');
+    if (e.target.classList.contains('sel-r')) e.target.className = 'sel-r ' + (e.target.value || 'none');
+    if (e.target.classList.contains('u-active')) { const l = e.target.closest('label'); l.className = 'sa-pill ' + (e.target.checked ? 'on' : 'off'); l.querySelector('span').textContent = e.target.checked ? 'Active' : 'Inactive'; } });
+  $('u_rows').addEventListener('input', e => { if (e.target.classList.contains('u-pw')) { const tr = e.target.closest('tr'); if (tr) tr.classList.add('dirty'); } });
   $('u_rows').addEventListener('click', e => {
     const tr = e.target.closest('tr'); if (!tr) return;
-    if (e.target.classList.contains('u-cancel')) { tr.remove(); return; }
-    if (e.target.classList.contains('u-pages')) { pagesOpen(e.target.dataset.email); return; }
-    if (e.target.classList.contains('u-spages')) { storePagesOpen(e.target.dataset.email); return; }
-    if (!e.target.classList.contains('u-save')) return;
+    if (e.target.closest('.u-cancel')) { tr.remove(); return; }
+    const pg = e.target.closest('.u-pages, .u-open'); if (pg) { userOpen(pg.dataset.email, 'access'); return; }
+    if (e.target.closest('.u-det')) { userOpen(e.target.closest('.u-det').dataset.email, 'details'); return; }
+    if (e.target.closest('.u-act')) { userOpen(e.target.closest('.u-act').dataset.email, 'login'); return; }
+    if (e.target.closest('.u-setpw')) { const i = tr.querySelector('.u-pw'); i.focus(); return; }
+    if (e.target.closest('.u-onoff')) { const c = tr.querySelector('.u-active'); c.checked = !c.checked; c.dispatchEvent(new Event('change', { bubbles: true })); return; }
+    const sv = e.target.closest('.u-save'); if (!sv) return;
     const isNew = !!tr.dataset.new, email = isNew ? tr.querySelector('.u-email').value.trim().toLowerCase() : tr.dataset.email;
     const cur = S.data.users.find(u => u.email === email) || {};
-    busy(e.target, 'Saving…', async () => {
+    busy(sv, 'Saving…', async () => {
       try {
         const pw1 = tr.querySelector('.u-pw').value, active = tr.querySelector('.u-active').checked;
         await api('/api/admin', { action: 'userSave', isNew: isNew, email: email, name: isNew ? tr.querySelector('.u-name').value : cur.name, active: active, newPassword: pw1 });
@@ -471,56 +793,96 @@
       } catch (er) { fail(er); }
     });
   });
-  // the pages of Mechanical for one person on the chosen site (Edit / View / No access) – kept in Mechanical, set from here
+  /* ONE USER (23-10-2026: his picture "SUJIT SIR – Module Access · User Details · Login Activity"): the pages of Mechanical and of the
+   * Store on the chosen site (Edit / View / No access), what is known about him, his sign-ins. "Save changes" saves the pages as
+   * "Save pages" did (Mechanical's in Mechanical, the Store's here); "Back to users" closes it. */
   const PG_WORD = { Edit: 'Edit', View: 'View', None: 'No access' };
-  async function pagesOpen(email) {
-    const box = $('pg_panel'), site = S.site, siteName = (S.data.sites.find(x => x.code === site) || {}).name || site;
+  function userClose() { $('pg_panel').hidden = true; $('pg_panel').innerHTML = ''; $('u_top').hidden = false; S.uOpen = ''; }
+  function userOpen(email, which) {
+    const box = $('pg_panel'), site = S.site, st = S.data.sites.find(x => x.code === site) || {}, siteName = st.name || site;
     const u = S.data.users.find(x => x.email === email) || { email: email, name: email };
-    const role = ((S.data.access.find(a => a.email === email && a.site === site && a.module === 'mechanical')) || {}).role || '';
-    box.hidden = false; box.innerHTML = '<p class="note">Loading the pages from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
-    let d; try { d = await api('/api/admin', { action: 'mechPages', site: site }); } catch (er) { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="btn small" type="button" id="pg_close">Close</button>'; return; }
-    if (S.site !== site) return;
-    const mu = (d.users || []).find(x => x.email === email);
-    const head = '<div class="panel-head"><h2>Pages in Mechanical – ' + esc(u.name) + '</h2><span class="note">' + esc(siteName) + ' (' + esc(site) + ') · <b>Edit</b> = add / change / delete · <b>View</b> = see and print · <b>No access</b> = page hidden</span></div>';
-    if (role === 'admin') { box.innerHTML = head + '<p class="note"><b>Admin</b> has Edit on every page. To give single pages, make him <b>User</b> above and save, then open Pages again.</p><button class="btn small" type="button" id="pg_close">Close</button>'; return; }
-    box.innerHTML = head + (mu ? '' : '<p class="note">He has not opened Mechanical on this site yet – the pages saved here are ready for his first sign-in.</p>') +
-      '<div class="pg-grid">' + (d.pages || []).map(p => { const v = (mu && mu.perms && mu.perms[p.key]) || 'None';
-        return '<label>' + esc(p.label) + '<select class="pg-sel ' + v + '" data-k="' + esc(p.key) + '">' + ['Edit', 'View', 'None'].map(o => '<option value="' + o + '"' + (o === v ? ' selected' : '') + '>' + PG_WORD[o] + '</option>').join('') + '</select></label>'; }).join('') + '</div>' +
-      '<div class="bar" style="margin:14px 0 0"><button class="btn primary small" type="button" id="pg_save" data-email="' + esc(email) + '" data-site="' + esc(site) + '">Save pages</button><button class="btn small" type="button" id="pg_close">Close</button></div>';
+    S.uOpen = email; $('u_top').hidden = true; box.hidden = false; window.scrollTo(0, 0);
+    const on = u.active !== false;
+    box.innerHTML = '<div class="sa-crumb"><button type="button" id="pg_crumb">Users &amp; Access</button><span>›</span><b>' + esc(u.name) + '</b></div>' +
+      '<div class="sa-card"><div class="sa-uhead">' + av(u.name, u.email) + '<div class="who"><h2>' + esc(u.name) + '</h2><span class="sa-pill dot ' + (on ? 'on' : 'off') + '">' + (on ? 'Active' : 'Inactive') + '</span><small>' + esc(u.email) + '</small><small>' + esc(siteName) + ' (' + esc(site) + ')</small></div>' +
+      '<button class="sa-btn outline" type="button" id="pg_close">' + IC.back + 'Back to users</button><button class="sa-btn primary" type="button" id="pg_save" data-email="' + esc(email) + '" data-site="' + esc(site) + '">' + IC.save + 'Save changes</button></div>' +
+      '<div class="sa-tabs2" role="tablist"><button type="button" role="tab" data-u="access" aria-selected="false">Module Access</button><button type="button" role="tab" data-u="details" aria-selected="false">User Details</button><button type="button" role="tab" data-u="login" aria-selected="false">Login Activity</button></div>' +
+      '<div id="pg_access"><p class="note">Loading the pages…</p></div><div id="pg_details" hidden></div><div id="pg_login" hidden></div></div>';
+    userTab(which || 'access');
+    userDetails(u);
+    userPages(email, site, siteName);
   }
-  // (14-10-2026) the Store's pages for one Store User on the chosen site – kept here (Portal), applied by the Store at his next opening
-  function storePagesOpen(email) {
-    const box = $('pg_panel'), site = S.site, siteName = (S.data.sites.find(x => x.code === site) || {}).name || site;
-    const u = S.data.users.find(x => x.email === email) || { email: email, name: email };
-    const a = S.data.access.find(x => x.email === email && x.site === site && x.module === 'store') || {}, cur = a.pages || {};
-    const head = '<div class="panel-head"><h2>Pages in the Store – ' + esc(u.name) + '</h2><span class="note">' + esc(siteName) + ' (' + esc(site) + ') · Item Master: <b>Edit</b> = add items · <b>View</b> = see and export · <b>No access</b> = page hidden</span></div>';
-    box.hidden = false; box.scrollIntoView({ block: 'nearest' });
-    if (a.role === 'admin') { box.innerHTML = head + '<p class="note"><b>Store Admin</b> has every page (and changes, deletes, imports items). To give single pages, make him <b>User</b> above and save, then open Pages again.</p><button class="btn small" type="button" id="pg_close">Close</button>'; return; }
-    box.innerHTML = head + '<div class="pg-grid">' + (S.data.storePages || []).map(p => { const v = cur[p.key] || p.opts[0];
-      return '<label>' + esc(p.label) + '<select class="pg-sel ' + v + '" data-k="' + esc(p.key) + '">' + p.opts.map(o => '<option value="' + o + '"' + (o === v ? ' selected' : '') + '>' + PG_WORD[o] + '</option>').join('') + '</select></label>'; }).join('') + '</div>' +
-      '<p class="note">He gets these at his next opening of the Store.</p><div class="bar" style="margin:14px 0 0"><button class="btn primary small" type="button" id="pg_ssave" data-email="' + esc(email) + '" data-site="' + esc(site) + '">Save pages</button><button class="btn small" type="button" id="pg_close">Close</button></div>';
+  function userTab(w) { document.querySelectorAll('#pg_panel .sa-tabs2 button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.u === w)));
+    ['access', 'details', 'login'].forEach(k => { const e = $('pg_' + k); if (e) e.hidden = k !== w; }); if (w === 'login') userLogins(S.uOpen); }
+  function userDetails(u) {
+    const d = S.data, mine = d.access.filter(a => a.email === u.email);
+    const siteOf = c => ((d.sites.find(s => s.code === c)) || {}).name || c, modOf = k => ((d.modules.find(m => m.key === k)) || {}).name || k;
+    $('pg_details').innerHTML = '<dl class="sa-dl"><dt>Name</dt><dd>' + esc(u.name) + '</dd><dt>Email</dt><dd>' + esc(u.email) + '</dd><dt>Status</dt><dd>' + (u.active !== false ? 'Active' : 'Switched off – cannot sign in') + '</dd>' +
+      '<dt>Password</dt><dd>' + (u.noPassword ? 'No password yet' : u.mustChange ? 'One-time password – he sets his own at his next sign-in' : 'His own') + '</dd>' +
+      '<dt>Last sign-in</dt><dd>' + (u.lastLogin ? esc(new Date(u.lastLogin).toLocaleString('en-IN')) : '–') + '</dd>' +
+      '<dt>Access</dt><dd>' + (mine.length ? mine.map(a => esc(modOf(a.module)) + ' – ' + (a.role === 'admin' ? 'Admin' : 'User') + ' · ' + esc(siteOf(a.site)) + ' (' + esc(a.site) + ')').join('<br>') : 'No module on any site') + '</dd></dl>' +
+      '<p class="note" style="margin-top:14px">The status, the access and a new one-time password are changed in the users list (Back to users).</p>';
   }
-  $('pg_panel').addEventListener('change', e => { if (e.target.classList.contains('pg-sel')) e.target.className = 'pg-sel ' + e.target.value; });
+  async function userLogins(email) {
+    const box = $('pg_login'); if (!box || box.dataset.done === email) return; box.innerHTML = '<p class="note">Loading…</p>';
+    try { const r = await api('/api/admin', { action: 'audit' }); if (S.uOpen !== email) return;
+      const rows = r.rows.filter(x => x.actor === email || x.target === email);
+      box.dataset.done = email;
+      box.innerHTML = '<div class="tw"><table><thead><tr><th>When</th><th>Who</th><th>What</th><th>On</th><th>Detail</th></tr></thead><tbody>' + (rows.map(auditRow).join('') || '<tr><td colspan="5" class="note">Nothing in the last 200 lines of the Activity.</td></tr>') + '</tbody></table></div>'; }
+    catch (er) { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p>'; }
+  }
+  const pgCard = (label, key, v, opts, g) => '<label class="sa-pgc"><span class="t">' + pgIcon(label) + esc(label) + '</span><select class="pg-sel ' + v + '" data-k="' + esc(key) + '" data-g="' + g + '">' + opts.map(o => '<option value="' + o + '"' + (o === v ? ' selected' : '') + '>' + PG_WORD[o] + '</option>').join('') + '</select></label>';
+  async function userPages(email, site, siteName) {
+    const box = $('pg_access'), roleOf = m => ((S.data.access.find(a => a.email === email && a.site === site && a.module === m)) || {}).role || '';
+    const mRole = roleOf('mechanical'), sRole = roleOf('store'), parts = [];
+    let mech = ''; S.mechLoaded = '';
+    if (!mRole) mech = '<p class="note">No Mechanical on ' + esc(siteName) + ' – give him <b>User</b> (or Admin) in the users list first.</p>';
+    else if (mRole === 'admin') mech = '<p class="note"><b>Admin</b> has Edit on every page. To give single pages, make him <b>User</b> in the users list and save, then open this again.</p>';
+    else {
+      let d; try { d = await api('/api/admin', { action: 'mechPages', site: site }); } catch (er) { mech = '<p class="err">' + esc(msgOf(er)) + '</p>'; }
+      if (S.uOpen !== email || S.site !== site) return;
+      if (d) { const mu = (d.users || []).find(x => x.email === email);
+        mech = (mu ? '' : '<p class="note">He has not opened Mechanical on this site yet – the pages saved here are ready for his first sign-in.</p>') +
+          '<div class="sa-ma-top"><span>Select which pages this user can open. <b>Edit</b> = add / change / delete · <b>View</b> = see and print · <b>No access</b> = hidden from the menu.</span><label class="sa-switch"><input type="checkbox" id="pg_all" data-g="mech">Select all</label></div>' +
+          '<div class="sa-pgg">' + (d.pages || []).map(p => pgCard(p.label, p.key, (mu && mu.perms && mu.perms[p.key]) || 'None', ['Edit', 'View', 'None'], 'mech')).join('') + '</div>';
+        S.mechLoaded = email; }
+    }
+    parts.push('<h3 class="sa-grp">Mechanical</h3>' + mech);
+    if (S.data.modules.some(m => m.key === 'store')) {
+      const a = S.data.access.find(x => x.email === email && x.site === site && x.module === 'store') || {}, cur = a.pages || {};
+      parts.push('<h3 class="sa-grp">Store</h3>' + (!sRole ? '<p class="note">No Store on ' + esc(siteName) + '.</p>' : sRole === 'admin' ? '<p class="note"><b>Store Admin</b> has every page (and changes, deletes, imports items).</p>' :
+        '<p class="note" style="margin-top:0">Item Master: <b>Edit</b> = add items · <b>View</b> = see and export. He gets these at his next opening of the Store.</p><div class="sa-pgg">' + (S.data.storePages || []).map(p => pgCard(p.label, p.key, cur[p.key] || p.opts[0], p.opts, 'store')).join('') + '</div>'));
+    }
+    if (S.uOpen !== email) return;
+    box.innerHTML = parts.join('');
+    $('pg_save').disabled = !(mRole === 'user' && S.mechLoaded === email) && sRole !== 'user';
+  }
+  $('pg_panel').addEventListener('change', e => { if (e.target.classList.contains('pg-sel')) { e.target.className = 'pg-sel ' + e.target.value; const all = $('pg_all'); if (all && e.target.dataset.g === 'mech') all.checked = false; }
+    if (e.target.id === 'pg_all') { const sels = document.querySelectorAll('#pg_panel .pg-sel[data-g="mech"]');
+      if (e.target.checked) { S.pgWas = [...sels].map(x => x.value); sels.forEach(x => { x.value = 'Edit'; x.className = 'pg-sel Edit'; }); }
+      else if (S.pgWas) sels.forEach((x, i) => { x.value = S.pgWas[i] || 'None'; x.className = 'pg-sel ' + x.value; }); } });
   $('pg_panel').addEventListener('click', e => {
-    if (e.target.id === 'pg_close') { $('pg_panel').hidden = true; return; }
-    if (e.target.id === 'pg_ssave') { const b = e.target, pages = {}; document.querySelectorAll('#pg_panel .pg-sel').forEach(x => { pages[x.dataset.k] = x.value; });
-      busy(b, 'Saving…', async () => { try { await api('/api/admin', { action: 'storePagesSave', site: b.dataset.site, email: b.dataset.email, pages: pages }); toast('Store pages saved.'); $('pg_panel').hidden = true; await load(); } catch (er) { fail(er); } }); return; }
-    if (e.target.id !== 'pg_save') return;
-    const b = e.target, perms = {}; document.querySelectorAll('#pg_panel .pg-sel').forEach(x => { perms[x.dataset.k] = x.value; });
-    busy(b, 'Saving…', async () => { try { const r = await api('/api/admin', { action: 'mechPagesSave', site: b.dataset.site, email: b.dataset.email, perms: perms });
-      toast(r.changes ? 'Pages saved in Mechanical.' : 'Saved – nothing had changed.'); $('pg_panel').hidden = true; } catch (er) { fail(er); } });
+    const t = e.target.closest('.sa-tabs2 button'); if (t) { userTab(t.dataset.u); return; }
+    if (e.target.closest('#pg_close') || e.target.closest('#pg_crumb')) { userClose(); return; }
+    const b = e.target.closest('#pg_save'); if (!b) return;
+    const perms = {}, pages = {}; document.querySelectorAll('#pg_panel .pg-sel[data-g="mech"]').forEach(x => { perms[x.dataset.k] = x.value; }); document.querySelectorAll('#pg_panel .pg-sel[data-g="store"]').forEach(x => { pages[x.dataset.k] = x.value; });
+    busy(b, 'Saving…', async () => { try { const said = [];
+      if (Object.keys(perms).length) { const r = await api('/api/admin', { action: 'mechPagesSave', site: b.dataset.site, email: b.dataset.email, perms: perms }); said.push(r.changes ? 'Pages saved in Mechanical.' : Object.keys(pages).length ? '' : 'Saved – nothing had changed.'); }
+      if (Object.keys(pages).length) { await api('/api/admin', { action: 'storePagesSave', site: b.dataset.site, email: b.dataset.email, pages: pages }); said.push('Store pages saved.'); await load(); }
+      toast(said.filter(Boolean).join(' ') || 'Nothing to save.'); userClose(); users(); } catch (er) { fail(er); } });
   });
   // sites
   function sites() {
     const d = S.data; if (!d) return;
-    const comp = c => '<select class="st-comp"><option value="">–</option>' + d.companies.map(x => '<option value="' + esc(x.id) + '"' + (x.id === c ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>';
-    const stat = v => '<select class="st-status"><option value="active"' + (v !== 'closed' ? ' selected' : '') + '>Active</option><option value="closed"' + (v === 'closed' ? ' selected' : '') + '>Closed</option></select>';
-    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<b>' + esc(s.code) + '</b>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="btn primary small st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>';
+    const comp = c => '<select class="st-comp" aria-label="Company"><option value="">–</option>' + d.companies.map(x => '<option value="' + esc(x.id) + '"' + (x.id === c ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>';
+    const stat = v => '<select class="st-status ' + (v === 'closed' ? 'closed' : 'active') + '" aria-label="State"><option value="active"' + (v !== 'closed' ? ' selected' : '') + '>Active</option><option value="closed"' + (v === 'closed' ? ' selected' : '') + '>Closed</option></select>';
+    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<span class="sa-code">' + esc(s.code) + '</span>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '" aria-label="Site name"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="sa-btn primary sm st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>';
     $('st_rows').innerHTML = d.sites.map(s => S.siteRow(s, false)).join('') || '<tr><td colspan="5" class="note">No site yet.</td></tr>';
   }
+  $('st_rows').addEventListener('change', e => { if (e.target.classList.contains('st-status')) e.target.className = 'st-status ' + e.target.value; });
   // ---- New site (with Mechanical): a checklist the system works through – pressed again, it goes on where it stopped ----
   const NS_STEP = { link: '1. The Supabase project link', key: '2. The secret key – in Vercel, never here', connect: '3. The database answers with that key', tables: '4. Mechanical\'s tables in the new database', company: '5. Company settings (as the first site; the new name)', places: '6. Diesel places (name and tank size)', ready: '7. Ready' };
-  $('st_new').addEventListener('click', () => { const p = $('ns_panel'); p.hidden = false;
+  $('st_new').addEventListener('click', () => { const p = $('ns_panel'); p.hidden = false; $('dp_panel').hidden = true;
     $('ns_comp').innerHTML = '<option value="">–</option>' + S.data.companies.map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>').join('');
     $('ns_steps').hidden = true; if (!$('ns_places').innerHTML) $('ns_places').innerHTML = placesHtml([{}], false); p.scrollIntoView({ block: 'nearest' }); setTimeout(() => $('ns_code').focus(), 30); });
   $('ns_close').addEventListener('click', () => { $('ns_panel').hidden = true; });
@@ -569,12 +931,12 @@
     $('dp_panel').innerHTML = '<div class="panel-head"><h2>Diesel places – ' + esc(st.name || site) + ' (' + esc(site) + ')</h2><span class="note">Where diesel is kept on this site, with the tank size. Diesel Inward, Issue and Transfer use these; the first one is chosen first on the forms.' +
       (d.entries ? ' A place that has entries keeps its name and cannot be removed' + (d.firstFixed ? '; the first place stays the first (old entries without a place count there)' : '') + '.' : '') + (!d.set ? ' <b>Not set yet</b> – this site still has the places of the first site.' : '') + '</span></div>' +
       '<div class="pl-box" id="dp_box">' + placesHtml(d.places || [], true) + '</div>' +
-      '<div class="bar" style="margin:14px 0 0"><button class="btn primary small" type="button" id="dp_save" data-site="' + esc(site) + '">Save diesel places</button><button class="btn small" type="button" id="dp_close">Close</button></div>';
+      '<div class="bar" style="margin:14px 0 0"><button class="sa-btn primary sm" type="button" id="dp_save" data-site="' + esc(site) + '">Save diesel places</button><button class="sa-btn sm" type="button" id="dp_close">Close</button></div>';
   }
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-places'); if (!b) return; const site = b.dataset.code, box = $('dp_panel');
-    box.hidden = false; box.innerHTML = '<p class="note">Loading the diesel places from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
+    $('ns_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading the diesel places from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
     api('/api/admin', { action: 'placesGet', site: site }).then(d => placesPanel(site, d))
-      .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="btn small" type="button" id="dp_close">Close</button>'; }); });
+      .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="dp_close">Close</button>'; }); });
   $('dp_panel').addEventListener('click', e => {
     if (e.target.id === 'dp_close') { $('dp_panel').hidden = true; return; }
     if (e.target.id !== 'dp_save') return; const b = e.target, site = b.dataset.site;
@@ -587,50 +949,78 @@
     if (typed === null) return;
     busy(b, 'Deleting…', async () => { try { const r = await api('/api/admin', { action: 'siteDelete', code: code, confirm: typed });
       toast('Site ' + code + ' deleted' + (r.accessRemoved ? ' (' + r.accessRemoved + ' access removed)' : '') + '. Its data stays in its own database.'); await load(); sites(); } catch (er) { fail(er); } }); });
-  $('st_rows').addEventListener('click', e => { if (!e.target.classList.contains('st-save')) return; const tr = e.target.closest('tr'), isNew = !!tr.dataset.new;
-    busy(e.target, 'Saving…', async () => { try { await api('/api/admin', { action: 'siteSave', isNew: isNew, code: isNew ? tr.querySelector('.st-code').value : tr.dataset.code, name: tr.querySelector('.st-name').value, company: tr.querySelector('.st-comp').value, status: tr.querySelector('.st-status').value });
+  $('st_rows').addEventListener('click', e => { const sv = e.target.closest('.st-save'); if (!sv) return; const tr = sv.closest('tr'), isNew = !!tr.dataset.new;
+    busy(sv, 'Saving…', async () => { try { await api('/api/admin', { action: 'siteSave', isNew: isNew, code: isNew ? tr.querySelector('.st-code').value : tr.dataset.code, name: tr.querySelector('.st-name').value, company: tr.querySelector('.st-comp').value, status: tr.querySelector('.st-status').value });
       toast('Site saved.'); await load(); sites(); } catch (er) { fail(er); } }); });
-  // companies
+  // companies – the list, and its form (Add company / Change) above it
   function companies() {
     const d = S.data; if (!d) return;
     $('co_rows').innerHTML = d.companies.map(c => { const used = d.sites.filter(x => x.company_id === c.id).map(x => x.code);
-      return '<tr data-id="' + esc(c.id) + '"><td class="co-n"><b>' + esc(c.name) + '</b></td><td>' + esc(c.gstin || '–') + '</td><td>' + esc(c.pan || '–') + '</td><td class="co-a">' + esc(c.address || '–') + '</td><td>' + (c.logo ? 'Yes' : '–') + '</td><td>' + esc(used.join(', ') || '–') + '</td>' +
-        '<td><div class="acts"><button class="btn small co-edit" type="button">Change</button>' + (used.length ? '' : '<button class="link del co-del" type="button">Delete</button>') + '</div></td></tr>'; }).join('') || '<tr><td colspan="7" class="note">No company yet – add Rachana and Sketchline below.</td></tr>';
-    coForm(null);
+      return '<tr data-id="' + esc(c.id) + '"><td class="co-n"><div class="sa-co"><span class="sa-av sq" style="background:' + avBg(c.name) + '">' + esc(initial(c.name)) + '</span><div><b>' + esc(c.name) + '</b>' + (c.logo ? '<small>Logo: yes</small>' : '') + '</div></div></td><td>' + esc(c.gstin || '–') + '</td><td>' + esc(c.pan || '–') + '</td><td class="co-a">' + esc(c.address || '–') + '</td><td>' + (used.length ? used.map(x => '<span class="sa-code sm">' + esc(x) + '</span>').join(' ') : '–') + '</td>' +
+        '<td><div class="acts"><button class="sa-btn sm co-edit" type="button">' + IC.pen + 'Change</button>' + (used.length ? '' : '<button class="link del co-del" type="button">Delete</button>') + '</div></td></tr>'; }).join('') || '<tr><td colspan="6" class="note">No company yet – add Rachana and Sketchline (Add company).</td></tr>';
+    coForm(null, false);
   }
-  function coForm(c) { S.coId = c ? c.id : ''; $('co_title').textContent = c ? 'Change: ' + c.name : 'Add a company'; ['name', 'gstin', 'pan', 'address', 'logo'].forEach(k => { $('co_' + k).value = c ? (c[k] || '') : ''; }); }
-  $('co_rows').addEventListener('click', e => { if (!e.target.classList.contains('co-edit')) return; coForm(S.data.companies.find(c => c.id === e.target.closest('tr').dataset.id)); $('co_name').focus(); });
-  $('co_rows').addEventListener('click', e => { if (!e.target.classList.contains('co-del')) return; const c = S.data.companies.find(x => x.id === e.target.closest('tr').dataset.id); if (!c) return;
+  function coForm(c, open) { S.coId = c ? c.id : ''; $('co_title').textContent = c ? 'Change: ' + c.name : 'Add a company'; ['name', 'gstin', 'pan', 'address', 'logo'].forEach(k => { $('co_' + k).value = c ? (c[k] || '') : ''; });
+    $('co_panel').hidden = !open; if (open) { $('co_panel').scrollIntoView({ block: 'nearest' }); $('co_name').focus(); } }
+  $('co_add').addEventListener('click', () => coForm(null, true));
+  $('co_rows').addEventListener('click', e => { if (!e.target.closest('.co-edit')) return; coForm(S.data.companies.find(c => c.id === e.target.closest('tr').dataset.id), true); });
+  $('co_rows').addEventListener('click', e => { const b = e.target.closest('.co-del'); if (!b) return; const c = S.data.companies.find(x => x.id === b.closest('tr').dataset.id); if (!c) return;
     if (!window.confirm('Delete the company "' + c.name + '"?\nNo site belongs to it.')) return;
-    busy(e.target, 'Deleting…', async () => { try { await api('/api/admin', { action: 'companyDelete', id: c.id }); toast('Company deleted.'); await load(); companies(); } catch (er) { fail(er); } }); });
-  $('co_clear').addEventListener('click', () => coForm(null));
+    busy(b, 'Deleting…', async () => { try { await api('/api/admin', { action: 'companyDelete', id: c.id }); toast('Company deleted.'); await load(); companies(); } catch (er) { fail(er); } }); });
+  $('co_clear').addEventListener('click', () => coForm(null, false));
   $('co_save').addEventListener('click', e => busy(e.target, 'Saving…', async () => { try { await api('/api/admin', { action: 'companySave', id: S.coId, name: $('co_name').value, gstin: $('co_gstin').value, pan: $('co_pan').value, address: $('co_address').value, logo: $('co_logo').value });
     toast('Company saved.'); await load(); companies(); } catch (er) { fail(er); } }));
   // modules
   function modules() {
     const d = S.data; if (!d) return;
-    S.modRow = (m, isNew) => '<tr data-key="' + esc(m.key) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="m-key" placeholder="key, e.g. store" style="width:130px"><input class="m-name" placeholder="name, e.g. Store" style="width:130px;margin-top:4px">' : '<input class="m-name" maxlength="40" value="' + esc(m.name) + '" aria-label="Name" style="width:160px"><small>' + esc(m.key) + '</small>') + '</td>' +
-      '<td class="w"><input class="m-url" placeholder="https://…" value="' + esc(m.url || '') + '"></td><td><select class="m-status"><option value="live"' + (m.status === 'live' ? ' selected' : '') + '>Live</option><option value="off"' + (m.status !== 'live' ? ' selected' : '') + '>Off</option></select></td>' +
-      '<td><div class="acts"><button class="btn primary small m-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && m.key !== 'mechanical' && m.status !== 'live' ? '<button class="link del m-del" type="button">Delete</button>' : '') + '</div></td></tr>';
+    S.modRow = (m, isNew) => '<tr data-key="' + esc(m.key) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="m-key" placeholder="key, e.g. store" style="width:150px"><input class="m-name" placeholder="name, e.g. Store" style="width:150px;margin-top:4px">' : '<div class="sa-co">' + pgIcon(m.name) + '<div><input class="m-name" maxlength="40" value="' + esc(m.name) + '" aria-label="Name" style="width:160px"><small>' + esc(m.key) + '</small></div></div>') + '</td>' +
+      '<td class="w"><input class="m-url" placeholder="https://…" value="' + esc(m.url || '') + '" aria-label="Link"></td><td><select class="m-status ' + (m.status === 'live' ? 'live' : 'off') + '" aria-label="Status"><option value="live"' + (m.status === 'live' ? ' selected' : '') + '>Live</option><option value="off"' + (m.status !== 'live' ? ' selected' : '') + '>Off</option></select></td>' +
+      '<td><div class="acts"><button class="sa-btn primary sm m-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (isNew ? '<button class="link m-cancel" type="button">Cancel</button>' : '') + (!isNew && m.key !== 'mechanical' && m.status !== 'live' ? '<button class="link del m-del" type="button">Delete</button>' : '') + '</div></td></tr>';
     $('m_rows').innerHTML = d.modules.map(m => S.modRow(m, false)).join('');
   }
-  $('m_new').addEventListener('click', () => { if (document.querySelector('#m_rows tr[data-new]')) return; $('m_rows').insertAdjacentHTML('afterbegin', S.modRow({ key: '', name: '', status: 'off' }, true)); });
-  $('m_rows').addEventListener('click', e => { if (!e.target.classList.contains('m-save')) return; const tr = e.target.closest('tr'), isNew = !!tr.dataset.new;
-    busy(e.target, 'Saving…', async () => { try { await api('/api/admin', { action: 'moduleSave', isNew: isNew, key: isNew ? tr.querySelector('.m-key').value.trim() : tr.dataset.key, name: tr.querySelector('.m-name').value, url: tr.querySelector('.m-url').value.trim(), status: tr.querySelector('.m-status').value });
+  $('m_new').addEventListener('click', () => { if (document.querySelector('#m_rows tr[data-new]')) return; $('m_rows').insertAdjacentHTML('afterbegin', S.modRow({ key: '', name: '', status: 'off' }, true)); document.querySelector('#m_rows .m-key').focus(); });
+  $('m_rows').addEventListener('change', e => { if (e.target.classList.contains('m-status')) e.target.className = 'm-status ' + e.target.value; });
+  $('m_rows').addEventListener('click', e => { if (e.target.closest('.m-cancel')) { e.target.closest('tr').remove(); return; }
+    const sv = e.target.closest('.m-save'); if (!sv) return; const tr = sv.closest('tr'), isNew = !!tr.dataset.new;
+    busy(sv, 'Saving…', async () => { try { await api('/api/admin', { action: 'moduleSave', isNew: isNew, key: isNew ? tr.querySelector('.m-key').value.trim() : tr.dataset.key, name: tr.querySelector('.m-name').value, url: tr.querySelector('.m-url').value.trim(), status: tr.querySelector('.m-status').value });
       toast('Module saved.'); await load(); modules(); } catch (er) { fail(er); } }); });
   // delete a module that is Off – its key typed again; everybody's access to it goes too
-  $('m_rows').addEventListener('click', e => { if (!e.target.classList.contains('m-del')) return; const key = e.target.closest('tr').dataset.key, m = S.data.modules.find(x => x.key === key) || {};
+  $('m_rows').addEventListener('click', e => { const b = e.target.closest('.m-del'); if (!b) return; const key = b.closest('tr').dataset.key, m = S.data.modules.find(x => x.key === key) || {};
     const n = S.data.access.filter(a => a.module === key).length;
     const typed = window.prompt('Delete the module ' + (m.name || key) + '?\n\nIt leaves the list' + (n ? ' and ' + n + ' access given to it are removed' : '') + '. Its own app and data are not touched.\n\nType the module key (' + key + ') to delete it:');
     if (typed === null) return;
-    busy(e.target, 'Deleting…', async () => { try { await api('/api/admin', { action: 'moduleDelete', key: key, confirm: typed }); toast('Module deleted.'); await load(); modules(); } catch (er) { fail(er); } }); });
-  // activity
+    busy(b, 'Deleting…', async () => { try { await api('/api/admin', { action: 'moduleDelete', key: key, confirm: typed }); toast('Module deleted.'); await load(); modules(); } catch (er) { fail(er); } }); });
+  // activity – the last 200 lines from the server; What / From / To / the search only choose which of them show
+  const day = at => { const d = new Date(at), p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); };
+  const auditRow = x => '<tr><td>' + esc(new Date(x.at).toLocaleString('en-IN')) + '</td><td><div class="sa-co">' + av(x.actor, x.actor) + '<span>' + esc(x.actor) + '</span></div></td><td><span class="sa-pill act">' + esc(x.action) + '</span></td><td>' + esc(x.target) + '</td><td class="sa-detail-txt"><small>' + esc(x.detail ? JSON.stringify(x.detail) : '') + '</small></td></tr>';
   async function audit() {
     $('a_rows').innerHTML = '<tr><td colspan="5" class="note">Loading…</td></tr>';
-    try { const r = await api('/api/admin', { action: 'audit' });
-      $('a_rows').innerHTML = r.rows.map(x => '<tr><td>' + esc(new Date(x.at).toLocaleString('en-IN')) + '</td><td>' + esc(x.actor) + '</td><td>' + esc(x.action) + '</td><td>' + esc(x.target) + '</td><td><small>' + esc(x.detail ? JSON.stringify(x.detail) : '') + '</small></td></tr>').join('') || '<tr><td colspan="5" class="note">Nothing yet.</td></tr>'; }
+    try { const r = await api('/api/admin', { action: 'audit' }); S.audit = r.rows || [];
+      const was = $('a_act').value, acts = [...new Set(S.audit.map(x => x.action))].sort();
+      $('a_act').innerHTML = '<option value="">All actions</option>' + acts.map(a => '<option' + (a === was ? ' selected' : '') + '>' + esc(a) + '</option>').join('');
+      auditShow(); }
     catch (e) { fail(e); }
   }
+  function auditShow() {
+    const a = $('a_act').value, f = $('a_from').value, t = $('a_to').value, q = $('a_q').value.trim().toLowerCase(), all = S.audit || [];
+    const rows = all.filter(x => (!a || x.action === a) && (!f || day(x.at) >= f) && (!t || day(x.at) <= t) && (!q || [x.actor, x.action, x.target, x.detail ? JSON.stringify(x.detail) : ''].join(' ').toLowerCase().includes(q)));
+    $('a_rows').innerHTML = rows.map(auditRow).join('') || '<tr><td colspan="5" class="note">' + (all.length ? 'Nothing matches.' : 'Nothing yet.') + '</td></tr>';
+  }
+  ['a_act', 'a_from', 'a_to'].forEach(id => $(id).addEventListener('change', auditShow)); $('a_q').addEventListener('input', auditShow);
+  // my account: Account Information · Change Password (the same server step as "Change password") · Sign-in Recovery
+  function meTab(w) {
+    S.meTab = w; document.querySelectorAll('#t_me .sa-accnav button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.a === w)));
+    $('me_info').hidden = w !== 'info'; $('me_pwf').hidden = w !== 'pw'; $('me_rec').hidden = w !== 'rec';
+    if (w === 'pw') { ['me_old', 'me_new', 'me_new2'].forEach(id => { $(id).value = ''; $(id).type = 'password'; }); $('me_err').textContent = ''; }
+  }
+  $('t_me').addEventListener('click', e => { const b = e.target.closest('.sa-accnav button'); if (b) { meTab(b.dataset.a); return; }
+    const eye = e.target.closest('.eye[data-eye]'); if (eye) { const i = $(eye.dataset.eye); i.type = i.type === 'password' ? 'text' : 'password'; eye.setAttribute('aria-label', i.type === 'password' ? 'Show password' : 'Hide password'); } });
+  $('me_pwf').addEventListener('submit', ev => { ev.preventDefault(); $('me_err').textContent = '';
+    if ($('me_new').value !== $('me_new2').value) { $('me_err').textContent = 'The two new passwords are not the same.'; return; }
+    busy($('me_pw'), 'Saving…', async () => {
+      try { await api('/api/auth', { action: 'changePassword', old: $('me_old').value, password: $('me_new').value }); toast('Password saved.'); await start(); }
+      catch (e) { $('me_err').textContent = msgOf(e); if (e.code === 'session') loginView(); }
+    }); });
 
   start();
 })();
