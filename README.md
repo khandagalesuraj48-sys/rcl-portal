@@ -11,9 +11,15 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
   they are; when one ends, the module gets a new ticket from this sign-in by itself – nothing is typed.
   **A lost phone:** the Super Admin gives that person a new password (or switches him off) – every sign-in of his ends at once.
 * **The Super Admin** designs the system here and only here: users, which module each user may open on which site (Admin / User / No access), sites, companies, modules, the activity log.
-  **(14-10-2026)** He also opens every module of every site, as its Admin: "Open modules" in his console shows them all (and
-  "Super Admin console" goes back). A module creates him as its Admin on that site the first time he opens it.
-* **Pages (Users & Access → Pages):**
+  **(14-10-2026)** He also opens every module of every site, as its Admin: "Dashboard" in his console's menu on the left (or
+  "Open modules" under his name, top right) shows them all (and "Super Admin console" goes back). A module creates him as its
+  Admin on that site the first time he opens it.
+  **The console's look (23-10-2026, from his picture – "fkt ui changes", every function the same):** a navy menu on the left
+  (a ☰ button on a phone), a top bar (search, Activity, his name → Open modules / My account / Sign out), Users & Access with
+  its counts and filters (Site, Module, Status, search) and a ⋯ menu on each row; a row's **Save** shows once something in it is
+  changed. One user's page: **Module Access** (the pages below), **User Details**, **Login Activity** (his lines of the Activity).
+  My Account: his details, Change Password (the same check as before), Sign-in Recovery (how the recovery code is used).
+* **Pages (Users & Access → his name → Module Access, or ⋯ → Module access):** one **Save changes** saves both below.
   * Mechanical: Edit / View / No access per page, kept in Mechanical (as before).
   * **Store (14-10-2026):** for a Store User – Dashboard (View / No access) and Item Master (Edit = add / View = see and export /
     No access). Kept with his access line here (`access.pages`, **SQL step 3: `sql/portal_step3_pages.sql`**), carried in his
