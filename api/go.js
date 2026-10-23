@@ -23,6 +23,10 @@ module.exports = handler(async (req, res) => {
    * INSIDE another one (the Store's page inside Mechanical's screen) asks for its ticket with json=1 – the answer is the ticket
    * itself, no page change. Only the Portal's own address may ask (our header; a page of another site cannot read the answer). */
   const asJson = q.get('json') === '1';
+  /* (23-10-2026) renew=1: the Store's / Engineering's open page keeps its sign-in fresh with a ticket every 10 minutes (their
+   * sign-in now lasts 15 minutes, so a person removed here is out there within 15 minutes) – the same checks, the same ticket; only
+   * the activity record is not written again for it (it would be one line every 10 minutes for every open page). */
+  const renew = asJson && q.get('renew') === '1';
   if (asJson) sameSite(req);
   const back = (where, code) => asJson ? send(res, code === 'signin' ? 401 : 403, { error: code === 'signin' ? 'Sign in on the Portal first.' : 'This cannot be opened here.', code: code }) : redirect(res, where);
   const s = await ses.read(req);
@@ -47,7 +51,7 @@ module.exports = handler(async (req, res) => {
     // (14-10-2026) the Super Admin – Mechanical lets him change entries of a billed period and approve others' changes there
     super: u.is_super ? true : undefined,
     iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') });
-  await audit(u.email, 'Opened module', mod + ' · ' + site, null);
+  if (!renew) await audit(u.email, 'Opened module', mod + ' · ' + site, null);
   if (asJson) return send(res, 200, { ticket: ticket });
   redirect(res, String(m.url).replace(/\/+$/, '') + '/#sso=' + ticket + (page ? '&page=' + enc(page) : ''));
 });

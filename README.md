@@ -48,7 +48,7 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
 | The page (sign-in, first start, Super Admin console, dashboard) | `public/index.html` |
 | Sign-in, sign-out, own password, Super Admin recovery code | `api/auth.js` |
 | Super Admin console (Super Admin only) | `api/admin.js` |
-| Open a module (the ticket) | `api/go.js` |
+| Open a module (the ticket; `renew=1`: the Store's / Engineering's page keeping its 15-minute sign-in fresh – not written in the Activity record again) | `api/go.js` |
 | Public keys for the modules | `api/jwks.js` |
 | First start: bring users over from Mechanical, once | `api/setup.js` |
 | Passwords (the same format as Mechanical), sessions, signing keys | `lib/pw.js`, `lib/session.js`, `lib/keys.js` |
