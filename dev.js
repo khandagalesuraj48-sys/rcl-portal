@@ -6,7 +6,7 @@ const port = Number(process.env.PORT) || 3010;
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon' };
 http.createServer((req, res) => {
   const p = new URL(req.url, 'http://x').pathname;
-  const m = /^\/api\/([a-z]+)$/.exec(p);
+  const m = /^\/api\/([a-z][a-z-]*)$/.exec(p);
   if (m) { const f = path.join(__dirname, 'api', m[1] + '.js'); if (fs.existsSync(f)) return require(f)(req, res); res.statusCode = 404; return res.end('{"error":"Not found."}'); }
   const file = path.join(__dirname, 'public', p === '/' ? 'index.html' : path.normalize(p).replace(/^(\.\.[/\\])+/, ''));
   if (!file.startsWith(path.join(__dirname, 'public')) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.statusCode = 404; return res.end('Not found'); }
