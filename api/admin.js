@@ -115,7 +115,7 @@ const ACTIONS = {
   async bkGet(me, x, req) { const t = await bkWho(x); return mechAsk(req, me, { act: 'bkGet', site: t.site, target: t.target }); },
   async bkSet(me, x, req) {
     const t = await bkWho(x), link = String(x.link || '').trim(), mode = x.mode === 'add' ? 'add' : 'change';
-    if (!/\/spreadsheets\/d\/[A-Za-z0-9_-]{20,}/.test(link) && !/^[A-Za-z0-9_-]{20,}$/.test(link)) throw fail(400, 'The Google Sheet link: open the Sheet and copy the address from the browser (…/spreadsheets/d/…).');
+    if (!/\/spreadsheets\/(?:u\/\d+\/)?d\/[A-Za-z0-9_-]{20,}/.test(link) && !/^[A-Za-z0-9_-]{20,}$/.test(link)) throw fail(400, 'The Google Sheet link: open the Sheet and copy the address from the browser (…/spreadsheets/d/…).');
     const r = await mechAsk(req, me, { act: 'bkSet', site: t.site, target: t.target, mode: mode, link: link });
     const top = (r.sheets || []).slice(-1)[0] || {};
     await audit(me.email, mode === 'add' ? 'Backup Sheet added' : 'Backup Sheet changed', t.target === 'portal' ? 'Portal' : t.site, { sheet: top.n, link: top.url });
@@ -192,7 +192,7 @@ const ACTIONS = {
     if (name.length < 2) throw fail(400, 'Give the site a name (2 to 80 letters).');
     const c = comp ? ((await db('GET', 'companies?select=id,name&id=eq.' + enc(comp))) || [])[0] : null;
     if (comp && !c) throw fail(404, 'This company is not in the list.');
-    const m = /\/spreadsheets\/d\/([A-Za-z0-9_-]{20,})/.exec(String(x.sheet || '')) || /^([A-Za-z0-9_-]{20,})$/.exec(String(x.sheet || '').trim());
+    const m = /\/spreadsheets\/(?:u\/\d+\/)?d\/([A-Za-z0-9_-]{20,})/.exec(String(x.sheet || '')) || /^([A-Za-z0-9_-]{20,})$/.exec(String(x.sheet || '').trim());
     if (String(x.sheet || '').trim() && !m) throw fail(400, 'The Google Sheet link: open the Sheet and copy the address from the browser (…/spreadsheets/d/…).');
     const cur = ((await db('GET', 'sites?select=code,status&code=eq.' + enc(code))) || [])[0];
     if (!cur) {

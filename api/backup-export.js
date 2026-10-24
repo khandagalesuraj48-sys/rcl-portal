@@ -5,7 +5,7 @@
 const { handler, readBody, send, fail } = require('../lib/http');
 const { allowed, make } = require('../lib/bkexport');
 const TABLES = {
-  users: { title: 'Users', key: 'email', hide: ['password_hash', 'recovery_hash'] },
+  users: { title: 'Users', key: 'email', hide: ['password_hash', 'recovery_hash'], cols: ['email', 'name', 'active', 'is_super', 'start_item', 'last_login_at', 'created_at', 'updated_at'] },
   access: { title: 'Access', key: 'email,site,module' },
   sites: { title: 'Sites', key: 'code' },
   companies: { title: 'Companies', key: 'id' },
