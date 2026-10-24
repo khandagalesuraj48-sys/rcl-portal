@@ -124,3 +124,42 @@ test('update-155: a new row is not sent twice after no answer; one that never le
     plan = ['dropped', 'ok']; calls = 0; await rpc('portal_hit', { p_key: 'X', p_ttl: 60 }); assert.strictEqual(calls, 2, 'a sign-in count is asked again as before');
   } finally { global.fetch = f0; Object.keys(env).forEach(k => { if (env[k] === undefined) delete process.env[k]; else process.env[k] = env[k]; }); }
 });
+
+test('update-157: the backup export – only with the secret; only its tables; passwords and recovery codes hidden; "since" for Sheet 2', async () => {
+  const { allowed } = require('../lib/bkexport'), E = require('../api/backup-export.js');
+  const env = { BACKUP_EXPORT_SECRET: process.env.BACKUP_EXPORT_SECRET, VERCEL_ENV: process.env.VERCEL_ENV, SUPABASE_URL: process.env.SUPABASE_URL, SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY }, f0 = global.fetch;
+  const asked = [];
+  global.fetch = async (url) => { const u = String(url); asked.push(u);
+    if (/\/rest\/v1\/$/.test(u)) return new Response(JSON.stringify({ definitions: { users: { properties: { email: {}, name: {}, password_hash: {}, recovery_hash: {}, updated_at: {}, totp_secret: {} } }, audit: { properties: { id: {}, at: {}, actor: {} } }, sessions: { properties: { id_hash: {} } }, signing_keys: { properties: { kid: {} } } } }), { status: 200 });
+    if (/users\?select=email,name,active,is_super,start_item,last_login_at,created_at,updated_at,password_hash,recovery_hash&/.test(u)) return new Response(JSON.stringify([{ email: 'a@x', name: 'A', password_hash: 'scrypt$1$2', recovery_hash: 'scrypt$3' }, { email: 'b@x', name: 'B', password_hash: '', recovery_hash: null }]), { status: 200 });
+    if (/audit\?select=\*/.test(u)) return new Response('[]', { status: 200 });
+    return new Response(JSON.stringify([{ updated_at: '2026-10-24T10:00:00Z', at: '2026-10-24T09:00:00Z', email: 'a@x', id: 1 }]), { status: 200, headers: { 'content-range': '0-0/7' } }); };
+  const call = async (body, auth) => { let status = 0, out = null;
+    const req = { method: 'POST', headers: auth === undefined ? { authorization: 'Bearer ' + 'k'.repeat(30) } : auth, body: body };
+    const res = { setHeader() {}, end(t) { out = JSON.parse(t); }, set statusCode(v) { status = v; } };
+    await E(req, res); return { status: status, j: out }; };
+  try {
+    process.env.SUPABASE_URL = 'http://db.test'; process.env.SUPABASE_SECRET_KEY = 'k'; process.env.VERCEL_ENV = 'production';
+    delete process.env.BACKUP_EXPORT_SECRET;
+    assert.throws(() => allowed({ headers: { authorization: 'Bearer anything' } }), e => e.status === 503);      // not set up: nothing is given
+    process.env.BACKUP_EXPORT_SECRET = 'k'.repeat(30);
+    assert.throws(() => allowed({ headers: {} }), e => e.status === 401);
+    assert.throws(() => allowed({ headers: { authorization: 'Bearer ' + 'j'.repeat(30) } }), e => e.status === 401);
+    assert.strictEqual((await call({ action: 'catalog' }, {})).status, 401);
+    let r = await call({ action: 'catalog' });
+    assert.strictEqual(r.status, 200);
+    assert.deepStrictEqual(r.j.tables.map(t => t.name), ['users', 'audit']);      // the sign-ins and signing keys are not in the list at all
+    assert.deepStrictEqual(r.j.tables[0].cols, ['email', 'name', 'password_hash', 'recovery_hash', 'updated_at']);      // (review 25-10-2026) only the listed columns: a column added later (here "totp_secret") never leaves
+    assert.strictEqual(r.j.tables[0].count, 7); assert.strictEqual(r.j.tables[0].newest, '2026-10-24T10:00:00Z');
+    r = await call({ action: 'rows', table: 'users', offset: 0, limit: 1000 });
+    assert.deepStrictEqual(r.j.rows[0], { email: 'a@x', name: 'A', password_hash: { __hidden: true }, recovery_hash: { __hidden: true } });
+    assert.deepStrictEqual(r.j.rows[1], { email: 'b@x', name: 'B', password_hash: '', recovery_hash: null });      // none kept: nothing to hide
+    assert.ok(/users\?select=email,name,active,is_super,start_item,last_login_at,created_at,updated_at,password_hash,recovery_hash&order=email\.asc&offset=0&limit=1000$/.test(asked[asked.length - 1]), asked[asked.length - 1]);
+    for (const t of ['sessions', 'signing_keys', 'counters', '__proto__', 'constructor']) assert.strictEqual((await call({ action: 'rows', table: t })).status, 400, t);
+    asked.length = 0; r = await call({ action: 'rows', table: 'audit', since: '2026-10-24T08:00:00.000Z', offset: 1000, limit: 5000 });
+    assert.ok(/audit\?select=\*&at=gte\.2026-10-24T08%3A00%3A00\.000Z&order=id\.asc&offset=1000&limit=1000$/.test(asked[0]), asked[0]);      // since: only what is new; at most 1000 a page
+    assert.strictEqual((await call({ action: 'rows', table: 'audit', since: "x'; drop" })).status, 400);
+    assert.strictEqual((await call({ action: 'rows', table: 'users', since: '2026-10-24T08:00:00Z' })).status, 200);      // a table without its own time: whole
+    assert.ok(!/updated_at=gte/.test(asked[asked.length - 1]));
+  } finally { global.fetch = f0; Object.keys(env).forEach(k => { if (env[k] === undefined) delete process.env[k]; else process.env[k] = env[k]; }); }
+});

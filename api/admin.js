@@ -47,6 +47,13 @@ async function mechAsk(req, me, claims) {
   return j.result;
 }
 const siteOk = async code => ((await db('GET', 'sites?select=code&code=eq.' + enc(code))) || []).length > 0;
+// (update-157) whose backup: the Portal's, or a site of the list
+async function bkWho(x) {
+  if (x.target === 'portal') return { target: 'portal', site: 'PORTAL' };      // (the ticket names a site; Mechanical keeps the Portal's Sheets at its first site)
+  const site = String(x.site || '').toUpperCase();
+  if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
+  return { target: '', site: site };
+}
 /* (with Mechanical's update-117, asked 16-10-2026) a site's DIESEL PLACES – the pump, the dispensers, a store – each with its tank
  * size (18B: Camp Pump 18,000 Ltr; MH12ZE1739 and MH12WJ1381 2,650 Ltr each). Set in "New site" and under Sites → Diesel places;
  * Mechanical keeps them in the site's own database and checks them (a place that has entries keeps its name). */
@@ -102,6 +109,19 @@ const ACTIONS = {
     await audit(me.email, 'Diesel places', site, { places: (r.places || []).map(p => p.name + ' ' + p.cap + ' Ltr') });
     return { ok: true, site: site, places: r.places || [], set: !!r.set, entries: !!r.entries, firstFixed: !!r.firstFixed };
   },
+  /* (with Mechanical's update-157, asked 24-10-2026) Sites → Backup: a site's numbered Google Sheets (Sheet 1, 2 …) and the
+   * Portal's own – Mechanical keeps them and makes the backup (it checks every link: the backup robot can open it, it is no other
+   * site's). x.target 'portal' = the Portal's backup, else x.site. */
+  async bkGet(me, x, req) { const t = await bkWho(x); return mechAsk(req, me, { act: 'bkGet', site: t.site, target: t.target }); },
+  async bkSet(me, x, req) {
+    const t = await bkWho(x), link = String(x.link || '').trim(), mode = x.mode === 'add' ? 'add' : 'change';
+    if (!/\/spreadsheets\/(?:u\/\d+\/)?d\/[A-Za-z0-9_-]{20,}/.test(link) && !/^[A-Za-z0-9_-]{20,}$/.test(link)) throw fail(400, 'The Google Sheet link: open the Sheet and copy the address from the browser (…/spreadsheets/d/…).');
+    const r = await mechAsk(req, me, { act: 'bkSet', site: t.site, target: t.target, mode: mode, link: link });
+    const top = (r.sheets || []).slice(-1)[0] || {};
+    await audit(me.email, mode === 'add' ? 'Backup Sheet added' : 'Backup Sheet changed', t.target === 'portal' ? 'Portal' : t.site, { sheet: top.n, link: top.url });
+    return r;
+  },
+  async bkNow(me, x, req) { const t = await bkWho(x); return mechAsk(req, me, { act: 'bkNow', site: t.site, target: t.target }); },
   overview: async () => overview(),
   async userSave(me, x) {
     const email = lc(x.email);
@@ -172,7 +192,7 @@ const ACTIONS = {
     if (name.length < 2) throw fail(400, 'Give the site a name (2 to 80 letters).');
     const c = comp ? ((await db('GET', 'companies?select=id,name&id=eq.' + enc(comp))) || [])[0] : null;
     if (comp && !c) throw fail(404, 'This company is not in the list.');
-    const m = /\/spreadsheets\/d\/([A-Za-z0-9_-]{20,})/.exec(String(x.sheet || '')) || /^([A-Za-z0-9_-]{20,})$/.exec(String(x.sheet || '').trim());
+    const m = /\/spreadsheets\/(?:u\/\d+\/)?d\/([A-Za-z0-9_-]{20,})/.exec(String(x.sheet || '')) || /^([A-Za-z0-9_-]{20,})$/.exec(String(x.sheet || '').trim());
     if (String(x.sheet || '').trim() && !m) throw fail(400, 'The Google Sheet link: open the Sheet and copy the address from the browser (…/spreadsheets/d/…).');
     const cur = ((await db('GET', 'sites?select=code,status&code=eq.' + enc(code))) || [])[0];
     if (!cur) {

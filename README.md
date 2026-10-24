@@ -69,6 +69,7 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
 | `PORTAL_SECRET` | 48 random bytes (base64); locks the signing key. Never change it after the first start. |
 | `MECH_URL`, `MECH_KEY` | Mechanical's first-site Supabase – only for the first-start import; can be removed afterwards |
 | `MECH_APP_URL` | Mechanical's web address (e.g. `https://rclerp.vercel.app`) |
+| `BACKUP_EXPORT_SECRET` | (with Mechanical's update-157) a long secret word (at least 24 letters and digits) – the SAME value in rclerp and rcl-engineering. Mechanical's nightly backup asks `/api/backup-export` with it for the Portal's users (passwords hidden), access, sites, companies, modules and activity record. Not set = nothing is given. |
 
 ## Tests (local test rig only – never the live databases)
 ```

@@ -97,6 +97,8 @@
   .steps li.wait { opacity: .55; } .steps li.wait .st-t::before { content: "· "; }
   .steps li code { background: #EEF3FF; padding: 1px 6px; border-radius: 6px; font-weight: 700; }
   .steps .bar { margin: 8px 0 0; }
+  .bk-lvl { font-weight: 700; padding: 2px 8px; border-radius: 10px; } .bk-lvl.ok { color: #1E7B45; background: #E5F5EC; } .bk-lvl.warn { color: #8A5A00; background: #FFF3D6; } .bk-lvl.bad { color: #A12626; background: #FDE6E6; }      /* (with Mechanical update-157) backup Sheets */
+  p.warn { color: #8A5A00; }
   .pl-box td input.pl-name { min-width: 200px; } .pl-box td input[readonly] { background: #F6F8FB; color: var(--muted); }      /* (with Mechanical update-117) diesel places */
   .sel-r { font-weight: 600; } .sel-r.admin { color: var(--blue); } .sel-r.user { color: var(--ok); } .sel-r.none { color: var(--muted); }
   @media (max-width: 640px) { .top .who { margin-left: 0; text-align: left; } }
@@ -421,7 +423,7 @@
       </section>
       <section id="t_sites" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Site management</span><h1>Sites</h1><p>Every site of every module. <b>Closed</b> = switched off: nobody can open it. A closed site can be deleted – its data stays in its own database.</p></div>
-          <button class="sa-btn primary" id="st_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New site</button></div>
+          <div class="acts"><button class="sa-btn" id="st_pbk" type="button" title="The Portal's own backup Sheets (users, access, sites)">Portal backup</button><button class="sa-btn primary" id="st_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New site</button></div></div>
         <div class="panel pg" id="ns_panel" hidden>
           <div class="panel-head"><h2>New site</h2><span class="note">Mechanical for a new site – the same app, its own database. Nothing of another site is copied and no user is made; afterwards you give the site to people under Users &amp; Access.</span></div>
           <p class="note" style="margin-top:0"><b>Before:</b> make the site's Supabase project yourself (Supabase → New project · region Mumbai). Its secret key is never typed here – the steps below say where it goes.</p>
@@ -437,6 +439,7 @@
           <ol class="steps" id="ns_steps" hidden></ol>
         </div>
         <div class="panel pg" id="dp_panel" hidden></div>
+        <div class="panel pg" id="bk_panel" hidden></div>
         <div class="sa-card">
           <div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>Company</th><th>State</th><th>Actions</th></tr></thead><tbody id="st_rows"></tbody></table></div>
           <div class="sa-scene-strip" aria-hidden="true"><svg viewBox="0 0 900 130" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg"><path d="M0 70h40V52h26v14h30V40h20v30h44V58h28v12h50V46h18v24h40V54h30v16h60V44h22v26h50V56h26v14h40V48h20v22h60V58h30v12h70V50h24v20h44v60H0z" fill="#D3DEEE"/><path d="M0 92l900-10v48H0z" fill="#B9C7DC"/><path d="M0 106l900-12" stroke="#F2B632" stroke-width="2.4" stroke-dasharray="22 16" opacity=".8"/><g fill="#8EA3C2"><path d="M80 88h70l12 14v10H72V96z"/><rect x="104" y="70" width="28" height="18" rx="3"/><path d="M132 74l38-26 7 7-30 24z"/><path d="M170 48l16 20-12 6-11-15z"/><circle cx="92" cy="114" r="9"/><circle cx="142" cy="114" r="9"/></g><g fill="#7D93B6"><rect x="300" y="82" width="86" height="26" rx="4"/><rect x="356" y="66" width="30" height="20" rx="3"/><circle cx="318" cy="114" r="11"/><circle cx="370" cy="114" r="11"/></g><g fill="#94A8C6"><rect x="520" y="76" width="110" height="30" rx="4"/><rect x="610" y="60" width="34" height="22" rx="3"/><circle cx="540" cy="113" r="10"/><circle cx="572" cy="113" r="10"/><circle cx="626" cy="113" r="10"/></g><g fill="#869BBC"><rect x="740" y="86" width="72" height="20" rx="4"/><rect x="752" y="70" width="30" height="16" rx="3"/><rect x="800" y="98" width="40" height="16" rx="8"/><circle cx="756" cy="114" r="8"/></g></svg></div>
@@ -876,13 +879,13 @@
     const d = S.data; if (!d) return;
     const comp = c => '<select class="st-comp" aria-label="Company"><option value="">–</option>' + d.companies.map(x => '<option value="' + esc(x.id) + '"' + (x.id === c ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>';
     const stat = v => '<select class="st-status ' + (v === 'closed' ? 'closed' : 'active') + '" aria-label="State"><option value="active"' + (v !== 'closed' ? ' selected' : '') + '>Active</option><option value="closed"' + (v === 'closed' ? ' selected' : '') + '>Closed</option></select>';
-    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<span class="sa-code">' + esc(s.code) + '</span>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '" aria-label="Site name"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="sa-btn primary sm st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>';
+    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<span class="sa-code">' + esc(s.code) + '</span>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '" aria-label="Site name"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="sa-btn primary sm st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button><button class="link st-backup" type="button" data-code="' + esc(s.code) + '">Backup</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>';
     $('st_rows').innerHTML = d.sites.map(s => S.siteRow(s, false)).join('') || '<tr><td colspan="5" class="note">No site yet.</td></tr>';
   }
   $('st_rows').addEventListener('change', e => { if (e.target.classList.contains('st-status')) e.target.className = 'st-status ' + e.target.value; });
   // ---- New site (with Mechanical): a checklist the system works through – pressed again, it goes on where it stopped ----
   const NS_STEP = { link: '1. The Supabase project link', key: '2. The secret key – in Vercel, never here', connect: '3. The database answers with that key', tables: '4. Mechanical\'s tables in the new database', company: '5. Company settings (as the first site; the new name)', places: '6. Diesel places (name and tank size)', ready: '7. Ready' };
-  $('st_new').addEventListener('click', () => { const p = $('ns_panel'); p.hidden = false; $('dp_panel').hidden = true;
+  $('st_new').addEventListener('click', () => { const p = $('ns_panel'); p.hidden = false; $('dp_panel').hidden = true; $('bk_panel').hidden = true;
     $('ns_comp').innerHTML = '<option value="">–</option>' + S.data.companies.map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>').join('');
     $('ns_steps').hidden = true; if (!$('ns_places').innerHTML) $('ns_places').innerHTML = placesHtml([{}], false); p.scrollIntoView({ block: 'nearest' }); setTimeout(() => $('ns_code').focus(), 30); });
   $('ns_close').addEventListener('click', () => { $('ns_panel').hidden = true; });
@@ -934,7 +937,7 @@
       '<div class="bar" style="margin:14px 0 0"><button class="sa-btn primary sm" type="button" id="dp_save" data-site="' + esc(site) + '">Save diesel places</button><button class="sa-btn sm" type="button" id="dp_close">Close</button></div>';
   }
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-places'); if (!b) return; const site = b.dataset.code, box = $('dp_panel');
-    $('ns_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading the diesel places from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
+    $('ns_panel').hidden = true; $('bk_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading the diesel places from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
     api('/api/admin', { action: 'placesGet', site: site }).then(d => placesPanel(site, d))
       .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="dp_close">Close</button>'; }); });
   $('dp_panel').addEventListener('click', e => {
@@ -942,6 +945,61 @@
     if (e.target.id !== 'dp_save') return; const b = e.target, site = b.dataset.site;
     busy(b, 'Saving…', async () => { try { const d = await api('/api/admin', { action: 'placesSave', site: site, places: placesRead($('dp_box')) });
       placesPanel(site, Object.assign({ set: true }, d)); toast('Diesel places of ' + site + ' saved: ' + d.places.map(p => p.name).join(', ') + '.'); } catch (er) { fail(er); } }); });
+  /* (with Mechanical's update-157, asked 24-10-2026) BACKUP SHEETS: every site its own Google Sheets, numbered (Sheet 1, 2 …), and
+   * the Portal its own. "Change link" puts another Sheet in place of the one in use (the whole copy goes there); "Add Sheet N"
+   * starts the next one when the one in use is full – the one before stays as it is. Each Sheet is shared with the backup robot. */
+  const bkDt = iso => { const d = new Date(iso); return iso && !isNaN(d) ? d.toLocaleString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''; };
+  const bkPct = (cells, limit) => Math.round((Number(cells) || 0) / (Number(limit) || 10000000) * 1000) / 10;
+  const bkLvl = p => p >= 90 ? 'bad' : p >= 80 ? 'warn' : 'ok';
+  function bkPanel(who, d) {
+    const st = who.target === 'portal' ? { name: 'Portal' } : (S.data.sites.find(x => x.code === who.site) || {});
+    const title = who.target === 'portal' ? 'Portal backup' : 'Backup – ' + esc(st.name || who.site) + ' (' + esc(who.site) + ')';
+    const list = d.sheets || [], act = list[list.length - 1], pctA = act ? bkPct(act.cells, d.limit) : 0;
+    const rows = list.map(v => { const p = bkPct(v.cells, d.limit);
+      return '<tr><td><b>Sheet ' + esc(v.n) + '</b>' + (v.legacy ? '<div class="note">the Sheet of before</div>' : '') + '</td><td><a href="' + esc(v.url) + '" target="_blank" rel="noopener">Open</a></td>' +
+        '<td>' + (v.from ? 'new and changed since ' + esc(bkDt(v.from)) : 'everything, from the first day') + '</td>' +
+        '<td><span class="bk-lvl ' + bkLvl(p) + '">' + esc(p) + ' %</span><div class="note">' + esc(Number(v.cells || 0).toLocaleString('en-IN')) + ' of 1,00,00,000 cells</div></td>' +
+        '<td>' + (v.active ? '<b>In use</b>' : 'Kept as it is' + (v.frozen ? ' since ' + esc(bkDt(v.frozen)) : '')) + (v.added ? '<div class="note">given ' + esc(bkDt(v.added)) + (v.by ? ' by ' + esc(v.by) : '') + '</div>' : '') + '</td></tr>'; }).join('');
+    const L = d.last || {};
+    const last = !d.ready ? '<p class="err">' + esc(d.error) + '</p>' :
+      '<p class="note">Last backup: ' + (L.lastRun || L.lastCheck ? '<b>' + esc(bkDt(L.lastRun || L.lastCheck)) + '</b>' : 'none yet') + (L.ok === false ? ' – <span class="err">' + esc(L.error) + '</span>' : '') +
+      (L.pending ? ' · <b>' + esc(L.pending) + ' table(s) still to copy</b> – it goes on by itself' : '') + (L.engNote ? '<br><span class="err">Engineering: ' + esc(L.engNote) + '</span>' : '') + '</p>';
+    const warn = act && pctA >= 80 ? '<p class="' + (pctA >= 90 ? 'err' : 'warn') + '"><b>Sheet ' + esc(act.n) + ' is ' + esc(pctA) + ' % full</b> – add Sheet ' + esc(Number(act.n) + 1) + ' (a new, empty Google Sheet) before it is full.</p>' : '';
+    const nextN = act ? Number(act.n) + 1 : 1;
+    $('bk_panel').innerHTML = '<div class="panel-head"><h2>' + title + '</h2><span class="note">Every night the data is copied into the Sheet in use' + (who.target === 'portal' ? ' (users – no passwords –, access, sites, companies, modules, the activity record)' : ' (every table of the site, with its Store and Engineering data)') + '. ' +
+        'A Sheet holds 1 crore cells at most: when one is full, add the next – the one before stays as it is, and Sheet 1 + Sheet 2 + … is the whole data.</span></div>' +
+      (d.email ? '<p class="note">Share every Sheet with <b>' + esc(d.email) + '</b> as <b>Editor</b> first (Google Sheets → Share → add this address → Editor).</p>' : '') +
+      (rows ? '<div class="tw"><table><thead><tr><th>Sheet</th><th>Link</th><th>Holds</th><th>Full</th><th>State</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<p class="note"><b>No backup Sheet yet.</b> Make a new, empty Google Sheet, share it as above, and give its link here.</p>') +
+      last + warn +
+      '<div class="field" style="margin-top:10px"><label for="bk_link">Google Sheet link</label><input id="bk_link" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off"></div>' +
+      '<div class="bar" style="margin:10px 0 0">' +
+        '<button class="sa-btn primary sm" type="button" id="bk_change">' + (act ? 'Change link of Sheet ' + esc(act.n) : 'Give Sheet 1') + '</button>' +
+        (act ? '<button class="sa-btn sm" type="button" id="bk_add">Add Sheet ' + esc(nextN) + '</button>' : '') +
+        (act ? '<button class="sa-btn sm" type="button" id="bk_now">Backup now</button>' : '') +
+        '<button class="sa-btn sm" type="button" id="bk_close">Close</button></div>';
+    $('bk_panel').dataset.who = JSON.stringify(who); $('bk_panel').dataset.act = act ? String(act.n) : '';
+  }
+  function bkOpen(who) {
+    const box = $('bk_panel'); $('ns_panel').hidden = true; $('dp_panel').hidden = true; box.hidden = false;
+    box.innerHTML = '<p class="note">Loading the backup Sheets from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
+    api('/api/admin', Object.assign({ action: 'bkGet' }, who)).then(d => bkPanel(who, d))
+      .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="bk_close">Close</button>'; });
+  }
+  $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-backup'); if (b) bkOpen({ site: b.dataset.code }); });
+  $('st_pbk').addEventListener('click', () => bkOpen({ target: 'portal' }));
+  $('bk_panel').addEventListener('click', e => {
+    const id = e.target.id; if (!/^bk_(close|change|add|now)$/.test(id)) return;
+    if (id === 'bk_close') { $('bk_panel').hidden = true; return; }
+    const b = e.target, who = JSON.parse($('bk_panel').dataset.who || '{}'), n = Number($('bk_panel').dataset.act) || 0;
+    if (id === 'bk_now') return busy(b, 'Copying…', async () => { try { const d = await api('/api/admin', Object.assign({ action: 'bkNow' }, who)); bkPanel(who, d);
+      toast(d.runError ? d.runError : d.ran && d.ran.busy ? 'A backup is running right now – it finishes by itself.' : d.ran && d.ran.pending ? 'Copied part of it – the rest goes on by itself.' : 'Backup done.', !!d.runError); } catch (er) { fail(er); } });
+    const link = $('bk_link').value.trim(); if (!link) { toast('Paste the link of the Google Sheet first.', true); $('bk_link').focus(); return; }
+    const add = id === 'bk_add';
+    if (!window.confirm(add ? 'Add Sheet ' + (n + 1) + '?\n\nSheet ' + n + ' stays as it is and is not written any more. From the next backup, Sheet ' + (n + 1) + ' gets every row new or changed since the last copy of Sheet ' + n + ', and the masters whole.'
+      : (n ? 'Change the link of Sheet ' + n + '?\n\nThe whole copy goes into the new Sheet at the next backup. The Sheet of before is left as it is (nothing in it is deleted).' : 'Give this Sheet as Sheet 1?\n\nThe whole data goes into it at the next backup.'))) return;
+    busy(b, 'Checking…', async () => { try { const d = await api('/api/admin', Object.assign({ action: 'bkSet', mode: add ? 'add' : 'change', link: link }, who)); bkPanel(who, d);
+      toast((add ? 'Sheet ' + (n + 1) + ' added' : 'Sheet ' + (n || 1) + ' set') + ' – its copy is made by the next backup (or press Backup now).'); } catch (er) { fail(er); } });
+  });
   // delete a Closed site – its code typed again; its own database (the data) stays as it is
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-del'); if (!b) return; const code = b.dataset.code, st = S.data.sites.find(x => x.code === code) || {};
     const n = S.data.access.filter(a => a.site === code).length;
