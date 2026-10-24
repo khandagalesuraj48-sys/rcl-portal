@@ -76,7 +76,15 @@ timeout 120 node --test test/unit.test.js     # no database
 timeout 300 node test/api.test.js             # rig: Portal :3010 + its database, Mechanical :3000 / :3100
 timeout 300 node test/browser.test.js         # rig + Chromium (Playwright); pictures in test/shots/
 timeout 400 node test/keep18.js               # after browser.test.js: the sign-in stays until "Sign out" (the next morning: back in, nothing typed)
+timeout 300 node test/safe155.test.js         # rig: lost answers, a new key in /api/jwks at once (starts its own Portal on :3011; SRC=<tree>)
 ```
+
+## No second copy (24-10-2026, with Mechanical's update-155)
+* **A new row** (a user, an access line, a company, a session …) **is not sent twice:** after no answer at all from the database it
+  may have been saved – the person is told to look. A change, a delete, the sign-in counts and a new row that never left this
+  server (no connection at all) are asked again as before.
+* **`/api/jwks` is not kept in this server's memory** (looked at and left as it is): Vercel runs several Portal servers, and a key
+  one of them makes must be in every server's answer at once – the modules ask again for a key they do not know yet.
 
 ## One address (13-10-2026)
 The Portal is also served under the main address, `https://oneclicksolution-erp.vercel.app/portal/`. Mechanical's
