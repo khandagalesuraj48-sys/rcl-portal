@@ -992,7 +992,7 @@
     if (id === 'bk_close') { $('bk_panel').hidden = true; return; }
     const b = e.target, who = JSON.parse($('bk_panel').dataset.who || '{}'), n = Number($('bk_panel').dataset.act) || 0;
     if (id === 'bk_now') return busy(b, 'Copying…', async () => { try { const d = await api('/api/admin', Object.assign({ action: 'bkNow' }, who)); bkPanel(who, d);
-      toast(d.runError ? d.runError : d.ran && d.ran.busy ? 'A backup is running right now – it finishes by itself.' : d.ran && d.ran.pending ? 'Copied part of it – the rest goes on by itself.' : 'Backup done.', !!d.runError); } catch (er) { fail(er); } });
+      toast(d.runError ? d.runError : d.ran && d.ran.busy ? 'A backup is running right now – it finishes by itself.' : d.ran && d.ran.timedOut ? 'Not finished in the time a press has – press Backup now again (the nightly backup does it too).' : d.ran && d.ran.pending ? 'Copied part of it – the rest goes on by itself.' : 'Backup done.', !!d.runError); } catch (er) { fail(er); } });
     const link = $('bk_link').value.trim(); if (!link) { toast('Paste the link of the Google Sheet first.', true); $('bk_link').focus(); return; }
     const add = id === 'bk_add';
     if (!window.confirm(add ? 'Add Sheet ' + (n + 1) + '?\n\nSheet ' + n + ' stays as it is and is not written any more. From the next backup, Sheet ' + (n + 1) + ' gets every row new or changed since the last copy of Sheet ' + n + ', and the masters whole.'
