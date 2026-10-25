@@ -12,7 +12,7 @@ const TABLES = {
   modules: { title: 'Modules', key: 'key' },
   audit: { title: 'Activity', key: 'id', since: 'at' },
 };
-const run = make(TABLES, { site: false });
+const run = make(TABLES, { site: false, usageStep: 'sql/portal_step4_usage.sql' });      // (update-158) usage: Sites → Storage
 module.exports = handler(async (req, res) => {
   if (req.method !== 'POST') return send(res, 405, { error: 'POST only.' });
   allowed(req);

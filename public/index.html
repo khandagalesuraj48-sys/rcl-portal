@@ -423,7 +423,7 @@
       </section>
       <section id="t_sites" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Site management</span><h1>Sites</h1><p>Every site of every module. <b>Closed</b> = switched off: nobody can open it. A closed site can be deleted – its data stays in its own database.</p></div>
-          <div class="acts"><button class="sa-btn" id="st_pbk" type="button" title="The Portal's own backup Sheets (users, access, sites)">Portal backup</button><button class="sa-btn primary" id="st_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New site</button></div></div>
+          <div class="acts"><button class="sa-btn" id="st_sto" type="button" title="How full every site's database, files and backup Sheet are; the copy of the files in Google Drive">Storage</button><button class="sa-btn" id="st_pbk" type="button" title="The Portal's own backup Sheets (users, access, sites)">Portal backup</button><button class="sa-btn primary" id="st_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New site</button></div></div>
         <div class="panel pg" id="ns_panel" hidden>
           <div class="panel-head"><h2>New site</h2><span class="note">Mechanical for a new site – the same app, its own database. Nothing of another site is copied and no user is made; afterwards you give the site to people under Users &amp; Access.</span></div>
           <p class="note" style="margin-top:0"><b>Before:</b> make the site's Supabase project yourself (Supabase → New project · region Mumbai). Its secret key is never typed here – the steps below say where it goes.</p>
@@ -440,6 +440,7 @@
         </div>
         <div class="panel pg" id="dp_panel" hidden></div>
         <div class="panel pg" id="bk_panel" hidden></div>
+        <div class="panel pg" id="sto_panel" hidden></div>
         <div class="sa-card">
           <div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>Company</th><th>State</th><th>Actions</th></tr></thead><tbody id="st_rows"></tbody></table></div>
           <div class="sa-scene-strip" aria-hidden="true"><svg viewBox="0 0 900 130" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg"><path d="M0 70h40V52h26v14h30V40h20v30h44V58h28v12h50V46h18v24h40V54h30v16h60V44h22v26h50V56h26v14h40V48h20v22h60V58h30v12h70V50h24v20h44v60H0z" fill="#D3DEEE"/><path d="M0 92l900-10v48H0z" fill="#B9C7DC"/><path d="M0 106l900-12" stroke="#F2B632" stroke-width="2.4" stroke-dasharray="22 16" opacity=".8"/><g fill="#8EA3C2"><path d="M80 88h70l12 14v10H72V96z"/><rect x="104" y="70" width="28" height="18" rx="3"/><path d="M132 74l38-26 7 7-30 24z"/><path d="M170 48l16 20-12 6-11-15z"/><circle cx="92" cy="114" r="9"/><circle cx="142" cy="114" r="9"/></g><g fill="#7D93B6"><rect x="300" y="82" width="86" height="26" rx="4"/><rect x="356" y="66" width="30" height="20" rx="3"/><circle cx="318" cy="114" r="11"/><circle cx="370" cy="114" r="11"/></g><g fill="#94A8C6"><rect x="520" y="76" width="110" height="30" rx="4"/><rect x="610" y="60" width="34" height="22" rx="3"/><circle cx="540" cy="113" r="10"/><circle cx="572" cy="113" r="10"/><circle cx="626" cy="113" r="10"/></g><g fill="#869BBC"><rect x="740" y="86" width="72" height="20" rx="4"/><rect x="752" y="70" width="30" height="16" rx="3"/><rect x="800" y="98" width="40" height="16" rx="8"/><circle cx="756" cy="114" r="8"/></g></svg></div>
@@ -885,7 +886,7 @@
   $('st_rows').addEventListener('change', e => { if (e.target.classList.contains('st-status')) e.target.className = 'st-status ' + e.target.value; });
   // ---- New site (with Mechanical): a checklist the system works through – pressed again, it goes on where it stopped ----
   const NS_STEP = { link: '1. The Supabase project link', key: '2. The secret key – in Vercel, never here', connect: '3. The database answers with that key', tables: '4. Mechanical\'s tables in the new database', company: '5. Company settings (as the first site; the new name)', places: '6. Diesel places (name and tank size)', ready: '7. Ready' };
-  $('st_new').addEventListener('click', () => { const p = $('ns_panel'); p.hidden = false; $('dp_panel').hidden = true; $('bk_panel').hidden = true;
+  $('st_new').addEventListener('click', () => { const p = $('ns_panel'); p.hidden = false; $('dp_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true;
     $('ns_comp').innerHTML = '<option value="">–</option>' + S.data.companies.map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>').join('');
     $('ns_steps').hidden = true; if (!$('ns_places').innerHTML) $('ns_places').innerHTML = placesHtml([{}], false); p.scrollIntoView({ block: 'nearest' }); setTimeout(() => $('ns_code').focus(), 30); });
   $('ns_close').addEventListener('click', () => { $('ns_panel').hidden = true; });
@@ -937,7 +938,7 @@
       '<div class="bar" style="margin:14px 0 0"><button class="sa-btn primary sm" type="button" id="dp_save" data-site="' + esc(site) + '">Save diesel places</button><button class="sa-btn sm" type="button" id="dp_close">Close</button></div>';
   }
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-places'); if (!b) return; const site = b.dataset.code, box = $('dp_panel');
-    $('ns_panel').hidden = true; $('bk_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading the diesel places from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
+    $('ns_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading the diesel places from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
     api('/api/admin', { action: 'placesGet', site: site }).then(d => placesPanel(site, d))
       .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="dp_close">Close</button>'; }); });
   $('dp_panel').addEventListener('click', e => {
@@ -980,7 +981,7 @@
     $('bk_panel').dataset.who = JSON.stringify(who); $('bk_panel').dataset.act = act ? String(act.n) : '';
   }
   function bkOpen(who) {
-    const box = $('bk_panel'); $('ns_panel').hidden = true; $('dp_panel').hidden = true; box.hidden = false;
+    const box = $('bk_panel'); $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('sto_panel').hidden = true; box.hidden = false;
     box.innerHTML = '<p class="note">Loading the backup Sheets from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
     api('/api/admin', Object.assign({ action: 'bkGet' }, who)).then(d => bkPanel(who, d))
       .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="bk_close">Close</button>'; });
@@ -999,6 +1000,61 @@
       : (n ? 'Change the link of Sheet ' + n + '?\n\nThe whole copy goes into the new Sheet at the next backup. The Sheet of before is left as it is (nothing in it is deleted).' : 'Give this Sheet as Sheet 1?\n\nThe whole data goes into it at the next backup.'))) return;
     busy(b, 'Checking…', async () => { try { const d = await api('/api/admin', Object.assign({ action: 'bkSet', mode: add ? 'add' : 'change', link: link }, who)); bkPanel(who, d);
       toast((add ? 'Sheet ' + (n + 1) + ' added' : 'Sheet ' + (n || 1) + ' set') + ' – its copy is made by the next backup (or press Backup now).'); } catch (er) { fail(er); } });
+  });
+  /* (with Mechanical's update-158, asked 24-10-2026: "super admin ani admin la he hi disaw ki supabase storage kiti aahe ki to
+   * bharley same google sheet kiti bharle kiti baki") STORAGE – every site's database (Supabase Pro: 8 GB a project), its photos and
+   * files (100 GB for every project together), its backup Sheet (1 crore cells) and the copy of its files in Google Drive; the
+   * Portal's and Engineering's databases; how full the Google Drive is. Green; yellow from 80 %; red from 90 %. */
+  const GB = 1073741824, DB_LIM = 8 * GB, FILES_LIM = 100 * GB;
+  const stoSize = b => { b = Number(b) || 0; return b >= GB ? (b / GB).toFixed(2) + ' GB' : b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(0, Math.round(b / 1024)) + ' KB'; };
+  const stoPct = (a, b) => b > 0 ? Math.round(a * 1000 / b) / 10 : 0;
+  const stoLvl = p => '<span class="bk-lvl ' + bkLvl(p) + '">' + esc(p) + ' %</span>';
+  const filesOf = u => (u && Array.isArray(u.files) ? u.files : []).reduce((t, f) => ({ n: t.n + (Number(f.n) || 0), b: t.b + (Number(f.bytes) || 0) }), { n: 0, b: 0 });
+  function stoPanel(d) {
+    const list = d.sites || [], dr = d.drive || {}, q = dr.quota || null, err = t => '<span class="err">' + esc(t) + '</span>';
+    const rows = list.map(x => { const f = x.files, sh = x.sheet, dv = x.drive || {};
+      const drv = !dv.connected ? '<span class="note">not connected</span>' : dv.needSql ? err(dv.error || 'needs a database step') :
+        esc(Number(dv.copied || 0).toLocaleString('en-IN')) + (Number(dv.copied) === 1 ? ' file (' : ' files (') + esc(stoSize(dv.bytes)) + ')' + '<div class="note">' + (dv.lastRun ? 'last ' + esc(bkDt(dv.lastRun)) + (dv.pending ? ' – more goes on by itself' : '') : 'starts with the next backup') + '</div>' +
+        (dv.error ? '<div class="err">' + esc(dv.error) + '</div>' : '') + (dv.skipped ? '<div class="err">' + esc(dv.skipped) + (Number(dv.skipped) === 1 ? ' file' : ' files') + ' not copied yet – tried again by itself</div>' : '') + (dv.note ? '<div class="note">' + esc(dv.note) + '</div>' : '');
+      return '<tr><td><b>' + esc(x.code) + '</b><div class="note">' + esc(x.name || '') + '</div></td>' +
+        '<td>' + (x.db ? stoLvl(x.db.pct) + ' ' + esc(stoSize(x.db.bytes)) + '<div class="note">of ' + esc(stoSize(x.db.limit)) + '</div>' : err(x.error || '–')) + '</td>' +
+        '<td>' + (f ? esc(stoSize(f.bytes)) + '<div class="note">' + esc(Number(f.n || 0).toLocaleString('en-IN')) + (Number(f.n) === 1 ? ' file' : ' files') + '</div>' : '–') + '</td>' +
+        '<td>' + (sh ? stoLvl(sh.pct) + ' Sheet ' + esc(sh.n) + '<div class="note">' + esc(Number(sh.cells || 0).toLocaleString('en-IN')) + ' of 1,00,00,000 cells</div>' : '<span class="note">no Sheet yet</span>') + '</td>' +
+        '<td style="white-space:normal;min-width:240px;max-width:360px">' + drv + '</td><td>' + (dv.connected && !dv.needSql ? '<button class="sa-btn sm sto-now" type="button" data-code="' + esc(x.code) + '">Copy files now</button>' : '') + '</td></tr>'; }).join('');
+    const other = (label, u) => { const f = filesOf(u);
+      return '<tr><td><b>' + label + '</b></td><td>' + (u && !u.error ? stoLvl(stoPct(u.db, DB_LIM)) + ' ' + esc(stoSize(u.db)) + '<div class="note">of ' + esc(stoSize(DB_LIM)) + '</div>' : err((u && u.error) || '–')) + '</td>' +
+        '<td>' + (u && !u.error ? esc(stoSize(f.b)) + '<div class="note">' + esc(f.n.toLocaleString('en-IN')) + ' files</div>' : '–') + '</td><td colspan="3"><span class="note">(its own Supabase project)</span></td></tr>'; };
+    const all = list.reduce((t, x) => t + (x.files ? Number(x.files.bytes) || 0 : 0), 0) + filesOf(d.portal && !d.portal.error ? d.portal : null).b + filesOf(d.eng && !d.eng.error ? d.eng : null).b, pAll = stoPct(all, FILES_LIM);
+    const drive = !dr.ready ? '<p>' + err(dr.error || 'The copy to Google Drive is not set up yet.') + '</p>' + (dr.redirect ? '<p class="note">The OAuth client in Google Cloud needs this "Authorized redirect URI": <code>' + esc(dr.redirect) + '</code></p>' : '') :
+      !q ? '<p class="note"><b>Not connected yet.</b> Press "Connect Google Drive", sign in with the company\'s Google account and press Allow. The app then sees ONLY its own folder "RCL ERP – Files (backup)" there – nothing else in that Drive.</p>' :
+      q.error ? '<p>Connected: <b>' + esc(q.acct) + '</b> – ' + err(q.error) + '</p>' :
+      '<p>Connected: <b>' + esc(q.acct) + '</b> – Google storage used ' + (q.limit ? stoLvl(q.pct) + ' ' + esc(stoSize(q.used)) + ' of ' + esc(stoSize(q.limit)) : esc(stoSize(q.used)) + ' (Google gives no limit for this account)') + '</p>' +
+        (q.limit && q.pct >= 80 ? '<p class="' + (q.pct >= 90 ? 'err' : 'warn') + '"><b>The Google Drive is ' + esc(q.pct) + ' % full</b> – buy more Google storage for this account before it is full (the copy stops when it is).</p>' : '');
+    $('sto_panel').innerHTML = '<div class="panel-head"><h2>Storage</h2><span class="note">How full each place is: green; yellow from 80 %; red from 90 %. Supabase (Pro): 8 GB of database for each project, 100 GB of files for all projects together. A Google Sheet: 1 crore cells.</span></div>' +
+      '<div class="tw"><table><thead><tr><th>Site</th><th>Database</th><th>Photos and files</th><th>Backup Sheet in use</th><th>Copy in Google Drive</th><th></th></tr></thead><tbody>' + rows +
+        other('Portal', d.portal) + other('Engineering (all sites)', d.eng) + '</tbody></table></div>' +
+      '<p>All photos and files together (every project): ' + stoLvl(pAll) + ' <b>' + esc(stoSize(all)) + '</b> of ' + esc(stoSize(FILES_LIM)) + '</p>' +
+      (pAll >= 80 ? '<p class="' + (pAll >= 90 ? 'err' : 'warn') + '"><b>The files are ' + esc(pAll) + ' % full</b> – more space for files is needed in Supabase soon.</p>' : '') +
+      '<h3 style="margin:14px 0 4px">Google Drive – the copy of the photos, bill copies and attachments</h3>' + drive +
+      '<div class="bar" style="margin:10px 0 0">' + (dr.ready ? '<button class="sa-btn primary sm" type="button" id="sto_connect">' + (q && !q.error ? 'Connect again (or another account)' : 'Connect Google Drive') + '</button>' : '') +
+        '<button class="sa-btn sm" type="button" id="sto_refresh">Refresh</button><button class="sa-btn sm" type="button" id="sto_close">Close</button></div>';
+  }
+  function stoOpen() {
+    const box = $('sto_panel'); $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('bk_panel').hidden = true; box.hidden = false;
+    box.innerHTML = '<p class="note">Asking every site how full it is…</p>'; box.scrollIntoView({ block: 'nearest' });
+    api('/api/admin', { action: 'stoGet' }).then(stoPanel).catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="sto_close">Close</button>'; });
+  }
+  $('st_sto').addEventListener('click', stoOpen);
+  $('sto_panel').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.id === 'sto_close') { $('sto_panel').hidden = true; return; }
+    if (b.id === 'sto_refresh') return stoOpen();
+    if (b.id === 'sto_connect') {      // Google's page opens in a new tab (opened now, while the press is still a press – else the browser blocks it)
+      const w = window.open('', '_blank'); if (w) { try { w.opener = null; w.document.title = 'Google Drive'; } catch (er) { /* a page of its own */ } }
+      return busy(b, 'Opening…', async () => { try { const r = await api('/api/admin', { action: 'drvStart' }); if (w) w.location.href = r.url; else window.location.href = r.url;
+        toast('Sign in with the company\'s Google account and press Allow – then press Refresh here.'); } catch (er) { if (w) w.close(); fail(er); } }); }
+    if (b.classList.contains('sto-now')) return busy(b, 'Copying…', async () => { try { const r = await api('/api/admin', { action: 'drvNow', site: b.dataset.code }); const run = r.run || {};
+      toast(run.off ? 'Google Drive is not connected.' : run.busy ? 'A copy is running right now – it finishes by itself.' : run.error ? run.error : run.pending ? 'Copied part of it – the rest goes on by itself.' : 'Every file of this site is in Google Drive.', !!run.error); stoOpen(); } catch (er) { fail(er); } });
   });
   // delete a Closed site – its code typed again; its own database (the data) stays as it is
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-del'); if (!b) return; const code = b.dataset.code, st = S.data.sites.find(x => x.code === code) || {};

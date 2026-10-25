@@ -58,7 +58,7 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
 | Public keys for the modules | `api/jwks.js` |
 | First start: bring users over from Mechanical, once | `api/setup.js` |
 | Passwords (the same format as Mechanical), sessions, signing keys | `lib/pw.js`, `lib/session.js`, `lib/keys.js` |
-| Database (run once each, in order, in the Portal's own Supabase project) | `sql/portal_step1.sql`, `sql/portal_step2_start.sql` ("My start") |
+| Database (run once each, in order, in the Portal's own Supabase project) | `sql/portal_step1.sql`, `sql/portal_step2_start.sql` ("My start"), `sql/portal_step4_usage.sql` (with Mechanical's update-158: how full the database is – Sites → Storage) |
 | Security check (read only) | `sql/check_security.sql` |
 
 ## Settings (Vercel → Project → Settings → Environment Variables – never in a file)

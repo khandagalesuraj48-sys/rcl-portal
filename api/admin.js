@@ -122,6 +122,20 @@ const ACTIONS = {
     return r;
   },
   async bkNow(me, x, req) { const t = await bkWho(x); return mechAsk(req, me, { act: 'bkNow', site: t.site, target: t.target }); },
+  /* (with Mechanical's update-158, asked 24-10-2026) Sites → Storage: every site's database, files, backup Sheet and Google Drive
+   * copy (Mechanical asks each site, and the Portal's and Engineering's databases through their backup export); "Connect Google
+   * Drive" (the company's account allows the app ONLY its own folder there); "Copy files now" for one site. */
+  async stoGet(me, x, req) { return mechAsk(req, me, { act: 'stoGet', site: 'PORTAL' }); },
+  async drvStart(me, x, req) {
+    const r = await mechAsk(req, me, { act: 'drvStart', site: 'PORTAL' });
+    await audit(me.email, 'Google Drive connect started', 'Portal', {});
+    return { url: r.url, redirect: r.redirect };
+  },
+  async drvNow(me, x, req) {
+    const site = String(x.site || '').toUpperCase();
+    if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
+    return mechAsk(req, me, { act: 'drvNow', site: site });
+  },
   overview: async () => overview(),
   async userSave(me, x) {
     const email = lc(x.email);
