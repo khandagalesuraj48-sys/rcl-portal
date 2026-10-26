@@ -234,6 +234,11 @@
   .sa-pgc select { min-height: 38px; font-weight: 600; }
   .sa .pg-sel.Edit { color: var(--s-green); } .sa .pg-sel.View { color: var(--s-blue); } .sa .pg-sel.None { color: var(--s-muted); }
   .sa-grp { margin: 22px 0 10px; font-size: 15px; } .sa-grp:first-child { margin-top: 0; }
+  /* (with Mechanical's update-162) a Mechanical User's diesel sources: the places he may give diesel FROM */
+  .sa-dsg { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .sa-dsl { display: flex; flex-direction: column; gap: 10px; font-weight: 600; }
+  .sa-chk { display: flex; align-items: center; gap: 10px; margin: 0; cursor: pointer; font-weight: 600; overflow-wrap: anywhere; }
+  .sa-chk input { width: 18px; height: 18px; min-height: 0; padding: 0; margin: 0; flex: 0 0 auto; accent-color: var(--s-blue2); cursor: pointer; }
   .sa-dl { display: grid; grid-template-columns: minmax(130px, 220px) 1fr; gap: 10px 18px; margin: 0; }
   .sa-dl dt { color: var(--s-muted); font-weight: 600; } .sa-dl dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
   /* sites, companies, modules, activity */
@@ -836,10 +841,19 @@
     catch (er) { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p>'; }
   }
   const pgCard = (label, key, v, opts, g) => '<label class="sa-pgc"><span class="t">' + pgIcon(label) + esc(label) + '</span><select class="pg-sel ' + v + '" data-k="' + esc(key) + '" data-g="' + g + '">' + opts.map(o => '<option value="' + o + '"' + (o === v ? ' selected' : '') + '>' + PG_WORD[o] + '</option>').join('') + '</select></label>';
+  /* (with Mechanical's update-162, asked 26-10-2026) the places he may give diesel FROM: Diesel Issue (its source) and Diesel Transfer
+   * (its From). None chosen before = every place ticked. A Mechanical before update-162 sends no places: nothing is shown. */
+  const DS_PAGES = [['Diesel Issue', 'Diesel Issue – source'], ['Diesel Transfer', 'Diesel Transfer – From']];
+  function dsBlock(places, dsrc) {
+    S.dsShown = Array.isArray(places) && places.length > 0; if (!S.dsShown) return '';
+    return '<h3 class="sa-grp">Diesel sources</h3><p class="note" style="margin-top:0">The places he may give diesel <b>from</b>. All ticked = every place (also one added later). Diesel Inward: anyone with that page.</p>' +
+      '<div class="sa-dsg">' + DS_PAGES.map(([pg, label]) => { const l = dsrc && Array.isArray(dsrc[pg]) ? dsrc[pg] : null;
+        return '<div class="sa-pgc"><span class="t">' + pgIcon(pg) + esc(label) + '</span><div class="sa-dsl">' + places.map(n => '<label class="sa-chk"><input type="checkbox" class="ds-chk" data-pg="' + esc(pg) + '" value="' + esc(n) + '"' + (!l || l.indexOf(n) > -1 ? ' checked' : '') + '>' + esc(n) + '</label>').join('') + '</div></div>'; }).join('') + '</div>';
+  }
   async function userPages(email, site, siteName) {
     const box = $('pg_access'), roleOf = m => ((S.data.access.find(a => a.email === email && a.site === site && a.module === m)) || {}).role || '';
     const mRole = roleOf('mechanical'), sRole = roleOf('store'), parts = [];
-    let mech = ''; S.mechLoaded = '';
+    let mech = ''; S.mechLoaded = ''; S.dsShown = false;
     if (!mRole) mech = '<p class="note">No Mechanical on ' + esc(siteName) + ' – give him <b>User</b> (or Admin) in the users list first.</p>';
     else if (mRole === 'admin') mech = '<p class="note"><b>Admin</b> has Edit on every page. To give single pages, make him <b>User</b> in the users list and save, then open this again.</p>';
     else {
@@ -848,7 +862,7 @@
       if (d) { const mu = (d.users || []).find(x => x.email === email);
         mech = (mu ? '' : '<p class="note">He has not opened Mechanical on this site yet – the pages saved here are ready for his first sign-in.</p>') +
           '<div class="sa-ma-top"><span>Select which pages this user can open. <b>Edit</b> = add / change / delete · <b>View</b> = see and print · <b>No access</b> = hidden from the menu.</span><label class="sa-switch"><input type="checkbox" id="pg_all" data-g="mech">Select all</label></div>' +
-          '<div class="sa-pgg">' + (d.pages || []).map(p => pgCard(p.label, p.key, (mu && mu.perms && mu.perms[p.key]) || 'None', ['Edit', 'View', 'None'], 'mech')).join('') + '</div>';
+          '<div class="sa-pgg">' + (d.pages || []).map(p => pgCard(p.label, p.key, (mu && mu.perms && mu.perms[p.key]) || 'None', ['Edit', 'View', 'None'], 'mech')).join('') + '</div>' + dsBlock(d.places, mu && mu.dsrc);
         S.mechLoaded = email; }
     }
     parts.push('<h3 class="sa-grp">Mechanical</h3>' + mech);
@@ -871,7 +885,8 @@
     const b = e.target.closest('#pg_save'); if (!b) return;
     const perms = {}, pages = {}; document.querySelectorAll('#pg_panel .pg-sel[data-g="mech"]').forEach(x => { perms[x.dataset.k] = x.value; }); document.querySelectorAll('#pg_panel .pg-sel[data-g="store"]').forEach(x => { pages[x.dataset.k] = x.value; });
     busy(b, 'Saving…', async () => { try { const said = [];
-      if (Object.keys(perms).length) { const r = await api('/api/admin', { action: 'mechPagesSave', site: b.dataset.site, email: b.dataset.email, perms: perms }); said.push(r.changes ? 'Pages saved in Mechanical.' : Object.keys(pages).length ? '' : 'Saved – nothing had changed.'); }
+      const sources = {}; if (S.dsShown) DS_PAGES.forEach(([pg]) => { sources[pg] = [...document.querySelectorAll('#pg_panel .ds-chk')].filter(x => x.dataset.pg === pg && x.checked).map(x => x.value); });
+      if (Object.keys(perms).length) { const r = await api('/api/admin', Object.assign({ action: 'mechPagesSave', site: b.dataset.site, email: b.dataset.email, perms: perms }, S.dsShown ? { sources: sources } : {})); said.push(r.changes ? 'Pages saved in Mechanical.' : Object.keys(pages).length ? '' : 'Saved – nothing had changed.'); }
       if (Object.keys(pages).length) { await api('/api/admin', { action: 'storePagesSave', site: b.dataset.site, email: b.dataset.email, pages: pages }); said.push('Store pages saved.'); await load(); }
       toast(said.filter(Boolean).join(' ') || 'Nothing to save.'); userClose(); users(); } catch (er) { fail(er); } });
   });

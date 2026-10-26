@@ -158,6 +158,21 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   ok('   a site where he does not have Mechanical: refused (give the site first)', r.status === 400 && r.j.code === 'noaccess', r.j);
   r = await A.req('/api/admin', { action: 'mechPages', site: 'S1' });
   ok('   nobody but the Super Admin', r.status === 403, r.status);
+  // ---- (with Mechanical's update-162) his diesel sources: the places he may give diesel FROM (Diesel Issue / Diesel Transfer) ----
+  const dsWas = sql('rcl', "select count(*) from web.props where key = 'DIESEL_SOURCES'"), dsOf = () => sql('rcl', "select coalesce((select value from web.props where key = 'DIESEL_SOURCES'), '')");
+  r = await S.req('/api/admin', { action: 'mechPages', site: 'S1' });
+  ok('Diesel sources: the site\'s places come with the users (S1: Dispenser, VTR Store); nobody has any chosen yet', r.status === 200 && JSON.stringify(r.j.places) === '["Dispenser","VTR Store"]' && r.j.users.every(u => !u.dsrc) && dsWas === '0', r.j.places);
+  r = await S.req('/api/admin', { action: 'mechPagesSave', site: 'S1', email: 'view@rcl.test', perms: { 'Diesel Issue': 'Edit' }, sources: { 'Diesel Issue': ['VTR Store'], 'Diesel Transfer': ['Dispenser', 'VTR Store'], 'Diesel Inward': ['Dispenser'] } });
+  ok('   Issue: only VTR Store ticked; Transfer: both ticked → saved in Mechanical (S1\'s own database); Transfer = every source; Inward: never', r.status === 200 && /Diesel sources of view@rcl\.test – Diesel Issue: VTR Store; Diesel Transfer: every source/.test(r.j.changes) &&
+    JSON.stringify(JSON.parse(dsOf() || '{}')) === '{"view@rcl.test":{"Diesel Issue":["VTR Store"]}}' && JSON.stringify(r.j.user && r.j.user.dsrc) === '{"Diesel Issue":["VTR Store"]}', [r.j, dsOf()]);
+  ok('   the Activity record here has it', /Diesel sources of view@rcl\.test/.test(sql('rcl_portal', "select detail::text from audit where action = 'Pages' and target = 'view@rcl.test · S1' order by id desc limit 1")));
+  r = await S.req('/api/admin', { action: 'mechPages', site: 'S1' });
+  ok('   opened again: his ticks as saved', JSON.stringify((r.j.users.find(u => u.email === 'view@rcl.test') || {}).dsrc) === '{"Diesel Issue":["VTR Store"]}', r.j.users);
+  r = await S.req('/api/admin', { action: 'mechPagesSave', site: 'S1', email: 'view@rcl.test', perms: { 'Diesel Issue': 'Edit' } });
+  ok('   a save without sources (a page before update-162): his sources stay', r.status === 200 && JSON.stringify(JSON.parse(dsOf() || '{}')) === '{"view@rcl.test":{"Diesel Issue":["VTR Store"]}}', dsOf());
+  r = await S.req('/api/admin', { action: 'mechPagesSave', site: 'S1', email: 'view@rcl.test', perms: { 'Diesel Issue': 'Edit' }, sources: { 'Diesel Issue': ['Dispenser', 'VTR Store'], 'Diesel Transfer': ['Dispenser', 'VTR Store'] } });
+  ok('   every place ticked again = every source (nothing kept for him)', r.status === 200 && JSON.stringify(JSON.parse(dsOf() || '{}')) === '{}' && !(r.j.user && r.j.user.dsrc), [r.j, dsOf()]);
+  if (dsWas === '0') sql('rcl', "delete from web.props where key = 'DIESEL_SOURCES'");
   sql('rcl', "update app_users set perm_diesel_issue = '" + keepPg + "', updated_at = now() where email = 'view@rcl.test'");
 
   // ---- a brand-new user ----
