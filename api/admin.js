@@ -57,6 +57,18 @@ async function bkWho(x) {
 /* (with Mechanical's update-117, asked 16-10-2026) a site's DIESEL PLACES – the pump, the dispensers, a store – each with its tank
  * size (18B: Camp Pump 18,000 Ltr; MH12ZE1739 and MH12WJ1381 2,650 Ltr each). Set in "New site" and under Sites → Diesel places;
  * Mechanical keeps them in the site's own database and checks them (a place that has entries keeps its name). */
+/* (with Mechanical's update-162, asked 26-10-2026: "user wise konala konte source cha access deycha … jya user la jyacha access asel
+ * to tyach madhun issue kru shakel same transfer la pn … inward la nko") a Mechanical User's DIESEL SOURCES: the places he may give
+ * diesel FROM – Diesel Issue (its source) and Diesel Transfer (its From). Every place ticked = every source (also a place added
+ * later – as before); Mechanical keeps them in the site's own database and checks every save. Inward: anyone (not here). */
+const SOURCE_PAGES = ['Diesel Issue', 'Diesel Transfer'];
+function sourcesIn(v) {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
+  const o = {};
+  SOURCE_PAGES.forEach(pg => { if (!(pg in v)) return; const l = v[pg];
+    o[pg] = l === null ? null : Array.isArray(l) ? [...new Set(l.slice(0, 20).map(n => clean(n, 60)).filter(Boolean))] : null; });
+  return Object.keys(o).length ? o : null;
+}
 const placesIn = v => (Array.isArray(v) ? v : []).slice(0, 20).map(p => ({ name: clean(p && p.name, 60), cap: Number(p && p.cap) || 0 })).filter(p => p.name || p.cap);
 
 const ACTIONS = {
@@ -78,7 +90,9 @@ const ACTIONS = {
     const site = String(x.site || '').toUpperCase();
     if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
     const r = await mechAsk(req, me, { act: 'users', site: site });
-    return { site: site, pages: r.pages || [], users: r.users || [] };
+    // (with Mechanical's update-162) the site's diesel places and each person's diesel sources (users[].dsrc; none = every source).
+    // A Mechanical before update-162 sends no places: then no source is shown or sent.
+    return Object.assign({ site: site, pages: r.pages || [], users: r.users || [] }, Array.isArray(r.places) ? { places: r.places } : {});
   },
   // one person's pages in Mechanical on one site (he must have Mechanical on that site here)
   async mechPagesSave(me, x, req) {
@@ -90,7 +104,8 @@ const ACTIONS = {
     const perms = {};
     Object.keys(x.perms && typeof x.perms === 'object' ? x.perms : {}).slice(0, 60).forEach(k => { if (PAGE_ACCESS.indexOf(x.perms[k]) > -1) perms[String(k).slice(0, 40)] = x.perms[k]; });
     if (!Object.keys(perms).length) throw fail(400, 'No page was given.');
-    const r = await mechAsk(req, me, { act: 'pages', site: site, email: email, name: u.name, admin: acc.role === 'admin', perms: perms });
+    const sources = sourcesIn(x.sources);
+    const r = await mechAsk(req, me, Object.assign({ act: 'pages', site: site, email: email, name: u.name, admin: acc.role === 'admin', perms: perms }, sources ? { sources: sources } : {}));
     await audit(me.email, 'Pages', email + ' · ' + site, { changes: String(r.changes || '').slice(0, 1500), added: !!r.added });
     return { ok: true, added: !!r.added, changes: r.changes || '', user: r.user };
   },

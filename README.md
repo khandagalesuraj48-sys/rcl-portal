@@ -21,6 +21,11 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
   My Account: his details, Change Password (the same check as before), Sign-in Recovery (how the recovery code is used).
 * **Pages (Users & Access → his name → Module Access, or ⋯ → Module access):** one **Save changes** saves both below.
   * Mechanical: Edit / View / No access per page, kept in Mechanical (as before).
+  * **Diesel sources (with Mechanical's update-162, 26-10-2026):** for a Mechanical User, a tick for each diesel place of the
+    site under **Diesel Issue – source** and **Diesel Transfer – From**: he gives diesel only FROM a ticked place (a transfer may
+    go TO any place; Diesel Inward: anyone with that page). All ticked = every place, also one added later (as before – what
+    every person has until something is unticked). Kept in Mechanical, in the site's own database; Mechanical checks every save.
+    An Admin has every source.
   * **Store (14-10-2026):** for a Store User – Dashboard (View / No access) and Item Master (Edit = add / View = see and export /
     No access). Kept with his access line here (`access.pages`, **SQL step 3: `sql/portal_step3_pages.sql`**), carried in his
     ticket, applied by the Store at his next opening. A Store Admin has every page.
