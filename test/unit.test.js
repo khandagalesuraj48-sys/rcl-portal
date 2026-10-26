@@ -87,7 +87,7 @@ test('(with Mechanical update-117) a site\'s diesel places: set in New site and 
   const at = html.indexOf('  const ltr = n => '), to = html.indexOf("  document.addEventListener('click', e => { const box = e.target.closest('.pl-box');");
   const f = new Function('esc', html.slice(at, to) + '; return { placesRow, placesHtml };')(s => String(s));
   const one = f.placesRow({ name: 'Camp Pump', cap: 18000, used: true, stock: 3940 }, true);
-  assert.ok(/value="Camp Pump" placeholder="e.g. Camp Pump" readonly>/.test(one) && /has entries – the name stays/.test(one) && /3,940 Ltr/.test(one) && !/pl-del/.test(one), one);
+  assert.ok(/value="Camp Pump" placeholder="e.g. Camp Pump" readonly>/.test(one) && /has entries – the name and fuel stay/.test(one) && /3,940 Ltr/.test(one) && !/pl-del/.test(one), one);
   assert.ok(/pl-del/.test(f.placesRow({ name: 'MH12ZE1739', cap: 2650 }, true)), 'a place without entries can be removed');
   assert.strictEqual((f.placesHtml([{}, {}], false).match(/<tr><td>/g) || []).length, 2);
 });
@@ -185,4 +185,24 @@ test('update-158: the backup export says how full the database is (web_usage) �
     missing = true; r = await call({ action: 'usage' });
     assert.ok(r.status === 200 && r.j.needSql && /portal_step4_usage\.sql/.test(r.j.error), JSON.stringify(r.j));
   } finally { global.fetch = f0; Object.keys(env).forEach(k => { if (env[k] === undefined) delete process.env[k]; else process.env[k] = env[k]; }); }
+});
+
+test('(with Mechanical update-163) the fuel of each diesel place – Diesel / Petrol / CNG – chosen in New site and Sites → Diesel places, sent inside the signed ticket; a place with entries keeps its fuel', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8'), adm = fs.readFileSync(path.join(__dirname, '..', 'api', 'admin.js'), 'utf8');
+  // the server: only Petrol / CNG travel (none = Diesel, as a Portal of before); anything else is left out (Mechanical checks again)
+  const at0 = adm.indexOf('const PLACE_FUELS = '), to0 = adm.indexOf('\n', adm.indexOf('const placesIn = ') + 200);
+  const placesIn = new Function('clean', adm.slice(at0, adm.indexOf(').filter(p => p.name || p.cap);', at0) + 33) + '; return placesIn;')((v, n) => String(v || '').trim().slice(0, n));
+  assert.deepStrictEqual(placesIn([{ name: 'DIESEL CARD', cap: 500, fuel: 'Diesel' }, { name: 'PETROL CARD', cap: 500, fuel: 'Petrol' }, { name: 'CNG CARD', cap: 300, fuel: 'CNG' }, { name: 'X', cap: 1, fuel: 'Kerosene' }]),
+    [{ name: 'DIESEL CARD', cap: 500 }, { name: 'PETROL CARD', cap: 500, fuel: 'Petrol' }, { name: 'CNG CARD', cap: 300, fuel: 'CNG' }, { name: 'X', cap: 1 }]);
+  assert.ok(to0 > at0);
+  assert.match(adm, /await audit\(me\.email, 'Diesel places', site, \{ places: \(r\.places \|\| \[\]\)\.map\(p => p\.name \+ ' ' \+ p\.cap \+ ' Ltr' \+ \(p\.fuel && p\.fuel !== 'Diesel' \? ' ' \+ p\.fuel : ''\)\) \}\);/);
+  // the page: a Fuel box in each row (a place with entries: its fuel stays), read with the row; CNG's stock in kg
+  const at = html.indexOf('  const ltr = n => '), to = html.indexOf("  document.addEventListener('click', e => { const box = e.target.closest('.pl-box');");
+  const f = new Function('esc', html.slice(at, to) + '; return { placesRow, placesHtml };')(s => String(s));
+  const used = f.placesRow({ name: 'CNG CARD', cap: 300, used: true, stock: 32, fuel: 'CNG' }, true);
+  assert.ok(/<select class="pl-fuel" disabled>/.test(used) && /<option selected>CNG<\/option>/.test(used) && /32 kg/.test(used) && /the name and fuel stay/.test(used), used);
+  const fresh = f.placesRow({}, false);
+  assert.ok(/<select class="pl-fuel"><option selected>Diesel<\/option><option>Petrol<\/option><option>CNG<\/option><\/select>/.test(fresh), fresh);
+  assert.ok(/<th>Diesel place<\/th><th>Fuel<\/th><th>Tank size \(Ltr\)<\/th>/.test(f.placesHtml([{}], true)));
+  assert.ok(html.includes("fuel: (tr.querySelector('.pl-fuel') || {}).value || 'Diesel'"), 'read with the row');
 });

@@ -69,7 +69,10 @@ function sourcesIn(v) {
     o[pg] = l === null ? null : Array.isArray(l) ? [...new Set(l.slice(0, 20).map(n => clean(n, 60)).filter(Boolean))] : null; });
   return Object.keys(o).length ? o : null;
 }
-const placesIn = v => (Array.isArray(v) ? v : []).slice(0, 20).map(p => ({ name: clean(p && p.name, 60), cap: Number(p && p.cap) || 0 })).filter(p => p.name || p.cap);
+// (with Mechanical's update-163) and the fuel each place holds – Diesel / Petrol / CNG (none = Diesel); Mechanical checks it again
+const PLACE_FUELS = ['Diesel', 'Petrol', 'CNG'];
+const placesIn = v => (Array.isArray(v) ? v : []).slice(0, 20).map(p => Object.assign({ name: clean(p && p.name, 60), cap: Number(p && p.cap) || 0 },
+  p && PLACE_FUELS.indexOf(String(p.fuel || '')) > 0 ? { fuel: String(p.fuel) } : {})).filter(p => p.name || p.cap);
 
 const ACTIONS = {
   // a Store User's pages on one site (he must have the Store there; an Admin has every page)
@@ -121,7 +124,7 @@ const ACTIONS = {
     const places = placesIn(x.places);
     if (!places.length) throw fail(400, 'Add at least one diesel place (its name and tank size).');
     const r = await mechAsk(req, me, { act: 'placesSave', site: site, places: places });
-    await audit(me.email, 'Diesel places', site, { places: (r.places || []).map(p => p.name + ' ' + p.cap + ' Ltr') });
+    await audit(me.email, 'Diesel places', site, { places: (r.places || []).map(p => p.name + ' ' + p.cap + ' Ltr' + (p.fuel && p.fuel !== 'Diesel' ? ' ' + p.fuel : '')) });
     return { ok: true, site: site, places: r.places || [], set: !!r.set, entries: !!r.entries, firstFixed: !!r.firstFixed };
   },
   /* (with Mechanical's update-157, asked 24-10-2026) Sites → Backup: a site's numbered Google Sheets (Sheet 1, 2 …) and the
