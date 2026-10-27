@@ -41,6 +41,9 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
   (step 6) and changed under **Sites → Diesel places** (the stock now is shown). Mechanical keeps them in the site's own database
   and checks them: a place that has entries keeps its name and cannot be removed. A site without its own places has the first
   site's Dispenser + VTR Store.
+  **Fuel of each place (with Mechanical's update-163, 26-10-2026):** Diesel, Petrol or CNG (a place of before is Diesel; HO: one
+  place per fuel card – DIESEL CARD, PETROL CARD, CNG CARD). Mechanical gives a machinery fuel only from a place of its fuel
+  (Asset Master → Fuel) and transfers only between places of one fuel; a place that has entries keeps its fuel. CNG is in kg.
 * **Change, switch off, delete (Super Admin):**
   * **Sites:** Closed = switched off, nobody can open it. Only a Closed site can be deleted, and only with its code typed again.
     It leaves the lists here and in Mechanical, with the access given on it. Its own database (its data) is never touched:

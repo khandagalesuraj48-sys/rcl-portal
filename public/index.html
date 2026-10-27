@@ -439,7 +439,7 @@
             <div class="field"><label for="ns_url">Supabase project link</label><input id="ns_url" placeholder="https://….supabase.co" autocomplete="off"></div>
             <div class="field"><label for="ns_sheet">Google Sheet for its backup (can be added later)</label><input id="ns_sheet" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off"></div>
           </div>
-          <div class="field" style="margin-top:6px"><label>Diesel places of this site</label><p class="note" style="margin:0 0 8px">Where diesel is kept – the pump, each dispenser, a store – with its tank size. Diesel Inward, Issue and Transfer use these. The first one is chosen first on the forms. Later: Sites → <b>Diesel places</b>.</p><div class="pl-box" id="ns_places"></div></div>
+          <div class="field" style="margin-top:6px"><label>Diesel places of this site</label><p class="note" style="margin:0 0 8px">Where diesel is kept – the pump, each dispenser, a store – with its fuel (Diesel / Petrol / CNG) and tank size. Diesel Inward, Issue and Transfer use these. The first one is chosen first on the forms. Later: Sites → <b>Diesel places</b>.</p><div class="pl-box" id="ns_places"></div></div>
           <div class="bar" style="margin:4px 0 0"><button class="sa-btn primary sm" id="ns_check" type="button">Check &amp; set up</button><button class="sa-btn sm" id="ns_close" type="button">Close</button></div>
           <ol class="steps" id="ns_steps" hidden></ol>
         </div>
@@ -931,23 +931,28 @@
   /* ---- (with Mechanical's update-117, asked 16-10-2026) a site's DIESEL PLACES: name + tank size, in order (the first is chosen
    * first on the forms). Mechanical keeps them and checks them: a place that has entries keeps its name and cannot be removed. ---- */
   const ltr = n => Number(n || 0).toLocaleString('en-IN');
+  // (with Mechanical's update-163) the FUEL each place holds: Diesel / Petrol / CNG (HO: one place per fuel card). A place that has
+  // entries keeps its fuel (its stock is of that fuel); CNG is counted in kg
+  const PL_FUELS = ['Diesel', 'Petrol', 'CNG'];
   function placesRow(p, live) {
-    return '<tr><td><input class="pl-name" maxlength="40" value="' + esc(p.name || '') + '" placeholder="e.g. Camp Pump"' + (p.used ? ' readonly' : '') + '>' + (p.used ? '<small>has entries – the name stays</small>' : '') + '</td>' +
+    const fu = PL_FUELS.indexOf(p.fuel) > -1 ? p.fuel : 'Diesel';
+    return '<tr><td><input class="pl-name" maxlength="40" value="' + esc(p.name || '') + '" placeholder="e.g. Camp Pump"' + (p.used ? ' readonly' : '') + '>' + (p.used ? '<small>has entries – the name and fuel stay</small>' : '') + '</td>' +
+      '<td><select class="pl-fuel"' + (p.used ? ' disabled' : '') + '>' + PL_FUELS.map(f => '<option' + (f === fu ? ' selected' : '') + '>' + f + '</option>').join('') + '</select></td>' +
       '<td><input class="pl-cap" type="number" min="1" step="1" value="' + esc(p.cap || '') + '" placeholder="e.g. 18000" style="width:130px"></td>' +
-      (live ? '<td>' + (p.name && p.stock !== undefined ? ltr(p.stock) + ' Ltr' : '–') + '</td>' : '') +
+      (live ? '<td>' + (p.name && p.stock !== undefined ? ltr(p.stock) + (fu === 'CNG' ? ' kg' : ' Ltr') : '–') + '</td>' : '') +
       '<td>' + (p.used ? '' : '<button class="link del pl-del" type="button">Remove</button>') + '</td></tr>';
   }
   function placesHtml(list, live) {
-    return '<div class="tw"><table><thead><tr><th>Diesel place</th><th>Tank size (Ltr)</th>' + (live ? '<th>Stock now</th>' : '') + '<th></th></tr></thead><tbody class="pl-rows" data-live="' + (live ? '1' : '') + '">' +
+    return '<div class="tw"><table><thead><tr><th>Diesel place</th><th>Fuel</th><th>Tank size (Ltr)</th>' + (live ? '<th>Stock now</th>' : '') + '<th></th></tr></thead><tbody class="pl-rows" data-live="' + (live ? '1' : '') + '">' +
       list.map(p => placesRow(p, live)).join('') + '</tbody></table></div><div class="bar" style="margin:8px 0 0"><button class="btn small pl-add" type="button">+ Add place</button></div>';
   }
-  const placesRead = box => [...box.querySelectorAll('.pl-rows tr')].map(tr => ({ name: tr.querySelector('.pl-name').value.trim(), cap: Number(tr.querySelector('.pl-cap').value) || 0 })).filter(p => p.name || p.cap);
+  const placesRead = box => [...box.querySelectorAll('.pl-rows tr')].map(tr => ({ name: tr.querySelector('.pl-name').value.trim(), fuel: (tr.querySelector('.pl-fuel') || {}).value || 'Diesel', cap: Number(tr.querySelector('.pl-cap').value) || 0 })).filter(p => p.name || p.cap);
   document.addEventListener('click', e => { const box = e.target.closest('.pl-box'); if (!box) return;
     if (e.target.classList.contains('pl-add')) { const tb = box.querySelector('.pl-rows'); tb.insertAdjacentHTML('beforeend', placesRow({}, !!tb.dataset.live)); tb.lastElementChild.querySelector('.pl-name').focus(); }
     if (e.target.classList.contains('pl-del')) { const tr = e.target.closest('tr'), tb = tr.parentElement; tr.remove(); if (!tb.children.length) tb.insertAdjacentHTML('beforeend', placesRow({}, !!tb.dataset.live)); } });
   function placesPanel(site, d) {
     const st = S.data.sites.find(x => x.code === site) || {};
-    $('dp_panel').innerHTML = '<div class="panel-head"><h2>Diesel places – ' + esc(st.name || site) + ' (' + esc(site) + ')</h2><span class="note">Where diesel is kept on this site, with the tank size. Diesel Inward, Issue and Transfer use these; the first one is chosen first on the forms.' +
+    $('dp_panel').innerHTML = '<div class="panel-head"><h2>Diesel places – ' + esc(st.name || site) + ' (' + esc(site) + ')</h2><span class="note">Where diesel is kept on this site, with its fuel (Diesel / Petrol / CNG – a machinery is given fuel only from a place of its fuel) and the tank size. Diesel Inward, Issue and Transfer use these; the first one is chosen first on the forms.' +
       (d.entries ? ' A place that has entries keeps its name and cannot be removed' + (d.firstFixed ? '; the first place stays the first (old entries without a place count there)' : '') + '.' : '') + (!d.set ? ' <b>Not set yet</b> – this site still has the places of the first site.' : '') + '</span></div>' +
       '<div class="pl-box" id="dp_box">' + placesHtml(d.places || [], true) + '</div>' +
       '<div class="bar" style="margin:14px 0 0"><button class="sa-btn primary sm" type="button" id="dp_save" data-site="' + esc(site) + '">Save diesel places</button><button class="sa-btn sm" type="button" id="dp_close">Close</button></div>';
