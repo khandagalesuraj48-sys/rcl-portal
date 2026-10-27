@@ -954,9 +954,18 @@
     const st = S.data.sites.find(x => x.code === site) || {};
     $('dp_panel').innerHTML = '<div class="panel-head"><h2>Diesel places – ' + esc(st.name || site) + ' (' + esc(site) + ')</h2><span class="note">Where diesel is kept on this site, with its fuel (Diesel / Petrol / CNG – a machinery is given fuel only from a place of its fuel) and the tank size. Diesel Inward, Issue and Transfer use these; the first one is chosen first on the forms.' +
       (d.entries ? ' A place that has entries keeps its name and cannot be removed' + (d.firstFixed ? '; the first place stays the first (old entries without a place count there)' : '') + '.' : '') + (!d.set ? ' <b>Not set yet</b> – this site still has the places of the first site.' : '') + '</span></div>' +
-      '<div class="pl-box" id="dp_box">' + placesHtml(d.places || [], true) + '</div>' +
-      '<div class="bar" style="margin:14px 0 0"><button class="sa-btn primary sm" type="button" id="dp_save" data-site="' + esc(site) + '">Save diesel places</button><button class="sa-btn sm" type="button" id="dp_close">Close</button></div>';
+      // (with Mechanical's update-164, asked 27-10-2026) how fuel is given on this site: from its diesel places (stock) or by fuel cards (HO – no stock)
+      '<div class="field" style="margin:0 0 10px"><label>How fuel is given on this site</label><div class="dp-mode">' +
+        '<label class="sa-chk"><input type="radio" name="dp_mode" value="stock"' + (d.mode !== 'card' ? ' checked' : '') + (d.mode === 'card' && d.cardEntries ? ' disabled' : '') + '> From diesel places – stock (Inward, Issue, Transfer)</label>' +
+        '<label class="sa-chk"><input type="radio" name="dp_mode" value="card"' + (d.mode === 'card' ? ' checked' : '') + '> Fuel cards – no stock (each fill by a card or Cash, with its ₹)</label></div>' +
+        (d.mode === 'card' && d.cardEntries ? '<p class="note" style="margin:4px 0 0">This site has fills paid by a card or in Cash – it stays on fuel cards.</p>' : '') +
+        '<p class="note dp-cnote" style="margin:4px 0 0"' + (d.mode === 'card' ? '' : ' hidden') + '>On fuel cards the places below are not used. The cards (name, last 4 digits, opening balance, cars) are made in Mechanical → <b>Fuel Cards</b> – give that page in Users &amp; Access → Pages.</p></div>' +
+      '<div class="pl-box" id="dp_box"' + (d.mode === 'card' ? ' hidden' : '') + '>' + placesHtml(d.places || [], true) + '</div>' +
+      '<div class="bar" style="margin:14px 0 0"><button class="sa-btn primary sm" type="button" id="dp_save" data-site="' + esc(site) + '">Save</button><button class="sa-btn sm" type="button" id="dp_close">Close</button></div>';
   }
+  $('dp_panel').addEventListener('change', e => { if (e.target.name !== 'dp_mode') return; const card = e.target.value === 'card';
+    $('dp_box').hidden = card; const n = document.querySelector('#dp_panel .dp-cnote'); if (n) n.hidden = !card; });
+  const dpMode = () => { const r = document.querySelector('#dp_panel input[name="dp_mode"]:checked'); return r ? r.value : ''; };
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-places'); if (!b) return; const site = b.dataset.code, box = $('dp_panel');
     $('ns_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading the diesel places from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
     api('/api/admin', { action: 'placesGet', site: site }).then(d => placesPanel(site, d))
@@ -964,8 +973,8 @@
   $('dp_panel').addEventListener('click', e => {
     if (e.target.id === 'dp_close') { $('dp_panel').hidden = true; return; }
     if (e.target.id !== 'dp_save') return; const b = e.target, site = b.dataset.site;
-    busy(b, 'Saving…', async () => { try { const d = await api('/api/admin', { action: 'placesSave', site: site, places: placesRead($('dp_box')) });
-      placesPanel(site, Object.assign({ set: true }, d)); toast('Diesel places of ' + site + ' saved: ' + d.places.map(p => p.name).join(', ') + '.'); } catch (er) { fail(er); } }); });
+    busy(b, 'Saving…', async () => { try { const d = await api('/api/admin', { action: 'placesSave', site: site, places: placesRead($('dp_box')), mode: dpMode() });
+      placesPanel(site, Object.assign({ set: true }, d)); toast(d.mode === 'card' ? site + ' is on fuel cards – no diesel stock.' : 'Diesel places of ' + site + ' saved: ' + d.places.map(p => p.name).join(', ') + '.'); } catch (er) { fail(er); } }); });
   /* (with Mechanical's update-157, asked 24-10-2026) BACKUP SHEETS: every site its own Google Sheets, numbered (Sheet 1, 2 …), and
    * the Portal its own. "Change link" puts another Sheet in place of the one in use (the whole copy goes there); "Add Sheet N"
    * starts the next one when the one in use is full – the one before stays as it is. Each Sheet is shared with the backup robot. */
