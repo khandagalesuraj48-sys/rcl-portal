@@ -80,7 +80,7 @@ test('(14-10-2026) every ticket the Portal signs has the same issuer: its public
 test('(with Mechanical update-117) a site\'s diesel places: set in New site and under Sites → Diesel places, sent to Mechanical inside the signed ticket', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8'), adm = fs.readFileSync(path.join(__dirname, '..', 'api', 'admin.js'), 'utf8');
   assert.match(adm, /async placesGet\(me, x, req\) \{[\s\S]*?mechAsk\(req, me, \{ act: 'places', site: site \}\)/);
-  assert.match(adm, /async placesSave\(me, x, req\) \{[\s\S]*?mechAsk\(req, me, \{ act: 'placesSave', site: site, places: places \}\);\n    await audit\(me\.email, 'Diesel places', site/);
+  assert.match(adm, /async placesSave\(me, x, req\) \{[\s\S]*?mechAsk\(req, me, Object\.assign\(\{ act: 'placesSave', site: site, places: places \}, mode \? \{ mode: mode \} : \{\}\)\);\n    await audit\(me\.email, 'Diesel places', site/);      // (with update-164: and the fuel-card mode)
   assert.match(adm, /act: 'siteSetup', [^\n]*, places: placesIn\(x\.places\) \}\);/);
   ['id="ns_places"', 'id="dp_panel"', "places: '6. Diesel places (name and tank size)', ready: '7. Ready'", "['link', 'key', 'connect', 'tables', 'company', 'places', 'ready']", "places: placesRead($('ns_places'))", 'class="link st-places"'].forEach(t => assert.ok(html.includes(t), t));
   // the page's editor, run on its own
@@ -195,7 +195,7 @@ test('(with Mechanical update-163) the fuel of each diesel place – Diesel / Pe
   assert.deepStrictEqual(placesIn([{ name: 'DIESEL CARD', cap: 500, fuel: 'Diesel' }, { name: 'PETROL CARD', cap: 500, fuel: 'Petrol' }, { name: 'CNG CARD', cap: 300, fuel: 'CNG' }, { name: 'X', cap: 1, fuel: 'Kerosene' }]),
     [{ name: 'DIESEL CARD', cap: 500 }, { name: 'PETROL CARD', cap: 500, fuel: 'Petrol' }, { name: 'CNG CARD', cap: 300, fuel: 'CNG' }, { name: 'X', cap: 1 }]);
   assert.ok(to0 > at0);
-  assert.match(adm, /await audit\(me\.email, 'Diesel places', site, \{ places: \(r\.places \|\| \[\]\)\.map\(p => p\.name \+ ' ' \+ p\.cap \+ ' Ltr' \+ \(p\.fuel && p\.fuel !== 'Diesel' \? ' ' \+ p\.fuel : ''\)\) \}\);/);
+  assert.match(adm, /await audit\(me\.email, 'Diesel places', site, Object\.assign\(\{ places: \(r\.places \|\| \[\]\)\.map\(p => p\.name \+ ' ' \+ p\.cap \+ ' Ltr' \+ \(p\.fuel && p\.fuel !== 'Diesel' \? ' ' \+ p\.fuel : ''\)\) \}, mode \?/);      // (with update-164: the mode too)
   // the page: a Fuel box in each row (a place with entries: its fuel stays), read with the row; CNG's stock in kg
   const at = html.indexOf('  const ltr = n => '), to = html.indexOf("  document.addEventListener('click', e => { const box = e.target.closest('.pl-box');");
   const f = new Function('esc', html.slice(at, to) + '; return { placesRow, placesHtml };')(s => String(s));
@@ -205,4 +205,23 @@ test('(with Mechanical update-163) the fuel of each diesel place – Diesel / Pe
   assert.ok(/<select class="pl-fuel"><option selected>Diesel<\/option><option>Petrol<\/option><option>CNG<\/option><\/select>/.test(fresh), fresh);
   assert.ok(/<th>Diesel place<\/th><th>Fuel<\/th><th>Tank size \(Ltr\)<\/th>/.test(f.placesHtml([{}], true)));
   assert.ok(html.includes("fuel: (tr.querySelector('.pl-fuel') || {}).value || 'Diesel'"), 'read with the row');
+});
+
+test('(with Mechanical update-164) a site on fuel cards – no diesel stock (HO): chosen in Sites → Diesel places, sent inside the signed ticket; once a fill was paid by a card the site stays on fuel cards', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8'), adm = fs.readFileSync(path.join(__dirname, '..', 'api', 'admin.js'), 'utf8');
+  // the server: only "card" or "stock" travel (none sent = as the site is); what Mechanical says comes back
+  assert.ok(adm.includes("const mode = x.mode === 'card' || x.mode === 'stock' ? x.mode : '';"));
+  assert.ok(adm.includes("mode: r.mode === 'card' ? 'card' : 'stock', cardEntries: !!r.cardEntries"), 'placesGet / placesSave answer the mode');
+  assert.ok(adm.includes("fuel: r.mode === 'card' ? 'fuel cards – no stock' : 'diesel places – stock'"), 'the Portal\'s audit says it');
+  // the page: the choice above the places; on cards the places are hidden and the note says where the cards are made
+  const at = html.indexOf('  function placesPanel(site, d) {'), to = html.indexOf("  $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-places');");
+  assert.ok(at > -1 && to > at);
+  const box = { innerHTML: '' };
+  const S = { data: { sites: [{ code: 'HO', name: 'HEAD OFFICE' }] } };
+  const f = new Function('S', '$', 'esc', 'placesHtml', 'document', html.slice(at, html.indexOf("  $('dp_panel').addEventListener('change'", at)) + '; return placesPanel;')(S, () => box, x => String(x), () => '<table></table>', {});
+  f('HO', { mode: 'card', cardEntries: true, set: true, places: [] });
+  assert.ok(/value="card" checked/.test(box.innerHTML) && /value="stock" disabled/.test(box.innerHTML) && /it stays on fuel cards/.test(box.innerHTML) && /id="dp_box" hidden/.test(box.innerHTML), box.innerHTML);
+  f('HO', { mode: 'stock', set: true, places: [] });
+  assert.ok(/value="stock" checked>/.test(box.innerHTML) && !/id="dp_box" hidden/.test(box.innerHTML) && /class="note dp-cnote" style="margin:4px 0 0" hidden/.test(box.innerHTML));
+  assert.ok(html.includes("places: placesRead($('dp_box')), mode: dpMode() });"), 'the mode is sent with the save');
 });

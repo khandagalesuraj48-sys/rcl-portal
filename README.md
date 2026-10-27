@@ -44,6 +44,11 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
   **Fuel of each place (with Mechanical's update-163, 26-10-2026):** Diesel, Petrol or CNG (a place of before is Diesel; HO: one
   place per fuel card – DIESEL CARD, PETROL CARD, CNG CARD). Mechanical gives a machinery fuel only from a place of its fuel
   (Asset Master → Fuel) and transfers only between places of one fuel; a place that has entries keeps its fuel. CNG is in kg.
+  **How fuel is given (with Mechanical's update-164, 27-10-2026):** *From diesel places (stock)* – as above – or **Fuel cards – no
+  stock** (HO): the site keeps no diesel stock, its places are not used, each fill is paid by a fuel card or in Cash with its ₹
+  (the cards and their opening balance are made in Mechanical → Fuel Cards). Kept in the site's own settings (`mode` with
+  `placesSave`); once a fill was paid by a card or in Cash the site stays on fuel cards (Mechanical refuses going back, the screen
+  shows it). Only such a site lists the page **Fuel Cards** in Users & Access → Pages (and no Diesel Inward / Transfer).
 * **Change, switch off, delete (Super Admin):**
   * **Sites:** Closed = switched off, nobody can open it. Only a Closed site can be deleted, and only with its code typed again.
     It leaves the lists here and in Mechanical, with the access given on it. Its own database (its data) is never touched:

@@ -116,16 +116,18 @@ const ACTIONS = {
     const site = String(x.site || '').toUpperCase();
     if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
     const r = await mechAsk(req, me, { act: 'places', site: site });
-    return { site: site, places: r.places || [], set: !!r.set, entries: !!r.entries, firstFixed: !!r.firstFixed };
+    return { site: site, places: r.places || [], set: !!r.set, entries: !!r.entries, firstFixed: !!r.firstFixed, mode: r.mode === 'card' ? 'card' : 'stock', cardEntries: !!r.cardEntries };
   },
   async placesSave(me, x, req) {
     const site = String(x.site || '').toUpperCase();
     if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
     const places = placesIn(x.places);
     if (!places.length) throw fail(400, 'Add at least one diesel place (its name and tank size).');
-    const r = await mechAsk(req, me, { act: 'placesSave', site: site, places: places });
-    await audit(me.email, 'Diesel places', site, { places: (r.places || []).map(p => p.name + ' ' + p.cap + ' Ltr' + (p.fuel && p.fuel !== 'Diesel' ? ' ' + p.fuel : '')) });
-    return { ok: true, site: site, places: r.places || [], set: !!r.set, entries: !!r.entries, firstFixed: !!r.firstFixed };
+    // (with Mechanical's update-164, asked 27-10-2026) the site on fuel cards (no diesel stock – HO) or on its diesel places
+    const mode = x.mode === 'card' || x.mode === 'stock' ? x.mode : '';
+    const r = await mechAsk(req, me, Object.assign({ act: 'placesSave', site: site, places: places }, mode ? { mode: mode } : {}));
+    await audit(me.email, 'Diesel places', site, Object.assign({ places: (r.places || []).map(p => p.name + ' ' + p.cap + ' Ltr' + (p.fuel && p.fuel !== 'Diesel' ? ' ' + p.fuel : '')) }, mode ? { fuel: r.mode === 'card' ? 'fuel cards – no stock' : 'diesel places – stock' } : {}));
+    return { ok: true, site: site, places: r.places || [], set: !!r.set, entries: !!r.entries, firstFixed: !!r.firstFixed, mode: r.mode === 'card' ? 'card' : 'stock', cardEntries: !!r.cardEntries };
   },
   /* (with Mechanical's update-157, asked 24-10-2026) Sites → Backup: a site's numbered Google Sheets (Sheet 1, 2 …) and the
    * Portal's own – Mechanical keeps them and makes the backup (it checks every link: the backup robot can open it, it is no other
