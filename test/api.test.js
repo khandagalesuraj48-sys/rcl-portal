@@ -304,7 +304,7 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   r = await X.req('/api/admin', { action: 'storePagesSave', email: 'sujit@rcl.test', site: 'S1', pages: { dashboard: 'None', items: 'View' } });
   ok('Store pages before step 3: says which SQL file to run', r.status === 500 && r.j.code === 'nostep' && /portal_step3_pages\.sql/.test(r.j.error), r.j);
   r = await X.req('/api/admin', { action: 'overview' });
-  ok('   the console still works without the step (no pages column yet)', r.status === 200 && Array.isArray(r.j.access) && r.j.storePages.length === 9, r.j.error);      // (the Store's step 2: 7 pages + approves, purchase)
+  ok('   the console still works without the step (no pages column yet)', r.status === 200 && Array.isArray(r.j.access) && r.j.storePages.length === 10, r.j.error);      // (the Store's step 2: 7 pages + approves, purchase; 28-10-2026 + approves purchase orders)
   const step3 = require('fs').readFileSync(require('path').join(__dirname, '..', 'sql', 'portal_step3_pages.sql'), 'utf8');
   sql('rcl_portal', step3); sql('rcl_portal', step3); await new Promise(z => setTimeout(z, 800));
   r = await X.req('/api/admin', { action: 'storePagesSave', email: 'sujit@rcl.test', site: 'S1', pages: { dashboard: 'None', items: 'View', other: 'Edit' } });

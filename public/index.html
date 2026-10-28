@@ -869,8 +869,8 @@
     parts.push('<h3 class="sa-grp">Mechanical</h3>' + mech);
     if (S.data.modules.some(m => m.key === 'store')) {
       const a = S.data.access.find(x => x.email === email && x.site === site && x.module === 'store') || {}, cur = a.pages || {};
-      // (with the Store's step 2) a Store Admin: only "Approves requirements" (level 1 – 5) and "Store Purchase – every site (HO)"
-      const extraNote = '<p class="note"><b>Approves requirements</b>: Level 1 approves first, then Level 2 … (any one person of a level; nobody his own; he sees the Requirements to approve them). <b>Store Purchase</b>: makes the purchase orders of every site.</p>';
+      // (with the Store's step 2) a Store Admin: only "Approves requirements" (level 1 – 5), "Store Purchase – every site (HO)" and (28-10-2026) "Approves purchase orders"
+      const extraNote = '<p class="note"><b>Approves requirements</b>: Level 1 approves first, then Level 2 … (any one person of a level; nobody his own; he sees the Requirements to approve them). <b>Store Purchase</b>: makes the purchase orders of every site. <b>Approves purchase orders</b>: a PO of this site is taken in (GRN) only after one of them approves it (never his own) – his name goes on the PO as "Approved By"; nobody given – a PO is approved when made.</p>';
       parts.push('<h3 class="sa-grp">Store</h3>' + (!sRole ? '<p class="note">No Store on ' + esc(siteName) + '.</p>' : sRole === 'admin' ? '<p class="note"><b>Store Admin</b> has every page (and changes, deletes, imports).</p>' + extraNote + '<div class="sa-pgg">' + (S.data.storePages || []).filter(p => p.admin).map(p => pgCard(p.label, p.key, cur[p.key] || p.opts[0], p.opts, 'store')).join('') + '</div>' :
         '<p class="note" style="margin-top:0"><b>Edit</b> = add · <b>View</b> = see and export. He gets these at his next opening of the Store.</p>' + extraNote + '<div class="sa-pgg">' + (S.data.storePages || []).map(p => pgCard(p.label, p.key, cur[p.key] || p.opts[0], p.opts, 'store')).join('') + '</div>'));
     }
