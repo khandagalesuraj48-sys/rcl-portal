@@ -47,7 +47,8 @@ module.exports = handler(async (req, res) => {
     mods: items.filter(x => x.site === site).map(x => ({ key: x.module, name: x.moduleName, url: x.url })),
     sites: items.filter(x => x.module === mod).map(x => ({ code: x.site, name: x.siteName })),
     // (14-10-2026) the pages the Super Admin gave him in this module on this site (Users & Access → Pages); none = every page
-    pages: it.role === 'admin' ? undefined : (it.pages || undefined),
+    // (with the Store's step 2) a Store Admin's "Store Purchase" (HO Purchase – every site) goes too; the Super Admin has it
+    pages: mod === 'store' && it.role === 'admin' ? (u.is_super || (it.pages && it.pages.purchase === 'Edit') ? { purchase: 'Edit' } : undefined) : it.role === 'admin' ? undefined : (it.pages || undefined),
     // (14-10-2026) the Super Admin – Mechanical lets him change entries of a billed period and approve others' changes there
     super: u.is_super ? true : undefined,
     iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') });
