@@ -793,11 +793,12 @@
       try {
         const pw1 = tr.querySelector('.u-pw').value, active = tr.querySelector('.u-active').checked;
         await api('/api/admin', { action: 'userSave', isNew: isNew, email: email, name: isNew ? tr.querySelector('.u-name').value : cur.name, active: active, newPassword: pw1 });
+        let warn = '';
         for (const sel of tr.querySelectorAll('.sel-r')) {
           const was = ((S.data.access.find(a => a.email === email && a.site === S.site && a.module === sel.dataset.m)) || {}).role || '';
-          if (S.site && sel.value !== was) await api('/api/admin', { action: 'accessSet', email: email, site: S.site, module: sel.dataset.m, role: sel.value });
+          if (S.site && sel.value !== was) { const r = await api('/api/admin', { action: 'accessSet', email: email, site: S.site, module: sel.dataset.m, role: sel.value }); if (r && r.warn) warn = r.warn; }
         }
-        toast((isNew ? 'User added: ' : 'Saved: ') + email + (pw1 ? ' – tell him the one-time password.' : ''));
+        toast((isNew ? 'User added: ' : 'Saved: ') + email + (pw1 ? ' – tell him the one-time password.' : '') + (warn ? ' ' + warn : ''), !!warn);
         await load(); users();
       } catch (er) { fail(er); }
     });
@@ -805,7 +806,7 @@
   /* ONE USER (23-10-2026: his picture "SUJIT SIR – Module Access · User Details · Login Activity"): the pages of Mechanical and of the
    * Store on the chosen site (Edit / View / No access), what is known about him, his sign-ins. "Save changes" saves the pages as
    * "Save pages" did (Mechanical's in Mechanical, the Store's here); "Back to users" closes it. */
-  const PG_WORD = { Edit: 'Edit', View: 'View', None: 'No access' };
+  const PG_WORD = { Edit: 'Edit', View: 'View', None: 'No access', L1: 'Level 1', L2: 'Level 2', L3: 'Level 3', L4: 'Level 4', L5: 'Level 5' };
   function userClose() { $('pg_panel').hidden = true; $('pg_panel').innerHTML = ''; $('u_top').hidden = false; S.uOpen = ''; }
   function userOpen(email, which) {
     const box = $('pg_panel'), site = S.site, st = S.data.sites.find(x => x.code === site) || {}, siteName = st.name || site;
@@ -868,12 +869,14 @@
     parts.push('<h3 class="sa-grp">Mechanical</h3>' + mech);
     if (S.data.modules.some(m => m.key === 'store')) {
       const a = S.data.access.find(x => x.email === email && x.site === site && x.module === 'store') || {}, cur = a.pages || {};
-      parts.push('<h3 class="sa-grp">Store</h3>' + (!sRole ? '<p class="note">No Store on ' + esc(siteName) + '.</p>' : sRole === 'admin' ? '<p class="note"><b>Store Admin</b> has every page (and changes, deletes, imports items).</p>' :
-        '<p class="note" style="margin-top:0">Item Master: <b>Edit</b> = add items · <b>View</b> = see and export. He gets these at his next opening of the Store.</p><div class="sa-pgg">' + (S.data.storePages || []).map(p => pgCard(p.label, p.key, cur[p.key] || p.opts[0], p.opts, 'store')).join('') + '</div>'));
+      // (with the Store's step 2) a Store Admin: only "Approves requirements" (level 1 – 5) and "Store Purchase – every site (HO)"
+      const extraNote = '<p class="note"><b>Approves requirements</b>: Level 1 approves first, then Level 2 … (any one person of a level; nobody his own; he sees the Requirements to approve them). <b>Store Purchase</b>: makes the purchase orders of every site.</p>';
+      parts.push('<h3 class="sa-grp">Store</h3>' + (!sRole ? '<p class="note">No Store on ' + esc(siteName) + '.</p>' : sRole === 'admin' ? '<p class="note"><b>Store Admin</b> has every page (and changes, deletes, imports).</p>' + extraNote + '<div class="sa-pgg">' + (S.data.storePages || []).filter(p => p.admin).map(p => pgCard(p.label, p.key, cur[p.key] || p.opts[0], p.opts, 'store')).join('') + '</div>' :
+        '<p class="note" style="margin-top:0"><b>Edit</b> = add · <b>View</b> = see and export. He gets these at his next opening of the Store.</p>' + extraNote + '<div class="sa-pgg">' + (S.data.storePages || []).map(p => pgCard(p.label, p.key, cur[p.key] || p.opts[0], p.opts, 'store')).join('') + '</div>'));
     }
     if (S.uOpen !== email) return;
     box.innerHTML = parts.join('');
-    $('pg_save').disabled = !(mRole === 'user' && S.mechLoaded === email) && sRole !== 'user';
+    $('pg_save').disabled = !(mRole === 'user' && S.mechLoaded === email) && !sRole;
   }
   $('pg_panel').addEventListener('change', e => { if (e.target.classList.contains('pg-sel')) { e.target.className = 'pg-sel ' + e.target.value; const all = $('pg_all'); if (all && e.target.dataset.g === 'mech') all.checked = false; }
     if (e.target.id === 'pg_all') { const sels = document.querySelectorAll('#pg_panel .pg-sel[data-g="mech"]');
@@ -887,8 +890,9 @@
     busy(b, 'Saving…', async () => { try { const said = [];
       const sources = {}; if (S.dsShown) DS_PAGES.forEach(([pg]) => { sources[pg] = [...document.querySelectorAll('#pg_panel .ds-chk')].filter(x => x.dataset.pg === pg && x.checked).map(x => x.value); });
       if (Object.keys(perms).length) { const r = await api('/api/admin', Object.assign({ action: 'mechPagesSave', site: b.dataset.site, email: b.dataset.email, perms: perms }, S.dsShown ? { sources: sources } : {})); said.push(r.changes ? 'Pages saved in Mechanical.' : Object.keys(pages).length ? '' : 'Saved – nothing had changed.'); }
-      if (Object.keys(pages).length) { await api('/api/admin', { action: 'storePagesSave', site: b.dataset.site, email: b.dataset.email, pages: pages }); said.push('Store pages saved.'); await load(); }
-      toast(said.filter(Boolean).join(' ') || 'Nothing to save.'); userClose(); users(); } catch (er) { fail(er); } });
+      let warn = '';
+      if (Object.keys(pages).length) { const r = await api('/api/admin', { action: 'storePagesSave', site: b.dataset.site, email: b.dataset.email, pages: pages }); said.push('Store pages saved.'); if (r && r.warn) warn = r.warn; await load(); }
+      toast(warn || said.filter(Boolean).join(' ') || 'Nothing to save.', !!warn); userClose(); users(); } catch (er) { fail(er); } });
   });
   // sites
   function sites() {

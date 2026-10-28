@@ -14,7 +14,31 @@ const ROLES = ['admin', 'user'];
 const { accessRows } = require('./auth');
 /* (14-10-2026) THE STORE'S PAGES, given here (Users & Access → Pages, for a Store User): what each may be. Kept with his access
  * line (access.pages, step 3) and carried in the ticket; the Store applies it. Mechanical keeps its own pages (mechPages). */
-const STORE_PAGES = [{ key: 'dashboard', label: 'Dashboard', opts: ['View', 'None'] }, { key: 'items', label: 'Item Master', opts: ['Edit', 'View', 'None'] }];
+const STORE_PAGES = [{ key: 'dashboard', label: 'Dashboard', opts: ['View', 'None'] }, { key: 'items', label: 'Item Master', opts: ['Edit', 'View', 'None'] },
+  // (with the Store's step 2, 28-10-2026) the Store's work – not given = No access (the first choice)
+  { key: 'req', label: 'Material Requirements', opts: ['None', 'Edit', 'View'] }, { key: 'grn', label: 'Inward (GRN)', opts: ['None', 'Edit', 'View'] },
+  { key: 'issue', label: 'Issue & Return', opts: ['None', 'Edit', 'View'] }, { key: 'reports', label: 'Stock & Reports', opts: ['None', 'View'] },
+  { key: 'po', label: 'Purchase Orders (this site)', opts: ['None', 'View'] },
+  // and two that a Store Admin gets too only when they are given: who approves the requirements (level 1 – 5) and HO Purchase
+  { key: 'approve', label: 'Approves requirements', opts: ['None', 'L1', 'L2', 'L3', 'L4', 'L5'], admin: true },
+  { key: 'purchase', label: 'Store Purchase – every site (HO)', opts: ['None', 'Edit'], admin: true }];
+/* (with the Store's step 2) THE STORE IS TOLD who approves the requirements of a site – every person of the site with "Approves
+ * requirements" (level 1 – 5), with his name – after a change of his pages or of his access. The Portal's server sends it with a
+ * ticket it signs itself (aud "store-admin", 60 s, once), as it does for Mechanical; the Store keeps it in the site's database. */
+async function storeTell(req, me, site) {
+  const m = ((await db('GET', 'modules?select=url,status&key=eq.store')) || [])[0];
+  if (!m || !m.url) return 'The Store has no link yet (Modules).';
+  const acc = (await accessRows('module=eq.store&site=eq.' + enc(site))) || [], users = (await db('GET', 'users?select=email,name,active')) || [];
+  const levels = [1, 2, 3, 4, 5].map(n => ({ level: n, people: acc.filter(a => a.pages && a.pages.approve === 'L' + n).map(a => users.find(u => u.email === a.email)).filter(u => u && u.active !== false).map(u => ({ email: u.email, name: u.name })) })).filter(l => l.people.length);
+  const now = Math.floor(Date.now() / 1000);
+  const t = await keys.sign({ iss: publicUrl() || origin(req), aud: 'store-admin', sub: me.email, site: site, act: 'approvers', levels: levels, iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') });
+  try {
+    const r = await fetch(String(m.url).replace(/\/+$/, '') + '/api/portal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticket: t }), signal: AbortSignal.timeout(20000) });
+    let j = {}; try { j = await r.json(); } catch (e) { j = {}; }
+    if (!r.ok || j.error) return 'The Store said: ' + (j.error || r.status);
+    return '';
+  } catch (e) { return 'The Store could not be reached.'; }
+}
 async function overview() {
   const [users, sites, mods, comps, acc] = await Promise.all([
     db('GET', 'users?select=email,name,active,is_super,password_hash,last_login_at&order=name.asc'),
@@ -76,17 +100,18 @@ const placesIn = v => (Array.isArray(v) ? v : []).slice(0, 20).map(p => Object.a
 
 const ACTIONS = {
   // a Store User's pages on one site (he must have the Store there; an Admin has every page)
-  async storePagesSave(me, x) {
+  async storePagesSave(me, x, req) {
     const site = String(x.site || '').toUpperCase(), email = lc(x.email);
-    const acc = ((await db('GET', 'access?select=role&module=eq.store&site=eq.' + enc(site) + '&email=eq.' + enc(email))) || [])[0];
+    const acc = (await accessRows('module=eq.store&site=eq.' + enc(site) + '&email=eq.' + enc(email)))[0];
     if (!acc) throw fail(400, 'First give him the Store on this site (Admin or User), then his pages.', 'noaccess');
-    if (acc.role === 'admin') throw fail(400, 'A Store Admin has every page. To give single pages, make him User first.', 'admin');
-    const pages = {}, given = x.pages && typeof x.pages === 'object' ? x.pages : {};
-    STORE_PAGES.forEach(p => { pages[p.key] = p.opts.indexOf(given[p.key]) > -1 ? given[p.key] : p.opts[0]; });
+    // (step 2) a Store Admin has every page – only "Approves requirements" and "Store Purchase" are given to him
+    const admin = acc.role === 'admin', pages = admin ? Object.assign({}, acc.pages || {}) : {}, given = x.pages && typeof x.pages === 'object' ? x.pages : {};
+    STORE_PAGES.filter(p => !admin || p.admin).forEach(p => { pages[p.key] = p.opts.indexOf(given[p.key]) > -1 ? given[p.key] : (p.admin && acc.pages && p.opts.indexOf(acc.pages[p.key]) > -1 && !(p.key in given) ? acc.pages[p.key] : p.opts[0]); });
     try { await db('PATCH', 'access?module=eq.store&site=eq.' + enc(site) + '&email=eq.' + enc(email), { pages: pages, granted_by: me.email }, 'return=minimal'); }
     catch (e) { if (/42703|pages/.test(String(e && e.message))) throw fail(500, 'This needs one database step first: run sql/portal_step3_pages.sql once in the Portal\'s Supabase → SQL Editor.', 'nostep'); throw e; }
     await audit(me.email, 'Pages', email + ' · ' + site + ' · store', { pages: pages });
-    return { ok: true, pages: pages };
+    const warn = req ? await storeTell(req, me, site) : '';
+    return Object.assign({ ok: true, pages: pages }, warn ? { warn: 'Saved. But the Store was not told who approves the requirements (' + warn + ') – save again in a moment.' } : {});
   },
   // one site's users in Mechanical with their pages, and the list of Mechanical's pages
   async mechPages(me, x, req) {
@@ -184,7 +209,7 @@ const ACTIONS = {
     return { ok: true, changed: true };
   },
   // who may open which module on which site: '' = no access, 'user', 'admin'
-  async accessSet(me, x) {
+  async accessSet(me, x, req) {
     const email = lc(x.email), site = String(x.site || '').toUpperCase(), mod = String(x.module || ''), role = String(x.role || '');
     const u = await userOf(email); if (!u) throw fail(404, 'User ' + email + ' was not found.');
     if (u.is_super) throw fail(400, 'The Super Admin opens every module of every site already – he needs no access line.');
@@ -194,7 +219,9 @@ const ACTIONS = {
     if (!role) await db('DELETE', 'access?email=eq.' + enc(email) + '&site=eq.' + enc(site) + '&module=eq.' + enc(mod), undefined, 'return=minimal');
     else await db('POST', 'access?on_conflict=email,site,module', [{ email: email, site: site, module: mod, role: role, granted_by: me.email }], 'resolution=merge-duplicates,return=minimal');
     await audit(me.email, 'Access', email, { site: site, module: mod, role: role || 'none' });
-    return { ok: true };
+    // (step 2) the Store's approvers of the site, told again (a person taken off the Store is no approver any more)
+    const warn = mod === 'store' && req ? await storeTell(req, me, site) : '';
+    return Object.assign({ ok: true }, warn ? { warn: 'Saved. But the Store was not told who approves the requirements (' + warn + ').' } : {});
   },
   async siteSave(me, x) {
     const code = String(x.code || '').trim().toUpperCase(), name = clean(x.name, 80), comp = clean(x.company, 40), status = String(x.status || 'active');

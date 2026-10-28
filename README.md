@@ -29,6 +29,12 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
   * **Store (14-10-2026):** for a Store User – Dashboard (View / No access) and Item Master (Edit = add / View = see and export /
     No access). Kept with his access line here (`access.pages`, **SQL step 3: `sql/portal_step3_pages.sql`**), carried in his
     ticket, applied by the Store at his next opening. A Store Admin has every page.
+    **(28-10-2026, the Store's step 2)** the new pages – Material Requirements, Inward (GRN), Issue & Return (Edit / View / No access),
+    Stock & Reports, Purchase Orders (View / No access) – not given = No access; and two that a **Store Admin too** gets only when given:
+    **Approves requirements** (No / Level 1 … 5: Level 1 approves first, then 2 …; any one person of a level; never his own) and **Store
+    Purchase – every site (HO)** (the purchase orders of every site; the Super Admin has it always). Whenever a user's Store pages or
+    role are saved, the Store of that site is told who approves (a 60-second signed ticket, `aud` "store-admin", act "approvers" →
+    the Store's `api/portal`); when it could not be told, the save says so ("save again in a moment"). No SQL step.
 * **Opening a module:** the Portal hands the module a one-minute signed ticket (`/api/go` → `<module>/#sso=…`). The module checks the signature with the Portal's public key (`/api/jwks`). No password travels to the module.
 * **My start:** on his dashboard a person marks one module ("☆ Open this at sign-in"); from then on that module opens straight after he signs in. One module on one site opens straight away anyway.
 * **A new site (Super Admin → Sites → + New site):** he makes the site's Supabase project himself, then gives its link here.
