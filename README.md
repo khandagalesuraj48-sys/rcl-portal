@@ -70,6 +70,16 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
   → Link, and it is set Live.
 * **From inside a module** the "Modules" button comes back to `/?menu=1` – the person's own dashboard – without signing in again.
 
+## The papers' company: told to Mechanical (29-10-2026, with Mechanical update-193; no database step)
+His requirement printed with an empty heading – no logo, no company name, no address. The papers of the modules (the Store's PO and
+Purchase Requisition Form) read a site's company from **Mechanical's list of sites** (its first site's `rcl_sites` / `rcl_companies`),
+which only "New site" wrote, with the company's name alone – the first site had none, and a company or a site's company saved here never
+reached it. Now `api/admin.js` `papersTell` tells Mechanical (act `papers`, the same signed ticket as "New site") whenever **Companies →
+Save** (name, address, GSTIN, PAN, logo) or **Sites → Save** (that site's company; none = none) is pressed, and after "New site" is
+ready. Mechanical not reachable (or not updated yet): the Portal's save stands and the toast says "save again in a minute". A company
+deleted here stays in Mechanical's list (nothing deleted there). Merge Mechanical's update-193 first. Tests: unit 16/16; Mechanical's
+`test/papers193api.js` on the rig.
+
 ## 🎙 Speak into a box (29-10-2026; no database step)
 Asked: "jithe jithe type krun entry hotat … tithe voice mick banaw user apla voice madhe bolel … text madhe add krel ok hindi english
 marathi"; his answers: the app AND the website; words and numbers. The block "SPEAK INTO A BOX" inside `public/index.html` (the Portal

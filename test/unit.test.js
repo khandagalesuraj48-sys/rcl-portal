@@ -246,3 +246,29 @@ test('(29-10-2026, "jithe jithe type krun entry hotat … voice mick … hindi e
   const pp = (JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'vercel.json'), 'utf8')).headers || []).flatMap(h => h.headers || []).find(h => h.key === 'Permissions-Policy').value;
   assert.strictEqual(pp, 'camera=(), microphone=(self), geolocation=()', 'the microphone for its own pages only; the camera and the place still off');
 });
+
+test('(with Mechanical update-193, 29-10-2026 – a requirement printed with no logo, no company, no address) a company and a site\'s company saved here are told to Mechanical – the papers of the modules read them there', async () => {
+  const adm = fs.readFileSync(path.join(__dirname, '..', 'api', 'admin.js'), 'utf8'), html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const at = adm.indexOf('async function papersTell('), to = adm.indexOf('async function mechAsk(');
+  const asked = [], rows = { RACHANA: { id: 'RACHANA', name: 'Rachana Construction Limited', address: 'Plot 5, MIDC', gstin: '27ABCDE1234F1Z5', pan: 'ABCDE1234F', logo: null } };
+  let answer = { ok: true };
+  const db = async (m, p) => { const id = decodeURIComponent((/id=eq\.([^&]+)/.exec(p) || [])[1] || ''); return rows[id] ? [rows[id]] : []; };
+  const mechAsk = async (req, me, c) => { asked.push(c); if (answer instanceof Error) throw answer; return answer; };
+  const f = new Function('db', 'enc', 'mechAsk', adm.slice(at, to) + '; return { papersTell, papersWarn };')(db, encodeURIComponent, mechAsk);
+  // a company alone: the site "PORTAL", no link – with all the company has
+  assert.strictEqual(await f.papersTell({}, { email: 'sa@x' }, '', 'RACHANA'), '');
+  assert.deepStrictEqual(asked.pop(), { act: 'papers', site: 'PORTAL', link: false, company: { id: 'RACHANA', name: 'Rachana Construction Limited', address: 'Plot 5, MIDC', gstin: '27ABCDE1234F1Z5', pan: 'ABCDE1234F', logo: '' } });
+  // a site's company: the site, link; a site given no company: company null
+  await f.papersTell({}, {}, 'S1', 'RACHANA'); const c1 = asked.pop(); assert.deepStrictEqual([c1.site, c1.link, c1.company.id], ['S1', true, 'RACHANA']);
+  await f.papersTell({}, {}, 'T2', ''); assert.deepStrictEqual(asked.pop(), { act: 'papers', site: 'T2', link: true, company: null });
+  // not told (Mechanical not reachable, or not updated yet): said – never a failed save
+  answer = new Error('Mechanical: The Portal request could not be accepted (not a known request).');
+  const w = await f.papersTell({}, {}, 'S1', 'RACHANA'); assert.match(w, /not a known request/);
+  assert.match(f.papersWarn(w).warn, /^Saved\. But the papers of the modules .* could not be told \(Mechanical: .*\) – save again in a minute\.$/); assert.deepStrictEqual(f.papersWarn(''), {});
+  answer = { ok: false, note: 'The first site has no list of sites yet (step-7 SQL).' }; assert.match(await f.papersTell({}, {}, 'S1', 'RACHANA'), /step-7/);
+  // where it is called: the company's save (added, changed), the site's save, a new site once ready – and the page shows the warning
+  assert.strictEqual((adm.match(/papersWarn\(await papersTell\(req, me, '', (x\.)?id\)\)/g) || []).length, 2);
+  assert.match(adm, /async siteSave\(me, x, req\) \{[\s\S]*?return Object\.assign\(\{ ok: true \}, papersWarn\(await papersTell\(req, me, code, comp\)\)\);/);
+  assert.match(adm, /if \(c && r && r\.ready\) await papersTell\(req, me, code, c\.id\);/);
+  assert.strictEqual((html.match(/toast\(r && r\.warn \? r\.warn : '(Site|Company) saved\.', !!\(r && r\.warn\)\)/g) || []).length, 2);
+});
