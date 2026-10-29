@@ -1292,8 +1292,8 @@
     busy(b, 'Deleting…', async () => { try { const r = await api('/api/admin', { action: 'siteDelete', code: code, confirm: typed });
       toast('Site ' + code + ' deleted' + (r.accessRemoved ? ' (' + r.accessRemoved + ' access removed)' : '') + '. Its data stays in its own database.'); await load(); sites(); } catch (er) { fail(er); } }); });
   $('st_rows').addEventListener('click', e => { const sv = e.target.closest('.st-save'); if (!sv) return; const tr = sv.closest('tr'), isNew = !!tr.dataset.new;
-    busy(sv, 'Saving…', async () => { try { await api('/api/admin', { action: 'siteSave', isNew: isNew, code: isNew ? tr.querySelector('.st-code').value : tr.dataset.code, name: tr.querySelector('.st-name').value, company: tr.querySelector('.st-comp').value, status: tr.querySelector('.st-status').value });
-      toast('Site saved.'); await load(); sites(); } catch (er) { fail(er); } }); });
+    busy(sv, 'Saving…', async () => { try { const r = await api('/api/admin', { action: 'siteSave', isNew: isNew, code: isNew ? tr.querySelector('.st-code').value : tr.dataset.code, name: tr.querySelector('.st-name').value, company: tr.querySelector('.st-comp').value, status: tr.querySelector('.st-status').value });
+      toast(r && r.warn ? r.warn : 'Site saved.', !!(r && r.warn)); await load(); sites(); } catch (er) { fail(er); } }); });      // (29-10-2026: the papers told – papersTell)
   // companies – the list, and its form (Add company / Change) above it
   function companies() {
     const d = S.data; if (!d) return;
@@ -1310,8 +1310,8 @@
     if (!window.confirm('Delete the company "' + c.name + '"?\nNo site belongs to it.')) return;
     busy(b, 'Deleting…', async () => { try { await api('/api/admin', { action: 'companyDelete', id: c.id }); toast('Company deleted.'); await load(); companies(); } catch (er) { fail(er); } }); });
   $('co_clear').addEventListener('click', () => coForm(null, false));
-  $('co_save').addEventListener('click', e => busy(e.target, 'Saving…', async () => { try { await api('/api/admin', { action: 'companySave', id: S.coId, name: $('co_name').value, gstin: $('co_gstin').value, pan: $('co_pan').value, address: $('co_address').value, logo: $('co_logo').value });
-    toast('Company saved.'); await load(); companies(); } catch (er) { fail(er); } }));
+  $('co_save').addEventListener('click', e => busy(e.target, 'Saving…', async () => { try { const r = await api('/api/admin', { action: 'companySave', id: S.coId, name: $('co_name').value, gstin: $('co_gstin').value, pan: $('co_pan').value, address: $('co_address').value, logo: $('co_logo').value });
+    toast(r && r.warn ? r.warn : 'Company saved.', !!(r && r.warn)); await load(); companies(); } catch (er) { fail(er); } }));      // (29-10-2026: the papers told)
   // modules
   function modules() {
     const d = S.data; if (!d) return;

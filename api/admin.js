@@ -60,6 +60,19 @@ const userOf = async email => ((await db('GET', 'users?select=email,name,active,
  * Super Admin. The Portal's server asks Mechanical's server with a ticket it signs itself (for "mechanical-admin", 60 s, once);
  * what to set travels inside the signed ticket. Mechanical checks the signature with the Portal's public key. */
 const PAGE_ACCESS = ['Admin', 'Edit', 'View', 'None'];      // (with Mechanical's update-189) Admin – a page with a date: Edit, and its entries of an earlier day (Mechanical takes it only there)
+/* (29-10-2026, his requirement's print with no logo, no company name and no address – "mala ajun pn old format distey") THE PAPERS OF THE
+ * MODULES (the Store's PO and Purchase Requisition Form) take a site's company – its name, address, GSTIN, PAN, logo – from Mechanical's
+ * list of sites (its first site's rcl_sites / rcl_companies), which only "New site" wrote, with the company's name alone. So a company
+ * saved here, and a site's company saved here, are told to Mechanical too (its update-193: act "papers", the same signed ticket as
+ * "New site"). Not told (Mechanical not reachable, or not updated yet): said – the Portal's own save stands; saving again tells it. */
+async function papersTell(req, me, code, compId) {
+  try {
+    const c = compId ? ((await db('GET', 'companies?select=id,name,address,gstin,pan,logo&id=eq.' + enc(compId))) || [])[0] : null;
+    const r = await mechAsk(req, me, { act: 'papers', site: code || 'PORTAL', link: !!code, company: c ? { id: c.id, name: c.name, address: c.address || '', gstin: c.gstin || '', pan: c.pan || '', logo: c.logo || '' } : null });
+    return r && r.ok ? '' : String((r && r.note) || 'Mechanical did not take it').slice(0, 200);
+  } catch (e) { return String((e && e.message) || e).slice(0, 200); }
+}
+const papersWarn = w => w ? { warn: 'Saved. But the papers of the modules (the Store\'s PO and requirement) could not be told (' + w + ') – save again in a minute.' } : {};
 async function mechAsk(req, me, claims) {
   const m = ((await db('GET', 'modules?select=url,status&key=eq.mechanical')) || [])[0];
   if (!m || !m.url) throw fail(400, 'Mechanical has no link yet – set it under Modules.', 'nolink');
@@ -227,7 +240,7 @@ const ACTIONS = {
     const warn = mod === 'store' && req ? await storeTell(req, me, site) : '';
     return Object.assign({ ok: true }, warn ? { warn: 'Saved. But the Store was not told who approves the requirements (' + warn + ').' } : {});
   },
-  async siteSave(me, x) {
+  async siteSave(me, x, req) {
     const code = String(x.code || '').trim().toUpperCase(), name = clean(x.name, 80), comp = clean(x.company, 40), status = String(x.status || 'active');
     if (!/^[A-Z0-9]{1,12}$/.test(code)) throw fail(400, 'The site code: 1 to 12 capital letters or digits (e.g. VTR, 18B).');
     if (name.length < 2) throw fail(400, 'Give the site a name (2 to 80 letters).');
@@ -241,7 +254,7 @@ const ACTIONS = {
       await db('POST', 'sites', [{ code: code, name: name, company_id: comp || null, status: status, sort: (last ? last.sort : 0) + 1 }], 'return=minimal');
     } else await db('PATCH', 'sites?code=eq.' + enc(code), { name: name, company_id: comp || null, status: status }, 'return=minimal');
     await audit(me.email, x.isNew ? 'Site added' : 'Site changed', code, { name: name, company: comp, status: status });
-    return { ok: true };
+    return Object.assign({ ok: true }, papersWarn(await papersTell(req, me, code, comp)));
   },
   /* "New site" (with Mechanical's update-95): the Super Admin gives the site's code, name, company and the link of the Supabase
    * project he made; the system checks every step and sets the site up. Can be pressed again and again (it goes on where it
@@ -266,6 +279,7 @@ const ACTIONS = {
       await audit(me.email, 'Site added', code, { name: name, company: comp, by: 'New site' });
     } else await db('PATCH', 'sites?code=eq.' + enc(code), { name: name, company_id: comp || null }, 'return=minimal');
     const r = await mechAsk(req, me, { act: 'siteSetup', site: code, name: name, url: url, sheet: m ? m[1] : '', company: c ? { id: c.id, name: c.name } : {}, places: placesIn(x.places) });
+    if (c && r && r.ready) await papersTell(req, me, code, c.id);      // (29-10-2026) its company's address, GSTIN, PAN and logo for the papers too
     if (r.ready) {
       if (!cur || cur.status !== 'active') { await db('PATCH', 'sites?code=eq.' + enc(code), { status: 'active' }, 'return=minimal'); await audit(me.email, 'Site ready', code, { name: name, module: 'mechanical' }); }
     }
@@ -288,7 +302,7 @@ const ACTIONS = {
     await audit(me.email, 'Site deleted', code, { name: cur.name, accessRemoved: acc.map(a => a.email + ' ' + a.module + ' ' + a.role).slice(0, 200), data: 'kept in its own database' });
     return { ok: true, accessRemoved: acc.length };
   },
-  async companySave(me, x) {
+  async companySave(me, x, req) {
     const name = clean(x.name, 80), gstin = clean(x.gstin, 15).toUpperCase(), pan = clean(x.pan, 10).toUpperCase(), logo = clean(x.logo, 300), address = clean(x.address, 300);
     if (name.length < 2) throw fail(400, 'Enter the name of the company (2 to 80 letters).');
     if (gstin && !GSTIN.test(gstin)) throw fail(400, 'GST Number "' + gstin + '" is not in the right format (15 characters, e.g. 27ABCDE1234F1Z5).');
@@ -299,12 +313,12 @@ const ACTIONS = {
     if (x.id) {
       if (!all.some(c => c.id === x.id)) throw fail(404, 'This company is not in the list.');
       await db('PATCH', 'companies?id=eq.' + enc(x.id), { name, address, gstin, pan, logo }, 'return=minimal');
-      await audit(me.email, 'Company changed', x.id, { name: name }); return { ok: true, id: x.id };
+      await audit(me.email, 'Company changed', x.id, { name: name }); return Object.assign({ ok: true, id: x.id }, papersWarn(await papersTell(req, me, '', x.id)));
     }
     let id = name.toUpperCase().replace(/[^A-Z0-9]+/g, '').slice(0, 20) || 'CO'; const base = id; let n = 2;
     while (all.some(c => c.id === id)) id = base.slice(0, 18) + (n++);
     await db('POST', 'companies', [{ id, name, address, gstin, pan, logo }], 'return=minimal');
-    await audit(me.email, 'Company added', id, { name: name }); return { ok: true, id: id };
+    await audit(me.email, 'Company added', id, { name: name }); return Object.assign({ ok: true, id: id }, papersWarn(await papersTell(req, me, '', id)));
   },
   // (asked 13-10-2026) delete a company: only one that no site belongs to
   async companyDelete(me, x) {
