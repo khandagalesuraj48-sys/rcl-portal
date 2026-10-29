@@ -70,6 +70,15 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
   → Link, and it is set Live.
 * **From inside a module** the "Modules" button comes back to `/?menu=1` – the person's own dashboard – without signing in again.
 
+## 🎙 Speak into a box (29-10-2026; no database step)
+Asked: "jithe jithe type krun entry hotat … tithe voice mick banaw user apla voice madhe bolel … text madhe add krel ok hindi english
+marathi"; his answers: the app AND the website; words and numbers. The block "SPEAK INTO A BOX" inside `public/index.html` (the Portal
+keeps every script in its page; the same code as the Store's and Engineering's `voice.js`, inline in Mechanical): a box where an entry is
+typed, when it is in use, shows a 🎙 at its right end; the browser's own speech recognition listens in **मराठी / हिंदी / English**
+(chips; the one chosen is kept in the browser); the words go in as typed – a number box gets the number ("साडे तीन हजार" → 3500), a phone
+box the digits. Never in a password box. `vercel.json`: `microphone=(self)` (the camera and the place stay off). Tests: unit (the
+number cases, the block in the page, the rule); `test/voice.browser.test.js` 21/21; the rig's `test/browser.test.js` 34/34.
+
 ## Parts
 | Part | File |
 |---|---|
