@@ -70,6 +70,17 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
   → Link, and it is set Live.
 * **From inside a module** the "Modules" button comes back to `/?menu=1` – the person's own dashboard – without signing in again.
 
+## The papers' heading in the Store's ticket; a site's address and contact (29-10-2026; the Portal's step 5)
+His words: "mala te kahi save karayla nko sangu … mi agodar sagle save keley" and "jewa site option ahe portal madhe tithech site address
+and contact number name he option de … baki company details same". **The Store's ticket now brings the papers' heading** (`api/go.js`
+`paperOf`, the claim `paper`): the site's company as given under Companies (name, address, GSTIN, PAN, logo) and the site's own
+**address, contact name and contact number** – new under each site in **Sites** (saved with its Save; `api/admin.js` `siteSave`,
+`overview`). Nothing is saved anywhere else: every opening of the Store, and its fresh ticket every 10 minutes, brings them as they are
+here. The Store prints them (the PO's Shipping Address and Site Contact, the requirement's contact, the heading) – rcl-store's
+`headingOf`. **Database: `sql/portal_step5_site_papers.sql`** – once, in the Portal's Supabase: it only adds the three empty columns; until
+then a site saves as before and its address / contact say the step is needed. Tests: unit 17/17; the rig's `test/api.test.js`;
+rcl-store's `test/reqindent.test.js`.
+
 ## The papers' company: told to Mechanical (29-10-2026, with Mechanical update-193; no database step)
 His requirement printed with an empty heading – no logo, no company name, no address. The papers of the modules (the Store's PO and
 Purchase Requisition Form) read a site's company from **Mechanical's list of sites** (its first site's `rcl_sites` / `rcl_companies`),
@@ -99,7 +110,7 @@ number cases, the block in the page, the rule); `test/voice.browser.test.js` 21/
 | Public keys for the modules | `api/jwks.js` |
 | First start: bring users over from Mechanical, once | `api/setup.js` |
 | Passwords (the same format as Mechanical), sessions, signing keys | `lib/pw.js`, `lib/session.js`, `lib/keys.js` |
-| Database (run once each, in order, in the Portal's own Supabase project) | `sql/portal_step1.sql`, `sql/portal_step2_start.sql` ("My start"), `sql/portal_step4_usage.sql` (with Mechanical's update-158: how full the database is – Sites → Storage) |
+| Database (run once each, in order, in the Portal's own Supabase project) | `sql/portal_step1.sql`, `sql/portal_step2_start.sql` ("My start"), `sql/portal_step4_usage.sql` (with Mechanical's update-158: how full the database is – Sites → Storage), `sql/portal_step5_site_papers.sql` (29-10-2026: a site's address and contact – the Store's papers) |
 | Security check (read only) | `sql/check_security.sql` |
 
 ## Settings (Vercel → Project → Settings → Environment Variables – never in a file)

@@ -249,6 +249,13 @@
   .sa-edit-row td { background: #FBFCFF; }
   .sa-code { display: inline-block; padding: 3px 10px; border-radius: 8px; background: var(--s-soft); color: var(--s-blue); font-weight: 800; letter-spacing: .02em; }
   .sa-code.sm { padding: 1px 7px; font-size: 12.5px; margin: 1px 0; }
+  /* (29-10-2026) a site's address and contact, under it */
+  #st_rows tr:has(+ tr.st-sub) td { border-bottom: 0; }
+  #st_rows tr.st-sub td { padding-top: 0; }
+  .st-more { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+  .st-more label { display: flex; flex: 1 1 170px; flex-direction: column; gap: 3px; margin: 0; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .st-more label:first-child { flex: 2 1 320px; }
+  .st-more input { width: 100%; }
   .sa .st-status.active, .sa .m-status.live { color: var(--s-green); font-weight: 700; } .sa .st-status.closed { color: var(--s-red); font-weight: 700; } .sa .m-status.off { color: var(--s-muted); font-weight: 700; }
   .sa-co { display: flex; align-items: center; gap: 10px; } .sa-co b { display: block; } .sa-co small { display: block; color: var(--s-muted); }
   .sa-co .sa-av { width: 30px; height: 30px; font-size: 13px; } .sa-av.sq { border-radius: 9px; }
@@ -916,7 +923,9 @@
     if (S.tab === 'users') { if (!$('pg_panel').hidden) userClose(); $('u_q').value = q; usersFilter(); return; }
     if (S.tab === 'audit') { $('a_q').value = q; auditShow(); return; }
     const tb = { sites: 'st_rows', companies: 'co_rows', modules: 'm_rows' }[S.tab]; if (!tb) return;
-    const w = q.trim().toLowerCase(); [...$(tb).rows].forEach(tr => { tr.hidden = !!w && !tr.textContent.toLowerCase().includes(w) && ![...tr.querySelectorAll('input')].some(i => i.value.toLowerCase().includes(w)); }); });
+    const w = q.trim().toLowerCase(), hit = tr => !w || tr.textContent.toLowerCase().includes(w) || [...tr.querySelectorAll('input')].some(i => i.value.toLowerCase().includes(w));
+    [...$(tb).rows].forEach(tr => { if (tr.classList.contains('st-sub')) return; const sub = tr.nextElementSibling && tr.nextElementSibling.classList.contains('st-sub') ? tr.nextElementSibling : null;
+      tr.hidden = !(hit(tr) || (sub && hit(sub))); if (sub) sub.hidden = tr.hidden; }); });      // (a site and its address / contact row together)
 
   // users & access – one site at a time
   const ROLE = (v, mod, dis) => '<select class="sel-r ' + (v || 'none') + '" data-m="' + esc(mod) + '"' + (dis ? ' disabled' : '') + ' aria-label="' + esc(mod) + '"><option value=""' + (!v ? ' selected' : '') + '>No access</option><option value="user"' + (v === 'user' ? ' selected' : '') + '>User</option><option value="admin"' + (v === 'admin' ? ' selected' : '') + '>Admin</option></select>';
@@ -1094,7 +1103,10 @@
     const d = S.data; if (!d) return;
     const comp = c => '<select class="st-comp" aria-label="Company"><option value="">–</option>' + d.companies.map(x => '<option value="' + esc(x.id) + '"' + (x.id === c ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>';
     const stat = v => '<select class="st-status ' + (v === 'closed' ? 'closed' : 'active') + '" aria-label="State"><option value="active"' + (v !== 'closed' ? ' selected' : '') + '>Active</option><option value="closed"' + (v === 'closed' ? ' selected' : '') + '>Closed</option></select>';
-    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<span class="sa-code">' + esc(s.code) + '</span>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '" aria-label="Site name"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="sa-btn primary sm st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button><button class="link st-backup" type="button" data-code="' + esc(s.code) + '">Backup</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>';
+    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<span class="sa-code">' + esc(s.code) + '</span>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '" aria-label="Site name"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="sa-btn primary sm st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button><button class="link st-backup" type="button" data-code="' + esc(s.code) + '">Backup</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>' +
+      // (29-10-2026) under each site: its address and its contact – the Store's papers (PO: Shipping Address, Site Contact; the requirement's contact)
+      '<tr class="st-sub" data-for="' + esc(s.code || '') + '"><td></td><td colspan="4"><div class="st-more"><label>Site address<input class="st-addr" maxlength="300" value="' + esc(s.address || '') + '" placeholder="e.g. Site office, Valshind, NH 848"></label>' +
+      '<label>Contact name<input class="st-cname" maxlength="80" value="' + esc(s.contact_name || '') + '" placeholder="e.g. Ramesh Patil"></label><label>Contact number<input class="st-cphone" maxlength="40" inputmode="tel" value="' + esc(s.contact_phone || '') + '" placeholder="e.g. 98765 43210"></label></div></td></tr>';
     $('st_rows').innerHTML = d.sites.map(s => S.siteRow(s, false)).join('') || '<tr><td colspan="5" class="note">No site yet.</td></tr>';
   }
   $('st_rows').addEventListener('change', e => { if (e.target.classList.contains('st-status')) e.target.className = 'st-status ' + e.target.value; });
@@ -1291,8 +1303,9 @@
     if (typed === null) return;
     busy(b, 'Deleting…', async () => { try { const r = await api('/api/admin', { action: 'siteDelete', code: code, confirm: typed });
       toast('Site ' + code + ' deleted' + (r.accessRemoved ? ' (' + r.accessRemoved + ' access removed)' : '') + '. Its data stays in its own database.'); await load(); sites(); } catch (er) { fail(er); } }); });
-  $('st_rows').addEventListener('click', e => { const sv = e.target.closest('.st-save'); if (!sv) return; const tr = sv.closest('tr'), isNew = !!tr.dataset.new;
-    busy(sv, 'Saving…', async () => { try { const r = await api('/api/admin', { action: 'siteSave', isNew: isNew, code: isNew ? tr.querySelector('.st-code').value : tr.dataset.code, name: tr.querySelector('.st-name').value, company: tr.querySelector('.st-comp').value, status: tr.querySelector('.st-status').value });
+  $('st_rows').addEventListener('click', e => { const sv = e.target.closest('.st-save'); if (!sv) return; const tr = sv.closest('tr'), isNew = !!tr.dataset.new, sub = tr.nextElementSibling && tr.nextElementSibling.classList.contains('st-sub') ? tr.nextElementSibling : null;
+    const more = sub ? { address: sub.querySelector('.st-addr').value, contact_name: sub.querySelector('.st-cname').value, contact_phone: sub.querySelector('.st-cphone').value } : {};      // (29-10-2026)
+    busy(sv, 'Saving…', async () => { try { const r = await api('/api/admin', Object.assign({ action: 'siteSave', isNew: isNew, code: isNew ? tr.querySelector('.st-code').value : tr.dataset.code, name: tr.querySelector('.st-name').value, company: tr.querySelector('.st-comp').value, status: tr.querySelector('.st-status').value }, more));
       toast(r && r.warn ? r.warn : 'Site saved.', !!(r && r.warn)); await load(); sites(); } catch (er) { fail(er); } }); });      // (29-10-2026: the papers told – papersTell)
   // companies – the list, and its form (Add company / Change) above it
   function companies() {

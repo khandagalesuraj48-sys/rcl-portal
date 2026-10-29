@@ -46,13 +46,13 @@ async function storeTell(req, me, site) {
 async function overview() {
   const [users, sites, mods, comps, acc] = await Promise.all([
     db('GET', 'users?select=email,name,active,is_super,password_hash,last_login_at&order=name.asc'),
-    db('GET', 'sites?select=code,name,company_id,status,sort&order=sort.asc,code.asc'),
+    db('GET', 'sites?select=*&order=sort.asc,code.asc'),      // (29-10-2026) with its address and contact (step 5) when they are there
     db('GET', 'modules?select=key,name,url,status,sort&order=sort.asc,key.asc'),
     db('GET', 'companies?select=id,name,address,gstin,pan,logo&order=name.asc'),
     accessRows('')]);
   return {
     users: (users || []).map(u => ({ email: u.email, name: u.name, active: !!u.active, super: !!u.is_super, mustChange: !u.is_super && pw.mustChange(u.password_hash), noPassword: !u.password_hash, lastLogin: u.last_login_at })),
-    sites: sites || [], modules: mods || [], companies: comps || [], access: acc || [], storePages: STORE_PAGES };
+    sites: (sites || []).map(s => ({ code: s.code, name: s.name, company_id: s.company_id, status: s.status, sort: s.sort, address: s.address || '', contact_name: s.contact_name || '', contact_phone: s.contact_phone || '', step5: 'address' in s })), modules: mods || [], companies: comps || [], access: acc || [], storePages: STORE_PAGES };
 }
 const userOf = async email => ((await db('GET', 'users?select=email,name,active,is_super&email=eq.' + enc(email))) || [])[0] || null;
 
@@ -72,6 +72,7 @@ async function papersTell(req, me, code, compId) {
     return r && r.ok ? '' : String((r && r.note) || 'Mechanical did not take it').slice(0, 200);
   } catch (e) { return String((e && e.message) || e).slice(0, 200); }
 }
+const STEP5 = 'The site is saved – but its address and contact need the Portal\'s database step 5 first: run sql/portal_step5_site_papers.sql once in the Portal\'s Supabase → SQL Editor, then save them again.';
 const papersWarn = w => w ? { warn: 'Saved. But the papers of the modules (the Store\'s PO and requirement) could not be told (' + w + ') – save again in a minute.' } : {};
 async function mechAsk(req, me, claims) {
   const m = ((await db('GET', 'modules?select=url,status&key=eq.mechanical')) || [])[0];
@@ -242,6 +243,10 @@ const ACTIONS = {
   },
   async siteSave(me, x, req) {
     const code = String(x.code || '').trim().toUpperCase(), name = clean(x.name, 80), comp = clean(x.company, 40), status = String(x.status || 'active');
+    // (29-10-2026) the site's address and its contact – the Store's papers (the PO's Shipping Address and Site Contact, the requirement's
+    // contact); an older page / app that does not send them keeps them as they are
+    const more = ['address', 'contact_name', 'contact_phone'].some(k => k in x) ? { address: clean(x.address, 300), contact_name: clean(x.contact_name, 80), contact_phone: clean(x.contact_phone, 40) } : null;
+    if (more && more.contact_phone && !/^[0-9+() ,/-]{6,40}$/.test(more.contact_phone)) throw fail(400, 'Contact number "' + more.contact_phone + '": digits only (e.g. 98765 43210; two numbers with a comma).');
     if (!/^[A-Z0-9]{1,12}$/.test(code)) throw fail(400, 'The site code: 1 to 12 capital letters or digits (e.g. VTR, 18B).');
     if (name.length < 2) throw fail(400, 'Give the site a name (2 to 80 letters).');
     if (['active', 'closed'].indexOf(status) === -1) throw fail(400, 'A site is Active or Closed.');
@@ -253,7 +258,11 @@ const ACTIONS = {
       const last = ((await db('GET', 'sites?select=sort&order=sort.desc&limit=1')) || [])[0];
       await db('POST', 'sites', [{ code: code, name: name, company_id: comp || null, status: status, sort: (last ? last.sort : 0) + 1 }], 'return=minimal');
     } else await db('PATCH', 'sites?code=eq.' + enc(code), { name: name, company_id: comp || null, status: status }, 'return=minimal');
-    await audit(me.email, x.isNew ? 'Site added' : 'Site changed', code, { name: name, company: comp, status: status });
+    if (more) {      // (its own write: before the Portal's step 5 the site is saved as before, and the page says the step is needed for these)
+      try { await db('PATCH', 'sites?code=eq.' + enc(code), more, 'return=minimal'); }
+      catch (e) { if (!/PGRST204|42703|address|contact_/i.test(String(e && e.message))) throw e; if (more.address || more.contact_name || more.contact_phone) throw fail(400, STEP5); }
+    }
+    await audit(me.email, x.isNew ? 'Site added' : 'Site changed', code, Object.assign({ name: name, company: comp, status: status }, more || {}));
     return Object.assign({ ok: true }, papersWarn(await papersTell(req, me, code, comp)));
   },
   /* "New site" (with Mechanical's update-95): the Super Admin gives the site's code, name, company and the link of the Supabase
