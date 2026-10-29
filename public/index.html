@@ -84,6 +84,7 @@
   #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #1F2B34; color: #fff; padding: 10px 18px; border-radius: 10px; max-width: calc(100% - 32px); z-index: 50; }
   #toast.bad { background: var(--bad); }
   .pg { margin-top: 14px; border-color: #B9C7E8; background: #FBFCFF; }
+  .wf-t td { vertical-align: top; } .wf-t td.w { min-width: 170px; } .wf-t select { min-width: 230px; max-width: 100%; }      /* (29-10-2026) Workflow */
   .pg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px 14px; }
   .pg-grid label { display: flex; flex-direction: column; gap: 4px; margin: 0; color: var(--ink); font-weight: 600; }
   .pg-sel.Edit { color: var(--ok); } .pg-sel.View { color: var(--blue); } .pg-sel.None { color: var(--muted); } .pg-sel.Admin { color: #6D28D9; font-weight: 700; }
@@ -389,6 +390,7 @@
       <button type="button" id="sa_mods" title="Open any module of any site (as its Admin)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>Dashboard</button>
       <button type="button" role="tab" data-t="users" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.3c2.6.2 4.4 1.9 5 4.7"/></svg>Users &amp; Access</button>
       <button type="button" role="tab" data-t="sites" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Sites</button>
+      <button type="button" role="tab" data-t="wf" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3.5" width="6" height="5" rx="1.2"/><rect x="15" y="3.5" width="6" height="5" rx="1.2"/><rect x="9" y="15.5" width="6" height="5" rx="1.2"/><path d="M9 6h6M18 8.5v3.5H12v3.5"/></svg>Workflow</button>
       <button type="button" role="tab" data-t="companies" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="11" height="18" rx="1.5"/><path d="M15 9h4.5a.5.5 0 0 1 .5.5V21H15"/><path d="M8 7h3M8 11h3M8 15h3"/></svg>Companies</button>
       <button type="button" role="tab" data-t="modules" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Modules</button>
       <button type="button" role="tab" data-t="audit" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Activity</button>
@@ -456,6 +458,13 @@
         <div class="sa-card">
           <div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>Company</th><th>State</th><th>Actions</th></tr></thead><tbody id="st_rows"></tbody></table></div>
           <div class="sa-scene-strip" aria-hidden="true"><svg viewBox="0 0 900 130" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg"><path d="M0 70h40V52h26v14h30V40h20v30h44V58h28v12h50V46h18v24h40V54h30v16h60V44h22v26h50V56h26v14h40V48h20v22h60V58h30v12h70V50h24v20h44v60H0z" fill="#D3DEEE"/><path d="M0 92l900-10v48H0z" fill="#B9C7DC"/><path d="M0 106l900-12" stroke="#F2B632" stroke-width="2.4" stroke-dasharray="22 16" opacity=".8"/><g fill="#8EA3C2"><path d="M80 88h70l12 14v10H72V96z"/><rect x="104" y="70" width="28" height="18" rx="3"/><path d="M132 74l38-26 7 7-30 24z"/><path d="M170 48l16 20-12 6-11-15z"/><circle cx="92" cy="114" r="9"/><circle cx="142" cy="114" r="9"/></g><g fill="#7D93B6"><rect x="300" y="82" width="86" height="26" rx="4"/><rect x="356" y="66" width="30" height="20" rx="3"/><circle cx="318" cy="114" r="11"/><circle cx="370" cy="114" r="11"/></g><g fill="#94A8C6"><rect x="520" y="76" width="110" height="30" rx="4"/><rect x="610" y="60" width="34" height="22" rx="3"/><circle cx="540" cy="113" r="10"/><circle cx="572" cy="113" r="10"/><circle cx="626" cy="113" r="10"/></g><g fill="#869BBC"><rect x="740" y="86" width="72" height="20" rx="4"/><rect x="752" y="70" width="30" height="16" rx="3"/><rect x="800" y="98" width="40" height="16" rx="8"/><circle cx="756" cy="114" r="8"/></g></svg></div>
+        </div>
+      </section>
+      <section id="t_wf" class="sa-page" hidden>
+        <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3.5" width="6" height="5" rx="1.2"/><rect x="15" y="3.5" width="6" height="5" rx="1.2"/><path d="M9 6h6"/></svg>Workflow</span><h1>Workflow</h1><p>For each work of a site: who <b>verifies</b> it, who <b>approves</b> it, and whether – once approved – it goes to <b>Head Office</b>. The one who makes an entry never verifies or approves it himself. Nobody given for a step = that step is passed (as before).</p></div></div>
+        <div class="sa-card">
+          <div class="sa-filters"><div class="field"><label for="wf_site">Site</label><select id="wf_site"></select></div></div>
+          <div id="wf_box"></div>
         </div>
       </section>
       <section id="t_companies" class="sa-page" hidden>
@@ -890,9 +899,9 @@
   function fail(e) { if (e.code === 'session' || e.status === 401) { toast(MR.session, true); return loginView(); } toast(msgOf(e), true); }
   function tab(t) {
     S.tab = t; document.querySelectorAll('#sa_tabs button[data-t]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === t)));
-    ['users', 'sites', 'companies', 'modules', 'audit', 'me'].forEach(k => { $('t_' + k).hidden = k !== t; });
+    ['users', 'sites', 'wf', 'companies', 'modules', 'audit', 'me'].forEach(k => { $('t_' + k).hidden = k !== t; });
     $('v_sa').classList.remove('nav-open'); menuClose(); $('sa_q').value = '';
-    if (t === 'users') { userClose(); users(); } else if (t === 'sites') sites(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'audit') audit(); else if (t === 'me') meTab(S.meTab || 'pw');
+    if (t === 'users') { userClose(); users(); } else if (t === 'sites') sites(); else if (t === 'wf') workflow(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'audit') audit(); else if (t === 'me') meTab(S.meTab || 'pw');
     window.scrollTo(0, 0);
   }
   $('sa_tabs').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) tab(b.dataset.t); });
@@ -1009,7 +1018,7 @@
   /* ONE USER (23-10-2026: his picture "SUJIT SIR – Module Access · User Details · Login Activity"): the pages of Mechanical and of the
    * Store on the chosen site (Edit / View / No access), what is known about him, his sign-ins. "Save changes" saves the pages as
    * "Save pages" did (Mechanical's in Mechanical, the Store's here); "Back to users" closes it. */
-  const PG_WORD = { Admin: 'Admin', Edit: 'Edit', View: 'View', None: 'No access', L1: 'Level 1', L2: 'Level 2', L3: 'Level 3', L4: 'Level 4', L5: 'Level 5' };
+  const PG_WORD = { Admin: 'Admin', Edit: 'Edit', View: 'View', None: 'No access', Yes: 'Yes', L1: 'Level 1', L2: 'Level 2', L3: 'Level 3', L4: 'Level 4', L5: 'Level 5' };      // (29-10-2026) Yes – "Approves purchase orders", "Verifies …" (it showed "undefined")
   function userClose() { $('pg_panel').hidden = true; $('pg_panel').innerHTML = ''; $('u_top').hidden = false; S.uOpen = ''; }
   function userOpen(email, which) {
     const box = $('pg_panel'), site = S.site, st = S.data.sites.find(x => x.code === site) || {}, siteName = st.name || site;
@@ -1074,7 +1083,7 @@
     if (S.data.modules.some(m => m.key === 'store')) {
       const a = S.data.access.find(x => x.email === email && x.site === site && x.module === 'store') || {}, cur = a.pages || {};
       // (with the Store's step 2) a Store Admin: only "Approves requirements" (level 1 – 5), "Store Purchase – every site (HO)" and (28-10-2026) "Approves purchase orders"
-      const extraNote = '<p class="note"><b>Approves requirements</b>: Level 1 approves first, then Level 2 … (any one person of a level; nobody his own; he sees the Requirements to approve them). <b>Store Purchase</b>: makes the purchase orders of every site. <b>Approves purchase orders</b>: a PO of this site is taken in (GRN) only after one of them approves it (never his own) – his name goes on the PO as "Approved By"; nobody given – a PO is approved when made.</p>';
+      const extraNote = '<p class="note"><b>Verifies …</b>: an entry of that work goes first to one of them (never his own) – verified, it goes to its approval (Workflow shows who does each step of the site). <b>Approves requirements</b>: Level 1 approves first, then Level 2 … (any one person of a level; nobody his own; he sees the Requirements to approve them). <b>Store Purchase</b>: makes the purchase orders of every site. <b>Approves purchase orders</b>: a PO of this site is taken in (GRN) only after one of them approves it (never his own) – his name goes on the PO as "Approved By"; nobody given – a PO is approved when made. <b>Approves GRN / issues &amp; returns</b>: one of them approves each (after its verification); then it goes to Head Office when the site\'s Workflow says so.</p>';
       parts.push('<h3 class="sa-grp">Store</h3>' + (!sRole ? '<p class="note">No Store on ' + esc(siteName) + '.</p>' : sRole === 'admin' ? '<p class="note"><b>Store Admin</b> has every page (and changes, deletes, imports).</p>' + extraNote + '<div class="sa-pgg">' + (S.data.storePages || []).filter(p => p.admin).map(p => pgCard(p.label, p.key, cur[p.key] || p.opts[0], p.opts, 'store')).join('') + '</div>' :
         '<p class="note" style="margin-top:0"><b>Edit</b> = add · <b>View</b> = see and export. He gets these at his next opening of the Store.</p>' + extraNote + '<div class="sa-pgg">' + (S.data.storePages || []).map(p => pgCard(p.label, p.key, cur[p.key] || p.opts[0], p.opts, 'store')).join('') + '</div>'));
     }
@@ -1098,6 +1107,36 @@
       if (Object.keys(pages).length) { const r = await api('/api/admin', { action: 'storePagesSave', site: b.dataset.site, email: b.dataset.email, pages: pages }); said.push('Store pages saved.'); if (r && r.warn) warn = r.warn; await load(); }
       toast(warn || said.filter(Boolean).join(' ') || 'Nothing to save.', !!warn); userClose(); users(); } catch (er) { fail(er); } });
   });
+  /* (29-10-2026, "pratek kamamadhe … verification … approval … head office … he sagle kam super admin swatache portel madhun krel"; "konte
+   * jail konte nahi jail te super admin tharau shakel") WORKFLOW – a site's Store: for each work who verifies it and who approves it (given
+   * per person: Users & Access → the person → Module access → Store), and whether, once approved, it goes to Head Office (here, Yes / No –
+   * the Portal's step 6). Saved – the Store of that site is told at once. */
+  const WF_WORKS = [['req', 'Material Requirements', 'vreq', null, 'HO Purchase makes its purchase order', 'the site buys it itself (its Store Admin makes the PO)'],
+    ['po', 'Purchase Orders', 'vpo', 'poapprove', '', ''], ['grn', 'Inward (GRN) – the supplier\'s bill', 'vgrn', 'agrn', 'HO Purchase sees each bill (checked with its PO) and checks it', 'it stays at the site'],
+    ['iss', 'Issue & Return', 'viss', 'aiss', 'HO Purchase sees them and checks them', 'they stay at the site']];
+  function workflow() {
+    const d = S.data; if (!d) return;
+    const sites = d.sites; S.wfSite = sites.some(s => s.code === S.wfSite) ? S.wfSite : sites.some(s => s.code === S.site) ? S.site : (sites[0] || {}).code || '';
+    $('wf_site').innerHTML = sites.map(s => '<option value="' + esc(s.code) + '"' + (s.code === S.wfSite ? ' selected' : '') + '>' + esc(s.name) + ' (' + esc(s.code) + ')' + (s.status === 'closed' ? ' – closed' : '') + '</option>').join('') || '<option value="">– no site yet –</option>';
+    const st = sites.find(s => s.code === S.wfSite) || {}, ho = st.ho || { req: true, grn: false, iss: false };
+    if (!d.modules.some(m => m.key === 'store')) { $('wf_box').innerHTML = '<p class="note">No Store module yet (Modules).</p>'; return; }
+    const on = e => (d.users.find(u => u.email === e) || {}).active !== false, nm = e => (d.users.find(u => u.email === e) || {}).name || e;
+    const acc = d.access.filter(a => a.module === 'store' && a.site === S.wfSite && on(a.email));
+    const who = k => acc.filter(a => a.pages && a.pages[k] === 'Yes').map(a => nm(a.email));
+    const lv = [1, 2, 3, 4, 5].map(n => [n, acc.filter(a => a.pages && a.pages.approve === 'L' + n).map(a => nm(a.email))]).filter(x => x[1].length);
+    const list = (l, none) => l.length ? esc(l.join(', ')) : '<span class="note">' + esc(none) + '</span>';
+    const yn = (k, yes, no) => '<select class="wf-ho" data-k="' + k + '" aria-label="Head Office"' + (st.step6 ? '' : ' disabled') + '><option value="1"' + (ho[k] ? ' selected' : '') + '>Yes – ' + esc(yes) + '</option><option value="0"' + (!ho[k] ? ' selected' : '') + '>No – ' + esc(no) + '</option></select>';
+    $('wf_box').innerHTML = '<div class="tw"><table class="wf-t"><thead><tr><th>Work</th><th>Verifies</th><th>Approves</th><th>Once approved → Head Office</th></tr></thead><tbody>' +
+      WF_WORKS.map(w => '<tr data-w="' + w[0] + '"><td class="w"><b>' + esc(w[1]) + '</b></td><td>' + list(who(w[2]), 'nobody – no verification') + '</td><td>' +
+        (w[0] === 'req' ? (lv.length ? lv.map(x => 'Level ' + x[0] + ': ' + esc(x[1].join(', '))).join('<br>') : '<span class="note">nobody – approved when made</span>') : list(who(w[3]), w[0] === 'po' ? 'nobody – approved when made' : 'nobody – no approval')) + '</td><td>' +
+        (w[0] === 'po' ? '<span class="note">made by HO Purchase (a site that buys itself: by its Store Admin)</span>' : yn(w[0], w[4], w[5])) + '</td></tr>').join('') + '</tbody></table></div>' +
+      '<p class="note" style="margin:10px 0 0">Who verifies and approves: <b>Users &amp; Access</b> → the person → <b>Module access</b> → Store ("Verifies …", "Approves …"). The verification of POs, GRNs and issues needs the Store\'s database step 9 at the site (sql/store_step9_workflow.sql – the Store\'s Admin runs it in that site\'s Supabase).</p>' +
+      (st.step6 ? '<div class="bar" style="margin:10px 0 0"><button class="sa-btn primary" id="wf_save" type="button">Save – Head Office</button></div>' : '<p class="err" style="margin-top:10px">The Head Office choices need the Portal\'s database step 6 first: run sql/portal_step6_rules.sql once in the Portal\'s Supabase → SQL Editor.</p>');
+  }
+  $('wf_site').addEventListener('change', () => { S.wfSite = $('wf_site').value; workflow(); });
+  $('wf_box').addEventListener('click', e => { const b = e.target.closest('#wf_save'); if (!b) return;
+    const ho = {}; document.querySelectorAll('#wf_box .wf-ho').forEach(x => { ho[x.dataset.k] = x.value === '1'; });
+    busy(b, 'Saving…', async () => { try { const r = await api('/api/admin', { action: 'rulesSave', site: S.wfSite, ho: ho }); toast(r.warn || 'Saved – the Store of ' + S.wfSite + ' is told.', !!r.warn); await load(); workflow(); } catch (er) { fail(er); } }); });
   // sites
   function sites() {
     const d = S.data; if (!d) return;
