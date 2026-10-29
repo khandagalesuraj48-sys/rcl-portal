@@ -59,7 +59,7 @@ const userOf = async email => ((await db('GET', 'users?select=email,name,active,
 /* (update for Mechanical's update-94) the pages of Mechanical (Edit / View / No access per page) are given HERE, by the
  * Super Admin. The Portal's server asks Mechanical's server with a ticket it signs itself (for "mechanical-admin", 60 s, once);
  * what to set travels inside the signed ticket. Mechanical checks the signature with the Portal's public key. */
-const PAGE_ACCESS = ['Edit', 'View', 'None'];
+const PAGE_ACCESS = ['Admin', 'Edit', 'View', 'None'];      // (with Mechanical's update-189) Admin – a page with a date: Edit, and its entries of an earlier day (Mechanical takes it only there)
 async function mechAsk(req, me, claims) {
   const m = ((await db('GET', 'modules?select=url,status&key=eq.mechanical')) || [])[0];
   if (!m || !m.url) throw fail(400, 'Mechanical has no link yet – set it under Modules.', 'nolink');
