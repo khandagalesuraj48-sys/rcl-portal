@@ -13,6 +13,20 @@ const keys = require('../lib/keys');
 const { audit } = require('../lib/audit');
 const { myItems } = require('./auth');
 
+/* (29-10-2026, his requirement printed with an empty heading: "mala te kahi save karayla nko sangu … mi agodar sagle save keley") THE
+ * PAPERS' HEADING – the Store's PO and Purchase Requisition Form – comes with the Store's ticket, from what the Super Admin gave here:
+ * the site's company (Companies: name, address, GSTIN, PAN, logo) and the site's own address and contact (Sites; the Portal's step 5).
+ * Nothing to save anywhere else: every opening of the Store (and its fresh ticket every 10 minutes) brings it as it is here now.
+ * A read that fails: no heading in this ticket (the Store keeps the one it had). */
+async function paperOf(code) {
+  try {
+    const s = ((await db('GET', 'sites?select=*&code=eq.' + enc(code))) || [])[0]; if (!s) return null;
+    const c = s.company_id ? ((await db('GET', 'companies?select=id,name,address,gstin,pan,logo&id=eq.' + enc(s.company_id))) || [])[0] : null;
+    return { site: { code: s.code, name: s.name || '', address: s.address || '', contact: s.contact_name || '', phone: s.contact_phone || '' },
+      company: c ? { id: c.id, name: c.name || '', address: c.address || '', gstin: c.gstin || '', pan: c.pan || '', logo: c.logo || '' } : null };
+  } catch (e) { return null; }
+}
+
 module.exports = handler(async (req, res) => {
   const q = query(req), mod = String(q.get('module') || ''), site = String(q.get('site') || '').toUpperCase();
   // the page of the module to open (from a module's menu: "Store → Item Master"); only a plain name passes
@@ -40,6 +54,7 @@ module.exports = handler(async (req, res) => {
   if (!it) return back('../?msg=noaccess', 'noaccess');
   const m = ((await db('GET', 'modules?select=url&key=eq.' + enc(mod))) || [])[0];
   const now = Math.floor(Date.now() / 1000);
+  const paper = mod === 'store' ? await paperOf(site) : null;
   const ticket = await keys.sign({
     iss: publicUrl() || origin(req), aud: mod, sub: u.email, name: u.name, site: site, siteName: it.siteName, role: it.role,
     // the person's other modules on this site and his other sites of this module – for the module's own "Modules" switch
@@ -51,6 +66,8 @@ module.exports = handler(async (req, res) => {
     pages: mod === 'store' && it.role === 'admin' ? (u.is_super || (it.pages && it.pages.purchase === 'Edit') ? { purchase: 'Edit' } : undefined) : it.role === 'admin' ? undefined : (it.pages || undefined),
     // (14-10-2026) the Super Admin – Mechanical lets him change entries of a billed period and approve others' changes there
     super: u.is_super ? true : undefined,
+    // (29-10-2026) the Store's papers: the site's company and the site's own address and contact, as given here (Companies, Sites)
+    paper: paper || undefined,
     iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') });
   if (!renew) await audit(u.email, 'Opened module', mod + ' · ' + site, null);
   if (asJson) return send(res, 200, { ticket: ticket });

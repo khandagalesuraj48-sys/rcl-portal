@@ -272,3 +272,28 @@ test('(with Mechanical update-193, 29-10-2026 – a requirement printed with no 
   assert.match(adm, /if \(c && r && r\.ready\) await papersTell\(req, me, code, c\.id\);/);
   assert.strictEqual((html.match(/toast\(r && r\.warn \? r\.warn : '(Site|Company) saved\.', !!\(r && r\.warn\)\)/g) || []).length, 2);
 });
+
+test('(29-10-2026, "mala te kahi save karayla nko sangu … site option ahe portal madhe tithech site address and contact number name he option de") the Store\'s ticket brings the papers\' heading – the site\'s company and the site\'s own address and contact (step 5)', async () => {
+  const go = fs.readFileSync(path.join(__dirname, '..', 'api', 'go.js'), 'utf8'), adm = fs.readFileSync(path.join(__dirname, '..', 'api', 'admin.js'), 'utf8'), html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const sqlTxt = fs.readFileSync(path.join(__dirname, '..', 'sql', 'portal_step5_site_papers.sql'), 'utf8'), body = sqlTxt.split('\n').filter(l => !/^\s*--/.test(l)).join('\n');
+  assert.ok(!/\bdrop\b|\btruncate\b|\bdelete\b|\bupdate\b/i.test(body), 'step 5 only adds');
+  ['address', 'contact_name', 'contact_phone'].forEach(c => assert.ok(body.includes('alter table public.sites add column if not exists ' + c + ' text;'), c));
+  // the heading: read for the store only, from the site and its company
+  const at = go.indexOf('async function paperOf('), to = go.indexOf('module.exports = handler(');
+  const rows = { 'sites?select=*&code=eq.S1': [{ code: 'S1', name: 'VTR Site – NH 848', company_id: 'RCL', address: 'Site office, Valshind', contact_name: 'Ramesh Patil', contact_phone: '98765 43210' }],
+    'companies?select=id,name,address,gstin,pan,logo&id=eq.RCL': [{ id: 'RCL', name: 'RACHANA CONSTRUCTION LIMITED', address: 'Mittal Chambers, Nariman Point', gstin: '27AAKCR9897B1ZQ', pan: 'AAKCR9897B', logo: null }],
+    'sites?select=*&code=eq.T2': [{ code: 'T2', name: 'Test Two', company_id: null }] };
+  const paperOf = new Function('db', 'enc', go.slice(at, to) + '; return paperOf;')(async (m, p) => { if (p === 'sites?select=*&code=eq.BAD') throw new Error('x'); return rows[p] || []; }, encodeURIComponent);
+  assert.deepStrictEqual(await paperOf('S1'), { site: { code: 'S1', name: 'VTR Site – NH 848', address: 'Site office, Valshind', contact: 'Ramesh Patil', phone: '98765 43210' },
+    company: { id: 'RCL', name: 'RACHANA CONSTRUCTION LIMITED', address: 'Mittal Chambers, Nariman Point', gstin: '27AAKCR9897B1ZQ', pan: 'AAKCR9897B', logo: '' } });
+  assert.deepStrictEqual(await paperOf('T2'), { site: { code: 'T2', name: 'Test Two', address: '', contact: '', phone: '' }, company: null }, 'no company, before step 5: as it is');
+  assert.strictEqual(await paperOf('BAD'), null, 'a read that fails: no heading in the ticket (the Store keeps the one it had)');
+  assert.strictEqual(await paperOf('ZZ'), null);
+  assert.ok(go.includes("const paper = mod === 'store' ? await paperOf(site) : null;") && go.includes('paper: paper || undefined,'), 'only in the Store\'s ticket');
+  // the site's save: the three, cut to size; a number of digits only; before step 5 the site saved and the step named
+  assert.ok(adm.includes("const more = ['address', 'contact_name', 'contact_phone'].some(k => k in x) ? { address: clean(x.address, 300), contact_name: clean(x.contact_name, 80), contact_phone: clean(x.contact_phone, 40) } : null;"));
+  assert.ok(adm.includes("if (more.address || more.contact_name || more.contact_phone) throw fail(400, STEP5);") && /sql\/portal_step5_site_papers\.sql/.test(adm));
+  assert.ok(adm.includes("db('GET', 'sites?select=*&order=sort.asc,code.asc')") && adm.includes("step5: 'address' in s"));
+  // the page: under each site, saved with it
+  ['class="st-addr"', 'class="st-cname"', 'class="st-cphone"', "address: sub.querySelector('.st-addr').value, contact_name: sub.querySelector('.st-cname').value, contact_phone: sub.querySelector('.st-cphone').value"].forEach(k => assert.ok(html.includes(k), k));
+});
