@@ -154,6 +154,16 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   r = await S.req('/api/admin', { action: 'mechPagesSave', site: 'S1', email: 'view@rcl.test', perms: { 'Diesel Issue': 'Edit', Dashboard: 'View' } });
   ok('   he sets view\'s pages: saved in Mechanical', r.status === 200 && sql('rcl', "select perm_diesel_issue from app_users where email = 'view@rcl.test'") === 'Edit', r.j);
   ok('   written in the Activity record here', sql('rcl_portal', "select count(*) from audit where action = 'Pages' and target = 'view@rcl.test · S1'") === '1');
+  // (with Mechanical's update-189) a page with a date offers Admin (Edit, and its entries of an earlier day); Mechanical keeps it there only
+  r = await S.req('/api/admin', { action: 'mechPages', site: 'S1' });
+  ok('   Admin offered on the pages with a date (Diesel Issue, Log Book …), not on the others (Reports)', r.status === 200 && r.j.pages.find(x => x.key === 'Diesel Issue').dateAdmin === true && r.j.pages.find(x => x.key === 'Log Book').dateAdmin === true && !r.j.pages.find(x => x.key === 'Reports').dateAdmin, r.j.pages);
+  const rpWas = sql('rcl', "select coalesce(perm_reports, '') from app_users where email = 'view@rcl.test'");
+  r = await S.req('/api/admin', { action: 'mechPagesSave', site: 'S1', email: 'view@rcl.test', perms: { 'Diesel Issue': 'Admin', Reports: 'Admin', Dashboard: 'View' } });
+  ok('   Diesel Issue = Admin saved in Mechanical as Admin; Reports "Admin" (a page without a date) not taken – as it was', r.status === 200 && sql('rcl', "select perm_diesel_issue || '|' || coalesce(perm_reports, '') from app_users where email = 'view@rcl.test'") === 'Admin|' + rpWas && r.j.user && r.j.user.perms['Diesel Issue'] === 'Admin', r.j);
+  r = await S.req('/api/admin', { action: 'mechPages', site: 'S1' });
+  ok('   …and shown as Admin when his pages are opened again', r.status === 200 && (r.j.users.find(u => u.email === 'view@rcl.test') || { perms: {} }).perms['Diesel Issue'] === 'Admin', r.j.users);
+  r = await S.req('/api/admin', { action: 'mechPagesSave', site: 'S1', email: 'view@rcl.test', perms: { 'Diesel Issue': 'Edit', Reports: /^edit$/i.test(rpWas) ? 'Edit' : /^(no access|none|)$/i.test(rpWas) ? 'None' : 'View' } });
+  ok('   back to Edit', r.status === 200 && sql('rcl', "select perm_diesel_issue from app_users where email = 'view@rcl.test'") === 'Edit', r.j);
   r = await S.req('/api/admin', { action: 'mechPagesSave', site: '18B', email: 'view@rcl.test', perms: { Dashboard: 'View' } });
   ok('   a site where he does not have Mechanical: refused (give the site first)', r.status === 400 && r.j.code === 'noaccess', r.j);
   r = await A.req('/api/admin', { action: 'mechPages', site: 'S1' });

@@ -225,3 +225,11 @@ test('(with Mechanical update-164) a site on fuel cards – no diesel stock (HO)
   assert.ok(/value="stock" checked>/.test(box.innerHTML) && !/id="dp_box" hidden/.test(box.innerHTML) && /class="note dp-cnote" style="margin:4px 0 0" hidden/.test(box.innerHTML));
   assert.ok(html.includes("places: placesRead($('dp_box')), mode: dpMode() });"), 'the mode is sent with the save');
 });
+
+test('(with Mechanical update-189, 29-10-2026) a Mechanical page with a date offers a 4th access "Admin" – Edit, and its entries of an earlier day; the Portal sends it, Mechanical takes it only on such a page', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8'), adm = fs.readFileSync(path.join(__dirname, '..', 'api', 'admin.js'), 'utf8');
+  assert.ok(adm.includes("const PAGE_ACCESS = ['Admin', 'Edit', 'View', 'None'];"), 'the save passes Admin on');
+  assert.ok(html.includes("p.dateAdmin ? ['Admin', 'Edit', 'View', 'None'] : ['Edit', 'View', 'None']"), 'only a page Mechanical marks dateAdmin');
+  assert.ok(html.includes("const PG_WORD = { Admin: 'Admin',"));
+  assert.ok(/<b>Admin<\/b> = Edit \+ entries of an earlier day/.test(html), 'said what it is');
+});

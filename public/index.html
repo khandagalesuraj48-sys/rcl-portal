@@ -86,7 +86,7 @@
   .pg { margin-top: 14px; border-color: #B9C7E8; background: #FBFCFF; }
   .pg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px 14px; }
   .pg-grid label { display: flex; flex-direction: column; gap: 4px; margin: 0; color: var(--ink); font-weight: 600; }
-  .pg-sel.Edit { color: var(--ok); } .pg-sel.View { color: var(--blue); } .pg-sel.None { color: var(--muted); }
+  .pg-sel.Edit { color: var(--ok); } .pg-sel.View { color: var(--blue); } .pg-sel.None { color: var(--muted); } .pg-sel.Admin { color: #6D28D9; font-weight: 700; }
   .acts { display: flex; align-items: center; gap: 12px; } .link.del { color: #B42318; }
   table.co-t td.co-a { white-space: normal; min-width: 240px; max-width: 420px; font-size: 13px; } table.co-t td.co-n { white-space: normal; min-width: 180px; }
   .rolebox { display: flex; align-items: center; gap: 10px; } .rolebox .sel-r { flex: 1 1 auto; min-width: 120px; }
@@ -232,7 +232,7 @@
   .sa-pgc .t { display: flex; align-items: center; gap: 10px; font-size: 13.5px; line-height: 1.25; }
   .sa-pgc .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; flex: 0 0 auto; } .sa-pgc .ic svg { width: 20px; height: 20px; }
   .sa-pgc select { min-height: 38px; font-weight: 600; }
-  .sa .pg-sel.Edit { color: var(--s-green); } .sa .pg-sel.View { color: var(--s-blue); } .sa .pg-sel.None { color: var(--s-muted); }
+  .sa .pg-sel.Edit { color: var(--s-green); } .sa .pg-sel.View { color: var(--s-blue); } .sa .pg-sel.None { color: var(--s-muted); } .sa .pg-sel.Admin { color: #6D28D9; font-weight: 700; }
   .sa-grp { margin: 22px 0 10px; font-size: 15px; } .sa-grp:first-child { margin-top: 0; }
   /* (with Mechanical's update-162) a Mechanical User's diesel sources: the places he may give diesel FROM */
   .sa-dsg { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
@@ -806,7 +806,7 @@
   /* ONE USER (23-10-2026: his picture "SUJIT SIR – Module Access · User Details · Login Activity"): the pages of Mechanical and of the
    * Store on the chosen site (Edit / View / No access), what is known about him, his sign-ins. "Save changes" saves the pages as
    * "Save pages" did (Mechanical's in Mechanical, the Store's here); "Back to users" closes it. */
-  const PG_WORD = { Edit: 'Edit', View: 'View', None: 'No access', L1: 'Level 1', L2: 'Level 2', L3: 'Level 3', L4: 'Level 4', L5: 'Level 5' };
+  const PG_WORD = { Admin: 'Admin', Edit: 'Edit', View: 'View', None: 'No access', L1: 'Level 1', L2: 'Level 2', L3: 'Level 3', L4: 'Level 4', L5: 'Level 5' };
   function userClose() { $('pg_panel').hidden = true; $('pg_panel').innerHTML = ''; $('u_top').hidden = false; S.uOpen = ''; }
   function userOpen(email, which) {
     const box = $('pg_panel'), site = S.site, st = S.data.sites.find(x => x.code === site) || {}, siteName = st.name || site;
@@ -862,8 +862,9 @@
       if (S.uOpen !== email || S.site !== site) return;
       if (d) { const mu = (d.users || []).find(x => x.email === email);
         mech = (mu ? '' : '<p class="note">He has not opened Mechanical on this site yet – the pages saved here are ready for his first sign-in.</p>') +
-          '<div class="sa-ma-top"><span>Select which pages this user can open. <b>Edit</b> = add / change / delete · <b>View</b> = see and print · <b>No access</b> = hidden from the menu.</span><label class="sa-switch"><input type="checkbox" id="pg_all" data-g="mech">Select all</label></div>' +
-          '<div class="sa-pgg">' + (d.pages || []).map(p => pgCard(p.label, p.key, (mu && mu.perms && mu.perms[p.key]) || 'None', ['Edit', 'View', 'None'], 'mech')).join('') + '</div>' + dsBlock(d.places, mu && mu.dsrc);
+          // (with Mechanical's update-189, asked 29-10-2026) a page with a date (dateAdmin) offers Admin too: Edit, and its entries of an earlier day
+          '<div class="sa-ma-top"><span>Select which pages this user can open. <b>Admin</b> = Edit + entries of an earlier day (a page with a date) · <b>Edit</b> = add / change / delete (today\'s entries) · <b>View</b> = see and print · <b>No access</b> = hidden from the menu.</span><label class="sa-switch"><input type="checkbox" id="pg_all" data-g="mech">Select all</label></div>' +
+          '<div class="sa-pgg">' + (d.pages || []).map(p => pgCard(p.label, p.key, (mu && mu.perms && mu.perms[p.key]) || 'None', p.dateAdmin ? ['Admin', 'Edit', 'View', 'None'] : ['Edit', 'View', 'None'], 'mech')).join('') + '</div>' + dsBlock(d.places, mu && mu.dsrc);
         S.mechLoaded = email; }
     }
     parts.push('<h3 class="sa-grp">Mechanical</h3>' + mech);
