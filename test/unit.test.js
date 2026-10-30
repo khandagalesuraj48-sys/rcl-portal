@@ -297,3 +297,32 @@ test('(29-10-2026, "mala te kahi save karayla nko sangu … site option ahe port
   // the page: under each site, saved with it
   ['class="st-addr"', 'class="st-cname"', 'class="st-cphone"', "address: sub.querySelector('.st-addr').value, contact_name: sub.querySelector('.st-cname').value, contact_phone: sub.querySelector('.st-cphone').value"].forEach(k => assert.ok(html.includes(k), k));
 });
+
+test('(29-10-2026, "pratek kamamadhe … verification … approval … head office … super admin swatache portel madhun krel"; "konte jail konte nahi jail te super admin tharau shakel") the Store\'s workflow: who verifies / approves each work (per person), what goes to Head Office (per site, step 6) – told to the Store in its signed ticket', async () => {
+  const adm = fs.readFileSync(path.join(__dirname, '..', 'api', 'admin.js'), 'utf8'), html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const sqlTxt = fs.readFileSync(path.join(__dirname, '..', 'sql', 'portal_step6_rules.sql'), 'utf8'), body = sqlTxt.split('\n').filter(l => !/^\s*--/.test(l)).join('\n');
+  assert.ok(!/\bdrop\b|\btruncate\b|\bdelete\b|\bupdate\b/i.test(body) && body.includes('alter table public.sites add column if not exists rules jsonb;'), 'step 6 only adds one column');
+  // the people's choices: Yes / None, given to a Store Admin too; the order of the cards
+  const at = adm.indexOf('const STORE_PAGES = '), to = adm.indexOf('const STEP6 = ');
+  const M = new Function(adm.slice(at, to) + '; return { STORE_PAGES, HO_WORKS, hoOf, storeWf };')();
+  const keys = M.STORE_PAGES.map(p => p.key);
+  assert.deepStrictEqual(keys, ['dashboard', 'items', 'req', 'grn', 'issue', 'reports', 'po', 'vreq', 'approve', 'purchase', 'vpo', 'poapprove', 'vgrn', 'agrn', 'viss', 'aiss']);
+  ['vreq', 'vpo', 'vgrn', 'agrn', 'viss', 'aiss'].forEach(k => { const p = M.STORE_PAGES.find(y => y.key === k); assert.deepStrictEqual([p.opts, p.admin], [['None', 'Yes'], true], k); });
+  // Head Office: not set = as before (requirements to HO Purchase, nothing else)
+  assert.deepStrictEqual(M.hoOf(null), { req: true, grn: false, iss: false });
+  assert.deepStrictEqual(M.hoOf({ store: { ho: { req: false, grn: true, iss: true } } }), { req: false, grn: true, iss: true });
+  assert.deepStrictEqual(M.hoOf({ store: { ho: { req: 'no', grn: 'yes' } } }), { req: true, grn: false, iss: false }, 'only true / false count');
+  // the workflow told to the Store: each step's people (a switched-off user is nobody)
+  const users = [{ email: 'a@x', name: 'Anil', active: true }, { email: 'b@x', name: 'Bina', active: true }, { email: 'c@x', name: 'Chetan', active: false }];
+  const acc = [{ email: 'a@x', pages: { vreq: 'Yes', vgrn: 'Yes', aiss: 'Yes' } }, { email: 'b@x', pages: { vpo: 'Yes', agrn: 'Yes', viss: 'None' } }, { email: 'c@x', pages: { vreq: 'Yes' } }];
+  assert.deepStrictEqual(M.storeWf(acc, users, { store: { ho: { req: true, grn: true, iss: false } } }), { verify: { req: [{ email: 'a@x', name: 'Anil' }], po: [{ email: 'b@x', name: 'Bina' }], grn: [{ email: 'a@x', name: 'Anil' }], iss: [] },
+    approve: { grn: [{ email: 'b@x', name: 'Bina' }], iss: [{ email: 'a@x', name: 'Anil' }] }, ho: { req: true, grn: true, iss: false } });
+  // sent in the same signed ticket as who approves; the Store's step 9 missing at a site: said
+  assert.ok(adm.includes("act: 'approvers', levels: levels, po: po, wf: wf,") && adm.includes("if (j.step9 === false && needs9) return 'NOTE9';") && adm.includes('sql/store_step9_workflow.sql'));
+  assert.strictEqual((adm.match(/warn === 'NOTE9' \? \{ warn: note9\(site\) \}/g) || []).length, 3, 'Store pages, access and the Workflow\'s save');
+  // the Workflow's save: Yes / No each, before step 6 the step named, told to the Store
+  const rs = adm.slice(adm.indexOf('  async rulesSave(me, x, req) {'), adm.indexOf('  async storePagesSave('));
+  assert.ok(rs.includes("if (!('rules' in cur)) throw fail(400, STEP6, 'nostep');") && rs.includes("if (typeof g[k] !== 'boolean') throw fail(400,") && rs.includes('await storeTell(req, me, site)') && rs.includes("await audit(me.email, 'Workflow',"));
+  // the page: the Workflow tab, each work's steps, Yes / No, the save; "Yes" written (it showed "undefined")
+  ['data-t="wf"', 'id="t_wf"', "action: 'rulesSave', site: S.wfSite, ho: ho", 'class="wf-ho"', "Yes: 'Yes'", "else if (t === 'wf') workflow();"].forEach(k => assert.ok(html.includes(k), k));
+});

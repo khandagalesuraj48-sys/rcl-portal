@@ -20,10 +20,28 @@ const STORE_PAGES = [{ key: 'dashboard', label: 'Dashboard', opts: ['View', 'Non
   { key: 'issue', label: 'Issue & Return', opts: ['None', 'Edit', 'View'] }, { key: 'reports', label: 'Stock & Reports', opts: ['None', 'View'] },
   { key: 'po', label: 'Purchase Orders (this site)', opts: ['None', 'View'] },
   // and two that a Store Admin gets too only when they are given: who approves the requirements (level 1 – 5) and HO Purchase
+  // (29-10-2026, the workflow: "entry krnarana to verification la pathawel … verification kel tr te auto jyanche kadhe approval aahe tyanche
+  // kade jail") who VERIFIES each work before its approval, and who approves the GRN and the issues – given to a Store Admin too
+  { key: 'vreq', label: 'Verifies requirements', opts: ['None', 'Yes'], admin: true },
   { key: 'approve', label: 'Approves requirements', opts: ['None', 'L1', 'L2', 'L3', 'L4', 'L5'], admin: true },
   { key: 'purchase', label: 'Store Purchase – every site (HO)', opts: ['None', 'Edit'], admin: true },
+  { key: 'vpo', label: 'Verifies purchase orders', opts: ['None', 'Yes'], admin: true },
   // (28-10-2026, with the Store's step 5: "PO approve karaychi payri kara") who approves the site's purchase orders – his name goes on its "Approved By"
-  { key: 'poapprove', label: 'Approves purchase orders', opts: ['None', 'Yes'], admin: true }];
+  { key: 'poapprove', label: 'Approves purchase orders', opts: ['None', 'Yes'], admin: true },
+  { key: 'vgrn', label: 'Verifies GRN (Inward)', opts: ['None', 'Yes'], admin: true }, { key: 'agrn', label: 'Approves GRN (Inward)', opts: ['None', 'Yes'], admin: true },
+  { key: 'viss', label: 'Verifies issues & returns', opts: ['None', 'Yes'], admin: true }, { key: 'aiss', label: 'Approves issues & returns', opts: ['None', 'Yes'], admin: true }];
+/* (29-10-2026, "pratek task approval nantr HO la nahi janar – konte jail konte nahi jail te super admin tharau shakel") A SITE'S STORE
+ * WORKFLOW – what goes to Head Office once approved (Portal → Workflow; the Portal's step 6: sites.rules): its requirements (to HO
+ * Purchase, who makes their POs – else the site buys them itself: its Store Admin makes the POs), its GRNs (the suppliers' bills – HO
+ * checks them), its issues & returns. Not set: requirements to HO, nothing else (as before). */
+const HO_WORKS = ['req', 'grn', 'iss'];
+const hoOf = rules => { const h = rules && rules.store && rules.store.ho && typeof rules.store.ho === 'object' ? rules.store.ho : {}; return { req: h.req !== false, grn: h.grn === true, iss: h.iss === true }; };
+// the Store's workflow of a site as the Store is told it: who verifies each work, who approves the GRN / the issues, what goes to HO
+function storeWf(acc, users, rules) {
+  const who = k => acc.filter(a => a.pages && a.pages[k] === 'Yes').map(a => users.find(u => u.email === a.email)).filter(u => u && u.active !== false).map(u => ({ email: u.email, name: u.name }));
+  return { verify: { req: who('vreq'), po: who('vpo'), grn: who('vgrn'), iss: who('viss') }, approve: { grn: who('agrn'), iss: who('aiss') }, ho: hoOf(rules) };
+}
+const STEP6 = 'The Head Office choices of the workflow need the Portal\'s database step 6 first: run sql/portal_step6_rules.sql once in the Portal\'s Supabase → SQL Editor, then save them again.';
 /* (with the Store's step 2) THE STORE IS TOLD who approves the requirements of a site – every person of the site with "Approves
  * requirements" (level 1 – 5), with his name – and (28-10-2026) who approves its purchase orders – after a change of his pages or of his access. The Portal's server sends it with a
  * ticket it signs itself (aud "store-admin", 60 s, once), as it does for Mechanical; the Store keeps it in the site's database. */
@@ -34,15 +52,22 @@ async function storeTell(req, me, site) {
   const levels = [1, 2, 3, 4, 5].map(n => ({ level: n, people: acc.filter(a => a.pages && a.pages.approve === 'L' + n).map(a => users.find(u => u.email === a.email)).filter(u => u && u.active !== false).map(u => ({ email: u.email, name: u.name })) })).filter(l => l.people.length);
   // (28-10-2026) and who approves its purchase orders
   const po = acc.filter(a => a.pages && a.pages.poapprove === 'Yes').map(a => users.find(u => u.email === a.email)).filter(u => u && u.active !== false).map(u => ({ email: u.email, name: u.name }));
+  // (29-10-2026) and its workflow: who verifies each work, who approves the GRN and the issues, what goes to Head Office (the site's rules)
+  const st = ((await db('GET', 'sites?select=*&code=eq.' + enc(site))) || [])[0] || {}, wf = storeWf(acc, users, st.rules);
   const now = Math.floor(Date.now() / 1000);
-  const t = await keys.sign({ iss: publicUrl() || origin(req), aud: 'store-admin', sub: me.email, site: site, act: 'approvers', levels: levels, po: po, iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') });
+  const t = await keys.sign({ iss: publicUrl() || origin(req), aud: 'store-admin', sub: me.email, site: site, act: 'approvers', levels: levels, po: po, wf: wf, iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') });
   try {
     const r = await fetch(String(m.url).replace(/\/+$/, '') + '/api/portal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticket: t }), signal: AbortSignal.timeout(20000) });
     let j = {}; try { j = await r.json(); } catch (e) { j = {}; }
     if (!r.ok || j.error) return 'The Store said: ' + (j.error || r.status);
+    // (29-10-2026) the verification of POs, GRNs and issues – and Head Office's check – need the Store's step 9 at that site: said
+    const needs9 = wf.verify.po.length || wf.verify.grn.length || wf.verify.iss.length || wf.approve.grn.length || wf.approve.iss.length || wf.ho.grn || wf.ho.iss;
+    if (j.step9 === false && needs9) return 'NOTE9';
     return '';
   } catch (e) { return 'The Store could not be reached.'; }
 }
+// the Store's step 9 missing at a site: what the Super Admin is told (the rest is saved and told)
+const note9 = site => 'Saved and told to the Store. But the verification and approval of purchase orders, GRNs and issues (and Head Office\'s check) wait for the Store\'s database step 9 at ' + site + ': run sql/store_step9_workflow.sql (rcl-store) once in that site\'s Supabase → SQL Editor. The requirements\' verification works already.';
 async function overview() {
   const [users, sites, mods, comps, acc] = await Promise.all([
     db('GET', 'users?select=email,name,active,is_super,password_hash,last_login_at&order=name.asc'),
@@ -52,7 +77,8 @@ async function overview() {
     accessRows('')]);
   return {
     users: (users || []).map(u => ({ email: u.email, name: u.name, active: !!u.active, super: !!u.is_super, mustChange: !u.is_super && pw.mustChange(u.password_hash), noPassword: !u.password_hash, lastLogin: u.last_login_at })),
-    sites: (sites || []).map(s => ({ code: s.code, name: s.name, company_id: s.company_id, status: s.status, sort: s.sort, address: s.address || '', contact_name: s.contact_name || '', contact_phone: s.contact_phone || '', step5: 'address' in s })), modules: mods || [], companies: comps || [], access: acc || [], storePages: STORE_PAGES };
+    sites: (sites || []).map(s => ({ code: s.code, name: s.name, company_id: s.company_id, status: s.status, sort: s.sort, address: s.address || '', contact_name: s.contact_name || '', contact_phone: s.contact_phone || '', step5: 'address' in s,
+      ho: hoOf(s.rules), step6: 'rules' in s })), modules: mods || [], companies: comps || [], access: acc || [], storePages: STORE_PAGES };      // (29-10-2026) its workflow's Head Office choices (step 6)
 }
 const userOf = async email => ((await db('GET', 'users?select=email,name,active,is_super&email=eq.' + enc(email))) || [])[0] || null;
 
@@ -117,6 +143,22 @@ const placesIn = v => (Array.isArray(v) ? v : []).slice(0, 20).map(p => Object.a
   p && PLACE_FUELS.indexOf(String(p.fuel || '')) > 0 ? { fuel: String(p.fuel) } : {})).filter(p => p.name || p.cap);
 
 const ACTIONS = {
+  /* (29-10-2026, "pratek task approval nantr HO la nahi janar – konte jail konte nahi jail te super admin tharau shakel") Portal → Workflow:
+   * a site's Head Office choices for the Store – its requirements, its GRNs, its issues & returns (Yes / No each) – kept with the site
+   * (step 6) and told to the Store at once with who verifies and approves (storeTell). */
+  async rulesSave(me, x, req) {
+    const site = String(x.site || '').toUpperCase();
+    const cur = ((await db('GET', 'sites?select=*&code=eq.' + enc(site))) || [])[0];
+    if (!cur) throw fail(404, 'This site is not in the list.');
+    if (!('rules' in cur)) throw fail(400, STEP6, 'nostep');
+    const g = x.ho && typeof x.ho === 'object' ? x.ho : {}, ho = {};
+    HO_WORKS.forEach(k => { if (typeof g[k] !== 'boolean') throw fail(400, 'Choose Yes or No for each work.', 'field'); ho[k] = g[k]; });
+    const rules = Object.assign({}, cur.rules && typeof cur.rules === 'object' ? cur.rules : {}, { store: Object.assign({}, (cur.rules && cur.rules.store) || {}, { ho: ho }) });
+    await db('PATCH', 'sites?code=eq.' + enc(site), { rules: rules }, 'return=minimal');
+    await audit(me.email, 'Workflow', site + ' · store', { headOffice: HO_WORKS.map(k => k + ': ' + (ho[k] ? 'Yes' : 'No')).join(', ') });
+    const warn = req ? await storeTell(req, me, site) : '';
+    return Object.assign({ ok: true, ho: ho }, warn === 'NOTE9' ? { warn: note9(site) } : warn ? { warn: 'Saved. But the Store was not told (' + warn + ') – save again in a moment.' } : {});
+  },
   // a Store User's pages on one site (he must have the Store there; an Admin has every page)
   async storePagesSave(me, x, req) {
     const site = String(x.site || '').toUpperCase(), email = lc(x.email);
@@ -129,7 +171,7 @@ const ACTIONS = {
     catch (e) { if (/42703|pages/.test(String(e && e.message))) throw fail(500, 'This needs one database step first: run sql/portal_step3_pages.sql once in the Portal\'s Supabase → SQL Editor.', 'nostep'); throw e; }
     await audit(me.email, 'Pages', email + ' · ' + site + ' · store', { pages: pages });
     const warn = req ? await storeTell(req, me, site) : '';
-    return Object.assign({ ok: true, pages: pages }, warn ? { warn: 'Saved. But the Store was not told who approves the requirements and purchase orders (' + warn + ') – save again in a moment.' } : {});
+    return Object.assign({ ok: true, pages: pages }, warn === 'NOTE9' ? { warn: note9(site) } : warn ? { warn: 'Saved. But the Store was not told who approves the requirements and purchase orders (' + warn + ') – save again in a moment.' } : {});
   },
   // one site's users in Mechanical with their pages, and the list of Mechanical's pages
   async mechPages(me, x, req) {
@@ -239,7 +281,7 @@ const ACTIONS = {
     await audit(me.email, 'Access', email, { site: site, module: mod, role: role || 'none' });
     // (step 2) the Store's approvers of the site, told again (a person taken off the Store is no approver any more)
     const warn = mod === 'store' && req ? await storeTell(req, me, site) : '';
-    return Object.assign({ ok: true }, warn ? { warn: 'Saved. But the Store was not told who approves the requirements (' + warn + ').' } : {});
+    return Object.assign({ ok: true }, warn === 'NOTE9' ? { warn: note9(site) } : warn ? { warn: 'Saved. But the Store was not told who approves the requirements (' + warn + ').' } : {});
   },
   async siteSave(me, x, req) {
     const code = String(x.code || '').trim().toUpperCase(), name = clean(x.name, 80), comp = clean(x.company, 40), status = String(x.status || 'active');

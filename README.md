@@ -81,6 +81,24 @@ here. The Store prints them (the PO's Shipping Address and Site Contact, the req
 then a site saves as before and its address / contact say the step is needed. Tests: unit 17/17; the rig's `test/api.test.js`;
 rcl-store's `test/reqindent.test.js`.
 
+## The Store's workflow: who verifies, who approves, what goes to Head Office (29-10-2026; the Portal's step 6, the Store's step 9)
+His words: "pratek kamamadhe … entry krnarana to verification la pathawel … verification kel tr te auto jyanche kadhe approval aahe
+tyanche kade jail … approval zal ki te direct head office la jail … he sagle kam super admin swatache portel madhun krel"; "pratek task
+approval nantr HO la nahi janar – konte jail konte nahi jail te super admin tharau shakel".
+* **Per person** (Users & Access → the person → Pages in the Store; a Store Admin too, only when given): **Verifies requirements**,
+  **Verifies purchase orders**, **Verifies GRN (Inward)**, **Approves GRN (Inward)**, **Verifies issues & returns**, **Approves issues
+  & returns** (None / Yes) – with Approves requirements (Level 1 … 5) and Approves purchase orders as before. No SQL step.
+* **Workflow** (a new tab): for each work of a site who verifies it and who approves it (from the pages above), and **once approved →
+  Head Office: Yes / No** – requirements (Yes: HO Purchase makes the PO; No: the site buys it itself – its Store Admin), GRNs (the
+  suppliers' bills, checked with their PO), issues & returns. Saved per site in `sites.rules` (`rulesSave`, written in the activity).
+  Not set: requirements to HO, nothing else – as before.
+* **The Store is told** with the approvers' ticket it already gets (`storeTell`: `wf` = who verifies / approves each work and the Head
+  Office choices) after a person's pages, his access or the Workflow is saved. A site whose Store has not run its step 9 yet: saved and
+  told, and the Super Admin is told what to run there (`NOTE9`).
+* **Database: `sql/portal_step6_rules.sql`** – once, in the Portal's Supabase: it only adds the empty column `rules` to the sites. Until
+  then the Head Office choices say the step is needed; who verifies and approves works without it.
+* Tests: unit 18/18; the rig's `test/api.test.js` (130/130); rcl-store's `test/workflow.test.js`, `test/workflow.browser.test.js`.
+
 ## The papers' company: told to Mechanical (29-10-2026, with Mechanical update-193; no database step)
 His requirement printed with an empty heading – no logo, no company name, no address. The papers of the modules (the Store's PO and
 Purchase Requisition Form) read a site's company from **Mechanical's list of sites** (its first site's `rcl_sites` / `rcl_companies`),
@@ -110,7 +128,7 @@ number cases, the block in the page, the rule); `test/voice.browser.test.js` 21/
 | Public keys for the modules | `api/jwks.js` |
 | First start: bring users over from Mechanical, once | `api/setup.js` |
 | Passwords (the same format as Mechanical), sessions, signing keys | `lib/pw.js`, `lib/session.js`, `lib/keys.js` |
-| Database (run once each, in order, in the Portal's own Supabase project) | `sql/portal_step1.sql`, `sql/portal_step2_start.sql` ("My start"), `sql/portal_step4_usage.sql` (with Mechanical's update-158: how full the database is – Sites → Storage), `sql/portal_step5_site_papers.sql` (29-10-2026: a site's address and contact – the Store's papers) |
+| Database (run once each, in order, in the Portal's own Supabase project) | `sql/portal_step1.sql`, `sql/portal_step2_start.sql` ("My start"), `sql/portal_step4_usage.sql` (with Mechanical's update-158: how full the database is – Sites → Storage), `sql/portal_step5_site_papers.sql` (29-10-2026: a site's address and contact – the Store's papers), `sql/portal_step6_rules.sql` (29-10-2026: a site's workflow – what goes to Head Office) |
 | Security check (read only) | `sql/check_security.sql` |
 
 ## Settings (Vercel → Project → Settings → Environment Variables – never in a file)

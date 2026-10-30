@@ -314,7 +314,7 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   r = await X.req('/api/admin', { action: 'storePagesSave', email: 'sujit@rcl.test', site: 'S1', pages: { dashboard: 'None', items: 'View' } });
   ok('Store pages before step 3: says which SQL file to run', r.status === 500 && r.j.code === 'nostep' && /portal_step3_pages\.sql/.test(r.j.error), r.j);
   r = await X.req('/api/admin', { action: 'overview' });
-  ok('   the console still works without the step (no pages column yet)', r.status === 200 && Array.isArray(r.j.access) && r.j.storePages.length === 10, r.j.error);      // (the Store's step 2: 7 pages + approves, purchase; 28-10-2026 + approves purchase orders)
+  ok('   the console still works without the step (no pages column yet)', r.status === 200 && Array.isArray(r.j.access) && r.j.storePages.length === 16, r.j.error);      // (the Store's step 2: 7 pages + approves, purchase; 28-10-2026 + approves purchase orders; 29-10-2026 + verifies requirements / POs / GRN / issues, approves GRN / issues)
   const step3 = require('fs').readFileSync(require('path').join(__dirname, '..', 'sql', 'portal_step3_pages.sql'), 'utf8');
   sql('rcl_portal', step3); sql('rcl_portal', step3); await new Promise(z => setTimeout(z, 800));
   r = await X.req('/api/admin', { action: 'storePagesSave', email: 'sujit@rcl.test', site: 'S1', pages: { dashboard: 'None', items: 'View', other: 'Edit' } });
@@ -335,6 +335,29 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   r = await A.req('/api/go?module=store&site=S1');
   const stP = JSON.parse(Buffer.from(((r.loc.split('#sso=')[1] || '').split('&')[0]).split('.')[1], 'base64url').toString());
   ok('   a Store Admin given "Store Purchase": his ticket carries only that', stP.role === 'admin' && JSON.stringify(stP.pages) === JSON.stringify({ purchase: 'Edit' }), stP);
+  // ---- (29-10-2026) the Store's workflow: who verifies (per person), what goes to Head Office (per site – step 6) ----
+  await X.req('/api/admin', { action: 'accessSet', email: 'sujit@rcl.test', site: 'S1', module: 'store', role: 'user' });
+  r = await X.req('/api/admin', { action: 'storePagesSave', email: 'sujit@rcl.test', site: 'S1', pages: { req: 'Edit', vreq: 'Yes', vgrn: 'Yes', aiss: 'Yes', vpo: 'maybe' } });
+  const pgW = JSON.parse(sql('rcl_portal', "select pages::text from access where email = 'sujit@rcl.test' and site = 'S1' and module = 'store'") || '{}');
+  ok('workflow: "Verifies …" / "Approves …" kept with his Store pages (Yes / None only)', r.status === 200 && pgW.vreq === 'Yes' && pgW.vgrn === 'Yes' && pgW.aiss === 'Yes' && pgW.vpo === 'None' && pgW.agrn === 'None', pgW);
+  sql('rcl_portal', 'alter table public.sites drop column if exists rules; notify pgrst, \'reload schema\';'); await new Promise(z => setTimeout(z, 800));
+  r = await X.req('/api/admin', { action: 'rulesSave', site: 'S1', ho: { req: false, grn: true, iss: false } });
+  ok('   Head Office choices before the Portal\'s step 6: the file to run is named, nothing saved', r.status === 400 && r.j.code === 'nostep' && /portal_step6_rules\.sql/.test(r.j.error), r.j);
+  r = await X.req('/api/admin', { action: 'overview' });
+  ok('   the console works without it (as before: requirements to HO, nothing else)', r.status === 200 && (r.j.sites.find(s => s.code === 'S1') || {}).step6 === false && JSON.stringify((r.j.sites.find(s => s.code === 'S1') || {}).ho) === '{"req":true,"grn":false,"iss":false}', r.j.sites);
+  const step6 = require('fs').readFileSync(require('path').join(__dirname, '..', 'sql', 'portal_step6_rules.sql'), 'utf8');
+  sql('rcl_portal', step6); sql('rcl_portal', step6); await new Promise(z => setTimeout(z, 800));
+  r = await X.req('/api/admin', { action: 'rulesSave', site: 'S1', ho: { req: 'no', grn: true, iss: false } });
+  ok('   step 6 run (twice): Yes / No only', r.status === 400 && r.j.code === 'field', r.j);
+  r = await X.req('/api/admin', { action: 'rulesSave', site: 'S1', ho: { req: false, grn: true, iss: false } });
+  const rl = JSON.parse(sql('rcl_portal', "select rules::text from sites where code = 'S1'") || '{}');
+  ok('   saved with the site; the Store could not be told (no Store at that address): saved, and said', r.status === 200 && rl.store.ho.req === false && rl.store.ho.grn === true && rl.store.ho.iss === false && /Saved\. But the Store was not told/.test(String(r.j.warn)), [r.j, rl]);
+  r = await X.req('/api/admin', { action: 'overview' });
+  ok('   the console shows them', JSON.stringify((r.j.sites.find(s => s.code === 'S1') || {}).ho) === '{"req":false,"grn":true,"iss":false}' && (r.j.sites.find(s => s.code === 'S1') || {}).step6 === true, r.j.sites);
+  r = await A.req('/api/admin', { action: 'rulesSave', site: 'S1', ho: { req: true, grn: false, iss: false } });
+  ok('   nobody but the Super Admin', r.status === 403 || r.status === 401, r.status);
+  await X.req('/api/admin', { action: 'rulesSave', site: 'S1', ho: { req: true, grn: false, iss: false } });
+  await X.req('/api/admin', { action: 'storePagesSave', email: 'sujit@rcl.test', site: 'S1', pages: { req: 'None' } });
   await X.req('/api/admin', { action: 'accessSet', email: 'sujit@rcl.test', site: 'S1', module: 'store', role: '' });
   await X.req('/api/admin', { action: 'moduleSave', key: 'store', name: 'Store', url: 'https://store.example.com', status: 'off' });
   if (!storeWas) await X.req('/api/admin', { action: 'moduleDelete', key: 'store', confirm: 'store' });
