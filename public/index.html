@@ -151,6 +151,7 @@
   .sa-page[hidden] { display: none !important; }
   .sa-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px; margin-bottom: 18px; }
   .sa-head > div { flex: 1 1 320px; min-width: 0; }
+  .sa-head > .acts { flex: 0 1 auto; flex-wrap: wrap; justify-content: flex-end; } .sa-head > .acts .sa-btn { white-space: nowrap; }      /* (Sites: its 4 buttons on one line, each on one line) */
   .sa-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; color: var(--s-muted); text-transform: uppercase; }
   .sa-eyebrow svg { width: 14px; height: 14px; }
   .sa-head h1 { font-size: 28px; line-height: 1.2; margin: 6px 0 4px; letter-spacing: -.01em; }
@@ -437,7 +438,7 @@
       </section>
       <section id="t_sites" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Site management</span><h1>Sites</h1><p>Every site of every module. <b>Closed</b> = switched off: nobody can open it. A closed site can be deleted – its data stays in its own database.</p></div>
-          <div class="acts"><button class="sa-btn" id="st_sto" type="button" title="How full every site's database, files and backup Sheet are; the copy of the files in Google Drive">Storage</button><button class="sa-btn" id="st_pbk" type="button" title="The Portal's own backup Sheets (users, access, sites)">Portal backup</button><button class="sa-btn primary" id="st_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New site</button></div></div>
+          <div class="acts"><button class="sa-btn" id="st_sto" type="button" title="How full every site's database, files and backup Sheet are; the copy of the files in Google Drive">Storage</button><button class="sa-btn" id="st_pbk" type="button" title="The Portal's own backup Sheets (users, access, sites)">Portal backup</button><button class="sa-btn" id="st_purbk" type="button" title="Purchase's own backup Sheets (the Purchase Department – every site)">Purchase backup</button><button class="sa-btn primary" id="st_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New site</button></div></div>
         <div class="panel pg" id="ns_panel" hidden>
           <div class="panel-head"><h2>New site</h2><span class="note">Mechanical for a new site – the same app, its own database. Nothing of another site is copied and no user is made; afterwards you give the site to people under Users &amp; Access.</span></div>
           <p class="note" style="margin-top:0"><b>Before:</b> make the site's Supabase project yourself (Supabase → New project · region Mumbai). Its secret key is never typed here – the steps below say where it goes.</p>
@@ -1232,8 +1233,9 @@
   const bkPct = (cells, limit) => Math.round((Number(cells) || 0) / (Number(limit) || 10000000) * 1000) / 10;
   const bkLvl = p => p >= 90 ? 'bad' : p >= 80 ? 'warn' : 'ok';
   function bkPanel(who, d) {
-    const st = who.target === 'portal' ? { name: 'Portal' } : (S.data.sites.find(x => x.code === who.site) || {});
-    const title = who.target === 'portal' ? 'Portal backup' : 'Backup – ' + esc(st.name || who.site) + ' (' + esc(who.site) + ')';
+    // (with Mechanical's update-195, asked 30-10-2026) Purchase's own Sheets too – the Purchase Department, every site in one
+    const st = who.target === 'portal' ? { name: 'Portal' } : who.target === 'purchase' ? { name: 'Purchase' } : (S.data.sites.find(x => x.code === who.site) || {});
+    const title = who.target === 'portal' ? 'Portal backup' : who.target === 'purchase' ? 'Purchase backup' : 'Backup – ' + esc(st.name || who.site) + ' (' + esc(who.site) + ')';
     const list = d.sheets || [], act = list[list.length - 1], pctA = act ? bkPct(act.cells, d.limit) : 0;
     const rows = list.map(v => { const p = bkPct(v.cells, d.limit);
       return '<tr><td><b>Sheet ' + esc(v.n) + '</b>' + (v.legacy ? '<div class="note">the Sheet of before</div>' : '') + '</td><td><a href="' + esc(v.url) + '" target="_blank" rel="noopener">Open</a></td>' +
@@ -1246,7 +1248,7 @@
       (L.pending ? ' · <b>' + esc(L.pending) + ' table(s) still to copy</b> – it goes on by itself' : '') + (L.engNote ? '<br><span class="err">Engineering: ' + esc(L.engNote) + '</span>' : '') + '</p>';
     const warn = act && pctA >= 80 ? '<p class="' + (pctA >= 90 ? 'err' : 'warn') + '"><b>Sheet ' + esc(act.n) + ' is ' + esc(pctA) + ' % full</b> – add Sheet ' + esc(Number(act.n) + 1) + ' (a new, empty Google Sheet) before it is full.</p>' : '';
     const nextN = act ? Number(act.n) + 1 : 1;
-    $('bk_panel').innerHTML = '<div class="panel-head"><h2>' + title + '</h2><span class="note">Every night the data is copied into the Sheet in use' + (who.target === 'portal' ? ' (users – no passwords –, access, sites, companies, modules, the activity record)' : ' (every table of the site, with its Store and Engineering data)') + '. ' +
+    $('bk_panel').innerHTML = '<div class="panel-head"><h2>' + title + '</h2><span class="note">Every night the data is copied into the Sheet in use' + (who.target === 'portal' ? ' (users – no passwords –, access, sites, companies, modules, the activity record)' : who.target === 'purchase' ? ' (Purchase of every site – its people, settings, numbers and activity record; each row with its site)' : ' (every table of the site, with its Store and Engineering data)') + '. ' +
         'A Sheet holds 1 crore cells at most: when one is full, add the next – the one before stays as it is, and Sheet 1 + Sheet 2 + … is the whole data.</span></div>' +
       (d.email ? '<p class="note">Share every Sheet with <b>' + esc(d.email) + '</b> as <b>Editor</b> first (Google Sheets → Share → add this address → Editor).</p>' : '') +
       (rows ? '<div class="tw"><table><thead><tr><th>Sheet</th><th>Link</th><th>Holds</th><th>Full</th><th>State</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<p class="note"><b>No backup Sheet yet.</b> Make a new, empty Google Sheet, share it as above, and give its link here.</p>') +
@@ -1267,6 +1269,7 @@
   }
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-backup'); if (b) bkOpen({ site: b.dataset.code }); });
   $('st_pbk').addEventListener('click', () => bkOpen({ target: 'portal' }));
+  $('st_purbk').addEventListener('click', () => bkOpen({ target: 'purchase' }));
   $('bk_panel').addEventListener('click', e => {
     const id = e.target.id; if (!/^bk_(close|change|add|now)$/.test(id)) return;
     if (id === 'bk_close') { $('bk_panel').hidden = true; return; }
