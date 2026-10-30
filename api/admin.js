@@ -115,9 +115,10 @@ async function mechAsk(req, me, claims) {
   return j.result;
 }
 const siteOk = async code => ((await db('GET', 'sites?select=code&code=eq.' + enc(code))) || []).length > 0;
-// (update-157) whose backup: the Portal's, or a site of the list
+// (update-157) whose backup: the Portal's, or a site of the list; (with Mechanical's update-195) or Purchase's own
 async function bkWho(x) {
   if (x.target === 'portal') return { target: 'portal', site: 'PORTAL' };      // (the ticket names a site; Mechanical keeps the Portal's Sheets at its first site)
+  if (x.target === 'purchase') return { target: 'purchase', site: 'PORTAL' };      // (Purchase's Sheets too – kept at the first site)
   const site = String(x.site || '').toUpperCase();
   if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
   return { target: '', site: site };
@@ -223,7 +224,7 @@ const ACTIONS = {
     if (!/\/spreadsheets\/(?:u\/\d+\/)?d\/[A-Za-z0-9_-]{20,}/.test(link) && !/^[A-Za-z0-9_-]{20,}$/.test(link)) throw fail(400, 'The Google Sheet link: open the Sheet and copy the address from the browser (…/spreadsheets/d/…).');
     const r = await mechAsk(req, me, { act: 'bkSet', site: t.site, target: t.target, mode: mode, link: link });
     const top = (r.sheets || []).slice(-1)[0] || {};
-    await audit(me.email, mode === 'add' ? 'Backup Sheet added' : 'Backup Sheet changed', t.target === 'portal' ? 'Portal' : t.site, { sheet: top.n, link: top.url });
+    await audit(me.email, mode === 'add' ? 'Backup Sheet added' : 'Backup Sheet changed', t.target === 'portal' ? 'Portal' : t.target === 'purchase' ? 'Purchase' : t.site, { sheet: top.n, link: top.url });
     return r;
   },
   async bkNow(me, x, req) { const t = await bkWho(x); return mechAsk(req, me, { act: 'bkNow', site: t.site, target: t.target }); },

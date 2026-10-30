@@ -326,3 +326,14 @@ test('(29-10-2026, "pratek kamamadhe … verification … approval … head offi
   // the page: the Workflow tab, each work's steps, Yes / No, the save; "Yes" written (it showed "undefined")
   ['data-t="wf"', 'id="t_wf"', "action: 'rulesSave', site: S.wfSite, ho: ho", 'class="wf-ho"', "Yes: 'Yes'", "else if (t === 'wf') workflow();"].forEach(k => assert.ok(html.includes(k), k));
 });
+
+test('(with Mechanical update-195) Sites → Purchase backup: its own button and panel; the ticket asks Mechanical for target "purchase" (kept at the first site); the record says Purchase', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8'), adm = fs.readFileSync(path.join(__dirname, '..', 'api', 'admin.js'), 'utf8');
+  assert.match(html, /id="st_pbk"[^>]*>Portal backup<\/button><button class="sa-btn" id="st_purbk" type="button"[^>]*>Purchase backup<\/button>/);
+  assert.match(html, /\$\('st_purbk'\)\.addEventListener\('click', \(\) => bkOpen\(\{ target: 'purchase' \}\)\);/);
+  assert.match(html, /who\.target === 'purchase' \? 'Purchase backup' :/);
+  assert.match(adm, /if \(x\.target === 'purchase'\) return \{ target: 'purchase', site: 'PORTAL' \};/);
+  assert.match(adm, /t\.target === 'portal' \? 'Portal' : t\.target === 'purchase' \? 'Purchase' : t\.site/);
+  // any other target is a site of the list (nothing else reaches Mechanical)
+  assert.match(adm, /const site = String\(x\.site \|\| ''\)\.toUpperCase\(\);\n  if \(!\/\^\[A-Z0-9\]\{1,12\}\$\/\.test\(site\) \|\| !await siteOk\(site\)\) throw fail\(400, 'Pick a site\.'\);\n  return \{ target: '', site: site \};/);
+});
