@@ -22,7 +22,7 @@ http.createServer((req, res) => {
     if ((a = p.match(/^\/repos\/[^/]+\/([^/]+)\/releases\/tags\/(.+)$/))) { const r = S.releases.find(x => x.tag_name === decodeURIComponent(a[2])); return r ? json(res, 200, r) : json(res, 404, { message: 'Not Found' }); }
     if ((a = p.match(/^\/repos\/[^/]+\/([^/]+)\/releases\/(\d+)$/)) && m === 'PATCH') {
       const r = S.releases.find(x => x.id === Number(a[2])); if (!r) return json(res, 404, { message: 'Not Found' });
-      const x = JSON.parse(body || '{}'); if (x.prerelease !== undefined) r.prerelease = x.prerelease; if (x.make_latest === 'true') S.latest = r.id;
+      const x = JSON.parse(body || '{}'); if (x.prerelease !== undefined) r.prerelease = x.prerelease; if (x.make_latest === 'true') S.latest = r.id; S.patches = (S.patches || []).concat([{ id: r.id, body: x }]);
       return json(res, 200, r);
     }
     if ((a = p.match(/^\/repos\/[^/]+\/([^/]+)\/compare\/main\.\.\.([0-9a-f]{40})$/))) {

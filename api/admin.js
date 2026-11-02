@@ -442,6 +442,8 @@ const ACTIONS = {
   async versions(me) { return REL.list(); },
   /* MAKE STABLE: the tested beta version to everybody – the web (each module's main moved to the very commit the testers used → live)
    * and the app (the stable version → every phone told). One at a time; asked twice: nothing more is done. */
+  // a new beta version: the app's workflow "beta" makes it from the branches "beta" (the testers' phones are told)
+  async betaNew(me) { const r = await REL.betaNew(); await audit(me.email, 'New beta version asked', 'beta', null); return r; },
   async makeStable(me, x) {
     const tag = String(x.tag || '');
     if (String(x.confirm || '').trim() !== tag) throw fail(400, 'Type the version (' + tag + ') to give it to everybody.', 'confirm');

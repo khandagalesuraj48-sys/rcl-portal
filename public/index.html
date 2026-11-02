@@ -494,7 +494,7 @@
       </section>
       <section id="t_versions" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5-8 4.5-8-4.5z"/><path d="M4 12l8 4.5 8-4.5"/><path d="M4 16.5l8 4.5 8-4.5"/></svg>Beta → Stable</span><h1>Versions</h1><p>A new version goes first to the <b>testers</b> (Beta). When it is fine, <b>Give to everybody</b> makes it the stable one: the web of every module becomes that version and every phone gets the app update.</p></div>
-          <button class="sa-btn outline" id="v_reload" type="button">Refresh</button></div>
+          <div class="acts"><button class="sa-btn outline" id="v_reload" type="button">Refresh</button><button class="sa-btn primary" id="v_beta" type="button">New beta version</button></div></div>
         <div class="sa-card"><p class="note" id="v_note" hidden></p><div class="tw"><table class="sa-ver"><thead><tr><th>Version</th><th>Date</th><th>What's new</th><th>Web</th><th>App</th><th>State</th></tr></thead><tbody id="v_rows"><tr><td colspan="6">Loading…</td></tr></tbody></table></div></div>
       </section>
       <section id="t_audit" class="sa-page" hidden>
@@ -1413,11 +1413,15 @@
     const day = t => t ? new Date(t).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '–';
     rows.innerHTML = v.versions.map(r => '<tr data-tag="' + esc(r.tag) + '"><td><b>' + esc(r.version || r.name || r.tag) + '</b>' + (r.build ? '<br><small>build ' + esc(r.build) + '</small>' : '') + '</td>' +
       '<td>' + esc(day(r.at)) + '</td><td class="new">' + esc(r.new || '–') + '</td><td>' + esc(r.web.join(', ') || '–') + '</td><td>' + (r.app ? 'Yes' : '–') + '</td>' +
-      '<td>' + (r.stable ? '<span class="sa-pill dot on">Stable – everybody</span>' : r.beta ? '<span class="sa-pill beta" style="margin:0">Beta – testers</span>' : '<span class="sa-pill">Older</span>') +
+      '<td>' + (r.stable ? '<span class="sa-pill dot on">Stable – everybody</span>' : r.beta ? '<span class="sa-pill beta" style="margin:0">Beta – testers</span>' : '<span class="sa-pill off">Older</span>') +
       (r.canMakeStable ? '<br><button class="sa-btn primary sm v-make" type="button" style="margin-top:8px"' + (v.token ? '' : ' disabled') + '>Give to everybody (Stable)</button>' : '') + '</td></tr>').join('') ||
       '<tr><td colspan="6">No version yet – the first one comes from the app\'s beta build.</td></tr>';
   }
   $('v_reload').addEventListener('click', () => versions());
+  // a new beta version from what is in the branches "beta" now (the app's workflow "beta" – about 10 – 15 minutes)
+  $('v_beta').addEventListener('click', e => { const b = e.currentTarget;
+    if (!window.confirm('Make a new beta version now?\n\nIt takes what is in the beta branches now (web and app), builds the app if it changed, and tells the testers\' phones. It shows here in about 10 – 15 minutes (Refresh). Nothing changes for the others.')) return;
+    busy(b, 'Asking…', async () => { try { await api('/api/admin', { action: 'betaNew' }); toast('Asked – the new beta version shows here in about 10 – 15 minutes (Refresh).'); } catch (er) { fail(er); } }); });
   $('v_rows').addEventListener('click', e => { const b = e.target.closest('.v-make'); if (!b) return; const tag = b.closest('tr').dataset.tag;
     const typed = window.prompt('Give version ' + tag + ' to everybody?\n\nThe web of every module becomes the tested version, the app becomes the stable one and every phone is told to update. Only what the testers had goes live.\n\nType the version (' + tag + ') to go ahead:');
     if (typed === null) return;

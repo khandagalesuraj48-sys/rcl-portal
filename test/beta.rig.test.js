@@ -117,4 +117,26 @@ test('Versions and MAKE STABLE: refused as a whole when a main cannot move; else
   assert.ok(Number(sql("select count(*) from audit where action = 'Version made stable' and target = 'v3.80.0-201'")) >= 2, 'in the Activity');
   const v2 = (await SA.req('/api/admin', { action: 'versions' })).j;
   assert.strictEqual(v2.versions.find(x => x.tag === 'v3.80.0-201').stable, true); assert.strictEqual(v2.versions.find(x => x.tag === 'v3.80.0-201').canMakeStable, false);
+  // a version of the WEB ONLY (no app in it – the app did not change): stable for everybody, but never GitHub's "latest" (the phones'
+  // update must always find an app there); no phone is told
+  st = await gh('/__state');
+  st.releases.push(rel(3, 'v3.80.0-202', { v: '3.80.0', b: 202 }, true, { 'rcl-store': sha('rcl-store', 2), 'rcl-purchase': sha('rcl-purchase', 1) }, 2, false));
+  await gh('/__setup', Object.assign({}, st, { repos: st.repos }));
+  const v3 = (await SA.req('/api/admin', { action: 'versions' })).j, w = v3.versions.find(x => x.tag === 'v3.80.0-202');
+  assert.strictEqual(w.app, false); assert.strictEqual(w.canMakeStable, true);
+  const wo = await SA.req('/api/admin', { action: 'makeStable', tag: 'v3.80.0-202', confirm: 'v3.80.0-202' });
+  assert.strictEqual(wo.status, 200, JSON.stringify(wo.j)); assert.deepStrictEqual(wo.j.moved, ['Purchase']); assert.deepStrictEqual(wo.j.already, ['Store', 'App']);
+  assert.strictEqual(wo.j.told, false, 'no app: no phone told');
+  st = await gh('/__state');
+  assert.strictEqual(st.releases.find(x => x.id === 3).prerelease, false); assert.strictEqual(st.latest, 2, 'GitHub\'s latest stays the app version');
+  assert.deepStrictEqual(st.patches.slice(-1)[0].body, { prerelease: false, make_latest: 'false' }); assert.strictEqual(st.dispatches.length, 0, 'no workflow asked (the list was set again just before)');
+  const v4 = (await SA.req('/api/admin', { action: 'versions' })).j;
+  assert.strictEqual(v4.versions.find(x => x.tag === 'v3.80.0-202').stable, true, 'the stable one in use: the newest that is not beta'); assert.strictEqual(v4.versions.find(x => x.tag === 'v3.80.0-201').stable, false);
+  assert.strictEqual(v4.stableBuild, 202);
+  // NEW BETA VERSION: the app's workflow "beta" on its branch beta; only the Super Admin; in the Activity
+  const nb = await SA.req('/api/admin', { action: 'betaNew' });
+  assert.strictEqual(nb.status, 200, JSON.stringify(nb.j));
+  assert.deepStrictEqual((await gh('/__state')).dispatches.slice(-1)[0], { repo: 'rcl-mobile', workflow: 'beta.yml', body: { ref: 'beta' } });
+  assert.strictEqual((await T.req('/api/admin', { action: 'betaNew' })).status, 403);
+  assert.ok(Number(sql("select count(*) from audit where action = 'New beta version asked'")) >= 1);
 });
