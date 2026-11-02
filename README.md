@@ -91,14 +91,18 @@ sangahla".
   `me` answer gives his links and `user.tester`). Everybody else, and every module with no beta link, stays on the stable link.
   Unticked: stable again at his next opening. (`lib/beta.js`)
 * **Versions** (a new tab): the app's releases (GitHub Releases of `rcl-mobile`) – **Beta – testers** (a pre-release made by the app's
-  beta build, with the exact commits of the web modules the testers had) and **Stable – everybody**. A beta version newer than the
-  stable one has **Give to everybody (Stable)** – the version typed to confirm. It (`lib/releases.js`, the Super Admin only, one press
-  at a time):
+  workflow `beta`, with the exact commits of the web modules' branches `beta`) and **Stable – everybody** (the newest that is not
+  beta). **New beta version** asks that workflow to run (`betaNew`, in the Activity): it takes what is in the branches `beta` now,
+  builds the app only when it changed (else a version of the **web only** – no app, no phone update) and tells the testers' phones;
+  it shows in the list in about 10 – 15 minutes. A beta version newer than the stable one has **Give to everybody (Stable)** – the
+  version typed to confirm. It (`lib/releases.js`, the Super Admin only, one press at a time – `portal_hit`):
   1. checks every repository first: its `main` must be able to move **forward** to the tested commit – else nothing is done and it says
      which and why (a change on `main` the version does not have must go through beta first);
   2. moves each web module's `main` to the very commit the testers used (Vercel deploys it as the live site by itself), the app's
      repository last;
-  3. makes the release the stable one – every phone's update takes it; 4. tells every phone once (the app's workflow `tell`).
+  3. makes the release the stable one – with an app in it GitHub's "latest" (every phone's update takes it); a version of the web
+     only is never "latest" (the phones' update must always find an app there); 4. with an app: tells every phone once (the app's
+     workflow `tell`).
   Pressed again: nothing more. In the Activity ("Version made stable": who, what moved). No code change and no new build for it.
 * **Settings (Vercel → the Portal, never in a file):** `GITHUB_RELEASE_TOKEN` – a fine-grained GitHub token: Contents read-write on
   the ERP's repositories, Actions read-write on `rcl-mobile`. (`GITHUB_OWNER`, `RCL_WEB_REPOS`, `RCL_APP_REPO` only if they ever
