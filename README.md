@@ -81,6 +81,37 @@ here. The Store prints them (the PO's Shipping Address and Site Contact, the req
 then a site saves as before and its address / contact say the step is needed. Tests: unit 17/17; the rig's `test/api.test.js`;
 rcl-store's `test/reqindent.test.js`.
 
+## The beta channel and "Give to everybody" (02-11-2026; the Portal's step 7)
+His words: "ji erp apli chalu aahe ti live aahe ethun pudhe je kahi asel agodr testing hoil … mi kahi user la testing sathi deu shakel
+nantr … other la pn app web stable deu shakel … je cuurent chalu aahe te bighdnar nahi"; "jewa stable war jaych asel tewa mala version
+wise button de je dable ki auto app updet push hoil stable war web updet hoil mhanje prateklk weli code changes nko ani tula sarkhe nko
+sangahla".
+* **Testers** (Users & Access → the person → User Details → **Tester**; written in the Activity; a "Beta" mark in the users list): a
+  tester opens the **beta copy** of a module (Modules → **Beta link**) – on the dashboard, through `/api/go` and in the app (the
+  `me` answer gives his links and `user.tester`). Everybody else, and every module with no beta link, stays on the stable link.
+  Unticked: stable again at his next opening. (`lib/beta.js`)
+* **Versions** (a new tab): the app's releases (GitHub Releases of `rcl-mobile`) – **Beta – testers** (a pre-release made by the app's
+  workflow `beta`, with the exact commits of the web modules' branches `beta`) and **Stable – everybody** (the newest that is not
+  beta). **New beta version** asks that workflow to run (`betaNew`, in the Activity): it takes what is in the branches `beta` now,
+  builds the app only when it changed (else a version of the **web only** – no app, no phone update) and tells the testers' phones;
+  it shows in the list in about 10 – 15 minutes. A beta version newer than the stable one has **Give to everybody (Stable)** – the
+  version typed to confirm. It (`lib/releases.js`, the Super Admin only, one press at a time – `portal_hit`):
+  1. checks every repository first: its `main` must be able to move **forward** to the tested commit – else nothing is done and it says
+     which and why (a change on `main` the version does not have must go through beta first);
+  2. moves each web module's `main` to the very commit the testers used (Vercel deploys it as the live site by itself), the app's
+     repository last;
+  3. makes the release the stable one – with an app in it GitHub's "latest" (every phone's update takes it); a version of the web
+     only is never "latest" (the phones' update must always find an app there); 4. with an app: tells every phone once (the app's
+     workflow `tell`).
+  Pressed again: nothing more. In the Activity ("Version made stable": who, what moved). No code change and no new build for it.
+* **Settings (Vercel → the Portal, never in a file):** `GITHUB_RELEASE_TOKEN` – a fine-grained GitHub token: Contents read-write on
+  the ERP's repositories, Actions read-write on `rcl-mobile`. (`GITHUB_OWNER`, `RCL_WEB_REPOS`, `RCL_APP_REPO` only if they ever
+  change.) Without it the versions show and the button says the key is missing.
+* **Database: `sql/portal_step7_beta.sql`** – once, in the Portal's Supabase: it only adds `users.tester` (false) and `modules.beta_url`
+  (empty). Until then everybody is stable, as today, and the tester switch says the step is needed.
+* Tests: unit 19/19; the rig's `test/beta.rig.test.js` (2/2, with `test/github-standin.js` – nothing reaches GitHub) and
+  `test/beta.e2e.rig.test.js` (2/2: the beta copies of Mechanical and the Store next to the stable ones, on databases with no test mark).
+
 ## The Store's workflow: who verifies, who approves, what goes to Head Office (29-10-2026; the Portal's step 6, the Store's step 9)
 His words: "pratek kamamadhe … entry krnarana to verification la pathawel … verification kel tr te auto jyanche kadhe approval aahe
 tyanche kade jail … approval zal ki te direct head office la jail … he sagle kam super admin swatache portel madhun krel"; "pratek task
@@ -128,7 +159,7 @@ number cases, the block in the page, the rule); `test/voice.browser.test.js` 21/
 | Public keys for the modules | `api/jwks.js` |
 | First start: bring users over from Mechanical, once | `api/setup.js` |
 | Passwords (the same format as Mechanical), sessions, signing keys | `lib/pw.js`, `lib/session.js`, `lib/keys.js` |
-| Database (run once each, in order, in the Portal's own Supabase project) | `sql/portal_step1.sql`, `sql/portal_step2_start.sql` ("My start"), `sql/portal_step4_usage.sql` (with Mechanical's update-158: how full the database is – Sites → Storage), `sql/portal_step5_site_papers.sql` (29-10-2026: a site's address and contact – the Store's papers), `sql/portal_step6_rules.sql` (29-10-2026: a site's workflow – what goes to Head Office) |
+| Database (run once each, in order, in the Portal's own Supabase project) | `sql/portal_step1.sql`, `sql/portal_step2_start.sql` ("My start"), `sql/portal_step4_usage.sql` (with Mechanical's update-158: how full the database is – Sites → Storage), `sql/portal_step5_site_papers.sql` (29-10-2026: a site's address and contact – the Store's papers), `sql/portal_step6_rules.sql` (29-10-2026: a site's workflow – what goes to Head Office), `sql/portal_step7_beta.sql` (02-11-2026: testers and the modules' beta links) |
 | Security check (read only) | `sql/check_security.sql` |
 
 ## Settings (Vercel → Project → Settings → Environment Variables – never in a file)
