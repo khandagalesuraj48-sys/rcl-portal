@@ -457,6 +457,7 @@
           <ol class="steps" id="ns_steps" hidden></ol>
         </div>
         <div class="panel pg" id="dp_panel" hidden></div>
+        <div class="panel pg" id="sr_panel" hidden></div>
         <div class="panel pg" id="bk_panel" hidden></div>
         <div class="panel pg" id="sto_panel" hidden></div>
         <div class="sa-card">
@@ -1158,7 +1159,7 @@
     const d = S.data; if (!d) return;
     const comp = c => '<select class="st-comp" aria-label="Company"><option value="">–</option>' + d.companies.map(x => '<option value="' + esc(x.id) + '"' + (x.id === c ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>';
     const stat = v => '<select class="st-status ' + (v === 'closed' ? 'closed' : 'active') + '" aria-label="State"><option value="active"' + (v !== 'closed' ? ' selected' : '') + '>Active</option><option value="closed"' + (v === 'closed' ? ' selected' : '') + '>Closed</option></select>';
-    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<span class="sa-code">' + esc(s.code) + '</span>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '" aria-label="Site name"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="sa-btn primary sm st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button><button class="link st-backup" type="button" data-code="' + esc(s.code) + '">Backup</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>' +
+    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<span class="sa-code">' + esc(s.code) + '</span>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '" aria-label="Site name"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="sa-btn primary sm st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button><button class="link st-rules" type="button" data-code="' + esc(s.code) + '">Day &amp; tank check</button><button class="link st-backup" type="button" data-code="' + esc(s.code) + '">Backup</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>' +
       // (29-10-2026) under each site: its address and its contact – the Store's papers (PO: Shipping Address, Site Contact; the requirement's contact)
       '<tr class="st-sub" data-for="' + esc(s.code || '') + '"><td></td><td colspan="4"><div class="st-more"><label>Site address<input class="st-addr" maxlength="300" value="' + esc(s.address || '') + '" placeholder="e.g. Site office, Valshind, NH 848"></label>' +
       '<label>Contact name<input class="st-cname" maxlength="80" value="' + esc(s.contact_name || '') + '" placeholder="e.g. Ramesh Patil"></label><label>Contact number<input class="st-cphone" maxlength="40" inputmode="tel" value="' + esc(s.contact_phone || '') + '" placeholder="e.g. 98765 43210"></label></div></td></tr>';
@@ -1167,7 +1168,7 @@
   $('st_rows').addEventListener('change', e => { if (e.target.classList.contains('st-status')) e.target.className = 'st-status ' + e.target.value; });
   // ---- New site (with Mechanical): a checklist the system works through – pressed again, it goes on where it stopped ----
   const NS_STEP = { link: '1. The Supabase project link', key: '2. The secret key – in Vercel, never here', connect: '3. The database answers with that key', tables: '4. Mechanical\'s tables in the new database', company: '5. Company settings (as the first site; the new name)', places: '6. Diesel places (name and tank size)', ready: '7. Ready' };
-  $('st_new').addEventListener('click', () => { const p = $('ns_panel'); p.hidden = false; $('dp_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true;
+  $('st_new').addEventListener('click', () => { const p = $('ns_panel'); p.hidden = false; $('dp_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; $('sr_panel').hidden = true;
     $('ns_comp').innerHTML = '<option value="">–</option>' + S.data.companies.map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>').join('');
     $('ns_steps').hidden = true; if (!$('ns_places').innerHTML) $('ns_places').innerHTML = placesHtml([{}], false); p.scrollIntoView({ block: 'nearest' }); setTimeout(() => $('ns_code').focus(), 30); });
   $('ns_close').addEventListener('click', () => { $('ns_panel').hidden = true; });
@@ -1233,7 +1234,7 @@
     $('dp_box').hidden = card; const n = document.querySelector('#dp_panel .dp-cnote'); if (n) n.hidden = !card; });
   const dpMode = () => { const r = document.querySelector('#dp_panel input[name="dp_mode"]:checked'); return r ? r.value : ''; };
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-places'); if (!b) return; const site = b.dataset.code, box = $('dp_panel');
-    $('ns_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading the diesel places from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
+    $('ns_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; $('sr_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading the diesel places from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
     api('/api/admin', { action: 'placesGet', site: site }).then(d => placesPanel(site, d))
       .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="dp_close">Close</button>'; }); });
   $('dp_panel').addEventListener('click', e => {
@@ -1241,6 +1242,42 @@
     if (e.target.id !== 'dp_save') return; const b = e.target, site = b.dataset.site;
     busy(b, 'Saving…', async () => { try { const d = await api('/api/admin', { action: 'placesSave', site: site, places: placesRead($('dp_box')), mode: dpMode() });
       placesPanel(site, Object.assign({ set: true }, d)); toast(d.mode === 'card' ? site + ' is on fuel cards – no diesel stock.' : 'Diesel places of ' + site + ' saved: ' + d.places.map(p => p.name).join(', ') + '.'); } catch (er) { fail(er); } }); });
+  /* (with Mechanical's update-203, asked 02-11-2026) DAY & TANK CHECK of a site: the hour its day starts (before it, the ERP's date is
+   * still the day before – 06:00 unless set) and a tank check every N days before diesel – for Own / Rental / Hired, and a machinery's
+   * own line (compulsory or not, its days) that wins over its group; add / change / delete. Only Active machinery with its Tank
+   * Capacity, never Debit Basis (Mechanical says which and why). */
+  const srOpt = (ms, no) => '<option value="">– pick –</option>' + ms.map(m => '<option value="' + esc(m.no) + '"' + (m.no === no ? ' selected' : '') + '>' + esc(m.no + (m.type ? ' · ' + m.type : '') + ' · ' + (m.ownership || '–') + (m.not ? ' – ' + m.not : '')) + '</option>').join('');
+  const srRow = (ms, x) => '<tr><td><select class="sr-no">' + srOpt(ms, x.no || '') + '</select></td><td><select class="sr-on"><option value="1"' + (x.on !== false ? ' selected' : '') + '>Compulsory</option><option value="0"' + (x.on === false ? ' selected' : '') + '>Not</option></select></td>' +
+    '<td><input class="sr-days" type="number" min="1" max="90" step="1" value="' + esc(x.days === undefined ? '' : x.days) + '" placeholder="its group" style="width:100px"></td><td><button class="link del sr-del" type="button">Delete</button></td></tr>';
+  function srPanel(site, d) {
+    const st = S.data.sites.find(x => x.code === site) || {}, t = d.tank || {}, g = t.groups || {}, ms = d.machines || [];
+    const on = ms.filter(m => Number(m.days) > 0), why = {}; ms.filter(m => m.not).forEach(m => { why[m.not] = (why[m.not] || 0) + 1; });
+    S.srMach = ms;
+    $('sr_panel').innerHTML = '<div class="panel-head"><h2>Day &amp; tank check – ' + esc(st.name || site) + ' (' + esc(site) + ')</h2><span class="note">Kept in this site\'s Mechanical; the Activity Log there says what was set.</span></div>' +
+      '<div class="field" style="max-width:260px"><label for="sr_day">The next day starts at</label><input id="sr_day" type="time" value="' + esc(d.dayStart || '06:00') + '"></div>' +
+      '<p class="note" style="margin:2px 0 14px">Before this hour the date is still the day before (a night\'s entries go to its day). 06:00 unless set.</p>' +
+      '<div class="field"><label>Tank check before diesel – every how many days</label><p class="note" style="margin:0 0 8px">When the days from the last tank check are over, a fill of that machinery in Diesel Issue first asks the diesel found in its tank (no check → nothing saved). Only Active machinery with its Tank Capacity; never Debit Basis.' +
+        (t.since ? ' On since ' + esc(String(t.since).split('-').reverse().join('-')) + '.' : ' Off now.') + '</p>' +
+        '<div class="sr-groups">' + ['Own', 'Rental', 'Hired'].map(k => '<label class="sa-chk"><input type="checkbox" class="sr-g" data-g="' + k + '"' + (g[k] ? ' checked' : '') + '> ' + k + '</label> <input class="sr-gd" data-g="' + k + '" type="number" min="1" max="90" step="1" value="' + esc(g[k] || 7) + '" style="width:80px"> days').join('<br>') + '</div></div>' +
+      '<div class="field" style="margin-top:12px"><label>Machinery-wise (its own line wins over its group)</label><div class="tw"><table><thead><tr><th>Machinery</th><th>Tank check</th><th>Every (days)</th><th></th></tr></thead><tbody id="sr_rows">' +
+        (t.machines || []).map(x => srRow(ms, x)).join('') + '</tbody></table></div><button class="sa-btn sm" type="button" id="sr_add" style="margin-top:6px">+ Add machinery</button></div>' +
+      '<p class="note" style="margin:10px 0 0">Now for <b>' + on.length + '</b> of ' + ms.length + ' machinery' + (Object.keys(why).length ? ' · not for: ' + Object.keys(why).map(k => why[k] + ' ' + esc(k)).join(', ') : '') + '.</p>' +
+      '<div class="bar" style="margin:14px 0 0"><button class="sa-btn primary sm" type="button" id="sr_save" data-site="' + esc(site) + '">Save</button><button class="sa-btn sm" type="button" id="sr_close">Close</button></div>';
+  }
+  const srRead = () => ({ dayStart: $('sr_day').value, tank: {
+    groups: Object.fromEntries(['Own', 'Rental', 'Hired'].map(k => [k, document.querySelector('#sr_panel .sr-g[data-g="' + k + '"]').checked ? document.querySelector('#sr_panel .sr-gd[data-g="' + k + '"]').value.trim() : ''])),
+    machines: [...document.querySelectorAll('#sr_rows tr')].map(tr => ({ no: tr.querySelector('.sr-no').value, on: tr.querySelector('.sr-on').value === '1', days: tr.querySelector('.sr-days').value.trim() })).filter(x => x.no) } });
+  $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-rules'); if (!b) return; const site = b.dataset.code, box = $('sr_panel');
+    $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
+    api('/api/admin', { action: 'siteRulesGet', site: site }).then(d => srPanel(site, d))
+      .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="sr_close">Close</button>'; }); });
+  $('sr_panel').addEventListener('click', e => {
+    if (e.target.id === 'sr_close') { $('sr_panel').hidden = true; return; }
+    if (e.target.id === 'sr_add') { $('sr_rows').insertAdjacentHTML('beforeend', srRow(S.srMach || [], {})); return; }
+    if (e.target.classList.contains('sr-del')) { e.target.closest('tr').remove(); return; }
+    if (e.target.id !== 'sr_save') return; const b = e.target, site = b.dataset.site;
+    busy(b, 'Saving…', async () => { try { const d = await api('/api/admin', Object.assign({ action: 'siteRulesSave', site: site }, srRead()));
+      srPanel(site, d); toast('Day & tank check of ' + site + ' saved: the day starts at ' + d.dayStart + '.'); } catch (er) { fail(er); } }); });
   /* (with Mechanical's update-157, asked 24-10-2026) BACKUP SHEETS: every site its own Google Sheets, numbered (Sheet 1, 2 …), and
    * the Portal its own. "Change link" puts another Sheet in place of the one in use (the whole copy goes there); "Add Sheet N"
    * starts the next one when the one in use is full – the one before stays as it is. Each Sheet is shared with the backup robot. */
@@ -1277,7 +1314,7 @@
     $('bk_panel').dataset.who = JSON.stringify(who); $('bk_panel').dataset.act = act ? String(act.n) : '';
   }
   function bkOpen(who) {
-    const box = $('bk_panel'); $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('sto_panel').hidden = true; box.hidden = false;
+    const box = $('bk_panel'); $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('sto_panel').hidden = true; $('sr_panel').hidden = true; box.hidden = false;
     box.innerHTML = '<p class="note">Loading the backup Sheets from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
     api('/api/admin', Object.assign({ action: 'bkGet' }, who)).then(d => bkPanel(who, d))
       .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="bk_close">Close</button>'; });
@@ -1337,7 +1374,7 @@
         '<button class="sa-btn sm" type="button" id="sto_refresh">Refresh</button><button class="sa-btn sm" type="button" id="sto_close">Close</button></div>';
   }
   function stoOpen() {
-    const box = $('sto_panel'); $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('bk_panel').hidden = true; box.hidden = false;
+    const box = $('sto_panel'); $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('bk_panel').hidden = true; $('sr_panel').hidden = true; box.hidden = false;
     box.innerHTML = '<p class="note">Asking every site how full it is…</p>'; box.scrollIntoView({ block: 'nearest' });
     api('/api/admin', { action: 'stoGet' }).then(stoPanel).catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="sto_close">Close</button>'; });
   }

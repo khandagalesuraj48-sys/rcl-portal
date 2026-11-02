@@ -337,3 +337,17 @@ test('(with Mechanical update-195) Sites → Purchase backup: its own button and
   // any other target is a site of the list (nothing else reaches Mechanical)
   assert.match(adm, /const site = String\(x\.site \|\| ''\)\.toUpperCase\(\);\n  if \(!\/\^\[A-Z0-9\]\{1,12\}\$\/\.test\(site\) \|\| !await siteOk\(site\)\) throw fail\(400, 'Pick a site\.'\);\n  return \{ target: '', site: site \};/);
 });
+
+test('(with Mechanical update-203) Sites → Day & tank check: the hour the site\'s day starts and the tank check every N days before diesel – sent to Mechanical inside the signed ticket, the Super Admin only', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8'), adm = fs.readFileSync(path.join(__dirname, '..', 'api', 'admin.js'), 'utf8');
+  assert.match(adm, /async siteRulesGet\(me, x, req\) \{[\s\S]*?mechAsk\(req, me, \{ act: 'siteRules', site: site \}\)/);
+  assert.match(adm, /async siteRulesSave\(me, x, req\) \{[\s\S]*?throw fail\(400, 'Day starts at: type the hour as HH:MM \(for example 06:00\)\.'\);[\s\S]*?mechAsk\(req, me, \{ act: 'siteRulesSave', site: site, dayStart: dayStart, tank: tank \}\);[\s\S]*?await audit\(me\.email, 'Day & tank check', site,/);
+  assert.match(adm, /const s = await ses\.need\(req, \{ super: true, ownPassword: true \}\);/, 'every admin action: the Super Admin');
+  ['id="sr_panel"', 'class="link st-rules"', "action: 'siteRulesGet', site: site", "Object.assign({ action: 'siteRulesSave', site: site }, srRead())", 'id="sr_day"', "['Own', 'Rental', 'Hired']", 'class="link del sr-del"', 'id="sr_add"']
+    .forEach(w => assert.ok(html.includes(w), w));
+  // the page's rows, run on their own
+  const at = html.indexOf('  const srOpt = '), to = html.indexOf('  function srPanel(site, d) {');
+  const f = new Function('esc', html.slice(at, to) + '; return { srRow };')(s => String(s));
+  const row = f.srRow([{ no: 'MH-1', type: 'Tipper', ownership: 'Rental', not: '' }, { no: 'MH-2', type: 'JCB', ownership: 'Own', not: 'no Tank Capacity' }], { no: 'MH-1', on: false, days: 3 });
+  assert.ok(/<option value="MH-1" selected>MH-1 · Tipper · Rental<\/option>/.test(row) && /MH-2 · JCB · Own – no Tank Capacity/.test(row) && /<option value="0" selected>Not<\/option>/.test(row) && /value="3"/.test(row), row);
+});
