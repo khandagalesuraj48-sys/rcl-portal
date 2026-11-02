@@ -1,10 +1,12 @@
 /* POST /api/admin { action, … } – the Super Admin's console: users, who may open which module on which site, sites,
  * companies, modules, the activity record. Only the Super Admin; he himself opens no module (no entries, no reports). */
 'use strict';
+const BETA = require('../lib/beta');
+const REL = require('../lib/releases');
 const { handler, readBody, send, sameSite, fail, origin, publicUrl } = require('../lib/http');
 const crypto = require('crypto');
 const keys = require('../lib/keys');
-const { db, enc } = require('../lib/db');
+const { db, enc, rpc } = require('../lib/db');
 const pw = require('../lib/pw');
 const ses = require('../lib/session');
 const { audit } = require('../lib/audit');
@@ -69,14 +71,17 @@ async function storeTell(req, me, site) {
 // the Store's step 9 missing at a site: what the Super Admin is told (the rest is saved and told)
 const note9 = site => 'Saved and told to the Store. But the verification and approval of purchase orders, GRNs and issues (and Head Office\'s check) wait for the Store\'s database step 9 at ' + site + ': run sql/store_step9_workflow.sql (rcl-store) once in that site\'s Supabase → SQL Editor. The requirements\' verification works already.';
 async function overview() {
-  const [users, sites, mods, comps, acc] = await Promise.all([
+  const [users, sites, mods, comps, acc, s7] = await Promise.all([
     db('GET', 'users?select=email,name,active,is_super,password_hash,last_login_at&order=name.asc'),
     db('GET', 'sites?select=*&order=sort.asc,code.asc'),      // (29-10-2026) with its address and contact (step 5) when they are there
-    db('GET', 'modules?select=key,name,url,status,sort&order=sort.asc,key.asc'),
+    BETA.modules(),      // (02-11-2026) with each module's beta link (step 7)
     db('GET', 'companies?select=id,name,address,gstin,pan,logo&order=name.asc'),
-    accessRows('')]);
+    accessRows(''), BETA.step7()]);
+  const testers = s7 ? ((await db('GET', 'users?select=email&tester=is.true')) || []).map(x => x.email) : [];
   return {
-    users: (users || []).map(u => ({ email: u.email, name: u.name, active: !!u.active, super: !!u.is_super, mustChange: !u.is_super && pw.mustChange(u.password_hash), noPassword: !u.password_hash, lastLogin: u.last_login_at })),
+    users: (users || []).map(u => ({ email: u.email, name: u.name, active: !!u.active, super: !!u.is_super, mustChange: !u.is_super && pw.mustChange(u.password_hash), noPassword: !u.password_hash, lastLogin: u.last_login_at,
+      tester: testers.indexOf(u.email) > -1 })),
+    step7: s7,
     sites: (sites || []).map(s => ({ code: s.code, name: s.name, company_id: s.company_id, status: s.status, sort: s.sort, address: s.address || '', contact_name: s.contact_name || '', contact_phone: s.contact_phone || '', step5: 'address' in s,
       ho: hoOf(s.rules), step6: 'rules' in s })), modules: mods || [], companies: comps || [], access: acc || [], storePages: STORE_PAGES };      // (29-10-2026) its workflow's Head Office choices (step 6)
 }
@@ -400,8 +405,13 @@ const ACTIONS = {
   },
   async moduleSave(me, x) {
     const key = String(x.key || ''), url = clean(x.url, 300).replace(/\/+$/, ''), status = String(x.status || 'off'), name = clean(x.name, 40);
+    // (02-11-2026) the module's BETA copy – where the testers go (empty: none – everybody opens the stable one)
+    const beta = x.betaUrl === undefined ? undefined : clean(x.betaUrl, 300).replace(/\/+$/, '');
     if (!/^[a-z]{2,20}$/.test(key)) throw fail(400, 'The module key: 2 to 20 small letters (e.g. store).');
     if (url && !okUrl(url)) throw fail(400, 'The module link must start with https://');
+    if (beta && !okUrl(beta)) throw fail(400, 'The beta link must start with https://');
+    if (beta && beta === url) throw fail(400, 'The beta link must be the beta copy – not the module\'s own link.');
+    if (beta !== undefined && !await BETA.step7()) throw fail(400, BETA.STEP7, 'step7');
     if (['live', 'off'].indexOf(status) === -1) throw fail(400, 'A module is Live or Off.');
     if (status === 'live' && !url) throw fail(400, 'A module can be Live only with its link.');
     const cur = ((await db('GET', 'modules?select=key,name&key=eq.' + enc(key))) || [])[0];
@@ -409,14 +419,41 @@ const ACTIONS = {
       if (cur) throw fail(409, 'This module is already there.');
       if (name.length < 2) throw fail(400, 'Give the module a name.');
       const last = ((await db('GET', 'modules?select=sort&order=sort.desc&limit=1')) || [])[0];
-      await db('POST', 'modules', [{ key, name, url: url || null, status, sort: (last ? last.sort : 0) + 1 }], 'return=minimal');
+      await db('POST', 'modules', [Object.assign({ key, name, url: url || null, status, sort: (last ? last.sort : 0) + 1 }, beta !== undefined ? { beta_url: beta || null } : {})], 'return=minimal');
     } else {
       if (!cur) throw fail(404, 'This module is not in the list.');
       if (x.name !== undefined && x.name !== '' && name.length < 2) throw fail(400, 'Give the module a name.');
-      await db('PATCH', 'modules?key=eq.' + enc(key), Object.assign({ url: url || null, status: status }, name ? { name: name } : {}), 'return=minimal');
+      await db('PATCH', 'modules?key=eq.' + enc(key), Object.assign({ url: url || null, status: status }, name ? { name: name } : {}, beta !== undefined ? { beta_url: beta || null } : {}), 'return=minimal');
     }
-    await audit(me.email, x.isNew ? 'Module added' : 'Module changed', key, { name: name || (cur && cur.name), url: url, status: status });
+    await audit(me.email, x.isNew ? 'Module added' : 'Module changed', key, Object.assign({ name: name || (cur && cur.name), url: url, status: status }, beta !== undefined ? { beta: beta || 'none' } : {}));
     return { ok: true };
+  },
+  /* (02-11-2026) THE BETA CHANNEL: a TESTER opens the beta copy of the modules that have one (web and app); everybody else the stable
+   * one. Ticked for anyone – also for the Super Admin himself. His next opening of a module (and the app's next sign-in check) follows. */
+  async testerSet(me, x) {
+    if (!await BETA.step7()) throw fail(400, BETA.STEP7, 'step7');
+    const email = lc(x.email), on = x.tester === true, u = ((await db('GET', 'users?select=email&email=eq.' + enc(email))) || [])[0];
+    if (!u) throw fail(404, 'User ' + email + ' was not found.');
+    await db('PATCH', 'users?email=eq.' + enc(email), { tester: on }, 'return=minimal');
+    await audit(me.email, on ? 'Tester (beta) on' : 'Tester (beta) off', email, null);
+    return { ok: true, tester: on };
+  },
+  // the versions (the app's releases): Beta – only the testers have it; Stable – everybody
+  async versions(me) { return REL.list(); },
+  /* MAKE STABLE: the tested beta version to everybody – the web (each module's main moved to the very commit the testers used → live)
+   * and the app (the stable version → every phone told). One at a time; asked twice: nothing more is done. */
+  async makeStable(me, x) {
+    const tag = String(x.tag || '');
+    if (String(x.confirm || '').trim() !== tag) throw fail(400, 'Type the version (' + tag + ') to give it to everybody.', 'confirm');
+    const r = await REL.makeStable(tag, async work => {
+      // one press at a time: the database's own count (portal_hit – one statement, two presses at the same moment cannot both be
+      // first); a second press while one is running is told to wait; the hold ends by itself after 5 minutes
+      const key = 'REL_make-stable';
+      if (Number(await rpc('portal_hit', { p_key: key, p_ttl: 300 })) !== 1) throw fail(409, 'A version is being made stable right now – wait a minute and look again.', 'busy');
+      try { return await work(); } finally { await rpc('portal_unhit', { p_key: key }).catch(() => {}); }
+    });
+    await audit(me.email, 'Version made stable', tag, { moved: r.moved, already: r.already, app: r.app, told: r.told });
+    return r;
   },
   async endSessions(me, x) {
     const email = lc(x.email); if (!(await userOf(email))) throw fail(404, 'User ' + email + ' was not found.');

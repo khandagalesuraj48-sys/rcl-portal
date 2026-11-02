@@ -1,5 +1,6 @@
 /* POST /api/auth { action, … } – signing in and out, who am I, my password, and the Super Admin's recovery code. */
 'use strict';
+const BETA = require('../lib/beta');
 const { handler, readBody, send, sameSite, fail } = require('../lib/http');
 const { db, rpc, enc } = require('../lib/db');
 const pw = require('../lib/pw');
@@ -11,15 +12,18 @@ const { EMAIL, lc, recoveryCode, codeClean } = require('../lib/util');
 // what the dashboard shows: the sites and modules this person may open (only active sites, only modules that are live).
 // (14-10-2026, asked: "super admin la pages … disle pahijet") the Super Admin (all = true) opens EVERY module of every site, as its Admin.
 async function myItems(email, all) {
-  const [acc, sites, mods, comps] = await Promise.all([
+  const [acc, sites, mods, comps, tester] = await Promise.all([
     accessRows('email=eq.' + enc(email)),
     db('GET', 'sites?select=code,name,company_id,status,sort&order=sort.asc,code.asc'),
-    db('GET', 'modules?select=key,name,url,status,sort&order=sort.asc,key.asc'),
-    db('GET', 'companies?select=id,name')]);
+    BETA.modules(),      // (02-11-2026) with each module's beta link (step 7)
+    db('GET', 'companies?select=id,name'),
+    BETA.isTester(email)]);
   const items = [];
   (sites || []).filter(s => s.status === 'active').forEach(s => (mods || []).filter(m => m.status === 'live' && m.url).forEach(m => {
     const a = all ? { role: 'admin' } : (acc || []).find(x => x.site === s.code && x.module === m.key);
-    if (a) items.push({ site: s.code, siteName: s.name, company: ((comps || []).find(c => c.id === s.company_id) || {}).name || '', module: m.key, moduleName: m.name, url: m.url, role: a.role, pages: a.pages || null });
+    // (02-11-2026) a TESTER opens the module's beta copy (when it has one) – here for the app's links and for /api/go alike
+    if (a) items.push(Object.assign({ site: s.code, siteName: s.name, company: ((comps || []).find(c => c.id === s.company_id) || {}).name || '', module: m.key, moduleName: m.name, url: BETA.urlFor(m, tester), role: a.role, pages: a.pages || null },
+      tester && m.beta_url ? { beta: true } : {}));
   }));
   return items;
 }
@@ -72,7 +76,7 @@ const ACTIONS = {
     const u = s.user, must = pw.mustChange(u.password_hash), items = must ? [] : await myItems(u.email, !!u.is_super);
     // his start (the module that opens straight after sign-in) – only while he still has it
     const st = items.length ? await startOf(u.email) : null, start = st === null ? '' : st;
-    return { body: { signedIn: true, preview: isPreview() || undefined, user: { email: u.email, name: u.name, super: !!u.is_super }, mustChange: must, items: items,
+    return { body: { signedIn: true, preview: isPreview() || undefined, user: { email: u.email, name: u.name, super: !!u.is_super, tester: (await BETA.isTester(u.email)) || undefined }, mustChange: must, items: items,
       start: items.some(i => i.module + '|' + i.site === start) ? start : '', startReady: st !== null } };
   },
   // "My start": the module (on a site) that opens straight after his sign-in – one of his own; empty = the dashboard

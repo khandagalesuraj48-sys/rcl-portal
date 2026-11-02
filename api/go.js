@@ -52,7 +52,6 @@ module.exports = handler(async (req, res) => {
   const items = await myItems(u.email, !!u.is_super);
   const it = items.find(x => x.module === mod && x.site === site);
   if (!it) return back('../?msg=noaccess', 'noaccess');
-  const m = ((await db('GET', 'modules?select=url&key=eq.' + enc(mod))) || [])[0];
   const now = Math.floor(Date.now() / 1000);
   const paper = mod === 'store' ? await paperOf(site) : null;
   const ticket = await keys.sign({
@@ -71,5 +70,6 @@ module.exports = handler(async (req, res) => {
     iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') });
   if (!renew) await audit(u.email, 'Opened module', mod + ' · ' + site, null);
   if (asJson) return send(res, 200, { ticket: ticket });
-  redirect(res, String(m.url).replace(/\/+$/, '') + '/#sso=' + ticket + (page ? '&page=' + enc(page) : ''));
+  // (02-11-2026) the module's address from his own list: a TESTER goes to its beta copy (when it has one), everybody else to the stable one
+  redirect(res, String(it.url).replace(/\/+$/, '') + '/#sso=' + ticket + (page ? '&page=' + enc(page) : ''));
 });

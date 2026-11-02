@@ -200,6 +200,8 @@
   .sa-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
   .sa-pill.on { background: var(--s-gsoft); color: var(--s-green); } .sa-pill.off { background: #F1F5F9; color: var(--s-muted); }
   .sa-pill.dot::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .sa-pill.beta { background: #FEF3C7; color: #92400E; font-size: 11px; padding: 1px 8px; margin-left: 6px; }      /* (02-11-2026) a tester / a beta version */
+  .sa-ver td { vertical-align: top; } .sa-ver .new { white-space: pre-line; font-size: 13px; max-width: 520px; }
   label.sa-pill { cursor: pointer; margin: 0; position: relative; }      /* (its hidden box stays inside the table's box) */ label.sa-pill input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
   .sa td select { min-height: 36px; border-radius: 8px; padding: 4px 8px; min-width: 112px; }
   .sa .sel-r.admin { color: var(--s-blue); } .sa .sel-r.user { color: var(--s-green); } .sa .sel-r.none { color: var(--s-muted); }
@@ -394,6 +396,7 @@
       <button type="button" role="tab" data-t="wf" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3.5" width="6" height="5" rx="1.2"/><rect x="15" y="3.5" width="6" height="5" rx="1.2"/><rect x="9" y="15.5" width="6" height="5" rx="1.2"/><path d="M9 6h6M18 8.5v3.5H12v3.5"/></svg>Workflow</button>
       <button type="button" role="tab" data-t="companies" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="11" height="18" rx="1.5"/><path d="M15 9h4.5a.5.5 0 0 1 .5.5V21H15"/><path d="M8 7h3M8 11h3M8 15h3"/></svg>Companies</button>
       <button type="button" role="tab" data-t="modules" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Modules</button>
+      <button type="button" role="tab" data-t="versions" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5-8 4.5-8-4.5z"/><path d="M4 12l8 4.5 8-4.5"/><path d="M4 16.5l8 4.5 8-4.5"/></svg>Versions</button>
       <button type="button" role="tab" data-t="audit" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Activity</button>
       <button type="button" role="tab" data-t="me" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 4-6.5 8-6.5s7.2 2.3 8 6.5"/></svg>My Account</button>
     </nav>
@@ -487,7 +490,12 @@
       <section id="t_modules" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Module management</span><h1>Modules</h1><p>A module shows on the dashboard only when it is <b>Live</b> and has its link. A module that is <b>Off</b> can be deleted (not Mechanical).</p></div>
           <button class="sa-btn primary" id="m_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add module</button></div>
-        <div class="sa-card"><div class="tw"><table><thead><tr><th>Module</th><th>Link</th><th>Status</th><th>Actions</th></tr></thead><tbody id="m_rows"></tbody></table></div></div>
+        <div class="sa-card"><div class="tw"><table><thead><tr><th>Module</th><th>Link</th><th>Beta link <small>(testers)</small></th><th>Status</th><th>Actions</th></tr></thead><tbody id="m_rows"></tbody></table></div></div>
+      </section>
+      <section id="t_versions" class="sa-page" hidden>
+        <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5-8 4.5-8-4.5z"/><path d="M4 12l8 4.5 8-4.5"/><path d="M4 16.5l8 4.5 8-4.5"/></svg>Beta → Stable</span><h1>Versions</h1><p>A new version goes first to the <b>testers</b> (Beta). When it is fine, <b>Give to everybody</b> makes it the stable one: the web of every module becomes that version and every phone gets the app update.</p></div>
+          <button class="sa-btn outline" id="v_reload" type="button">Refresh</button></div>
+        <div class="sa-card"><p class="note" id="v_note" hidden></p><div class="tw"><table class="sa-ver"><thead><tr><th>Version</th><th>Date</th><th>What's new</th><th>Web</th><th>App</th><th>State</th></tr></thead><tbody id="v_rows"><tr><td colspan="6">Loading…</td></tr></tbody></table></div></div>
       </section>
       <section id="t_audit" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Audit logs</span><h1>Activity</h1><p>Sign-ins, users, access, sites, companies, modules – the last 200.</p></div>
@@ -900,9 +908,9 @@
   function fail(e) { if (e.code === 'session' || e.status === 401) { toast(MR.session, true); return loginView(); } toast(msgOf(e), true); }
   function tab(t) {
     S.tab = t; document.querySelectorAll('#sa_tabs button[data-t]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === t)));
-    ['users', 'sites', 'wf', 'companies', 'modules', 'audit', 'me'].forEach(k => { $('t_' + k).hidden = k !== t; });
+    ['users', 'sites', 'wf', 'companies', 'modules', 'versions', 'audit', 'me'].forEach(k => { $('t_' + k).hidden = k !== t; });
     $('v_sa').classList.remove('nav-open'); menuClose(); $('sa_q').value = '';
-    if (t === 'users') { userClose(); users(); } else if (t === 'sites') sites(); else if (t === 'wf') workflow(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'audit') audit(); else if (t === 'me') meTab(S.meTab || 'pw');
+    if (t === 'users') { userClose(); users(); } else if (t === 'sites') sites(); else if (t === 'wf') workflow(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'versions') versions(); else if (t === 'audit') audit(); else if (t === 'me') meTab(S.meTab || 'pw');
     window.scrollTo(0, 0);
   }
   $('sa_tabs').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) tab(b.dataset.t); });
@@ -972,7 +980,7 @@
     return '<tr data-email="' + esc(u.email) + '"' + (isNew ? ' data-new="1"' : on ? '' : ' class="off"') + '>' +
       '<td class="num">' + (isNew ? '+' : n) + '</td>' +
       '<td class="w">' + (isNew ? '<input class="u-email" type="email" placeholder="email" aria-label="Email"><input class="u-name" placeholder="name" aria-label="Name" style="margin-top:4px">'
-        : '<div class="sa-user">' + av(u.name, u.email) + '<div><button type="button" class="u-pages" data-email="' + esc(u.email) + '" title="Module access of this user">' + esc(u.name) + '</button><small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + '</small></div></div>') + '</td>' +
+        : '<div class="sa-user">' + av(u.name, u.email) + '<div><button type="button" class="u-pages" data-email="' + esc(u.email) + '" title="Module access of this user">' + esc(u.name) + '</button>' + (u.tester ? '<span class="sa-pill beta" title="Tester – opens the beta (new) versions">Beta</span>' : '') + '<small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + '</small></div></div>') + '</td>' +
       '<td>' + (isNew ? '' : '<a class="sa-mail" href="mailto:' + esc(u.email) + '" title="' + esc(u.email) + '" aria-label="Email ' + esc(u.email) + '">' + IC.mail + '</a>') + '</td>' +
       '<td><label class="sa-pill ' + (on ? 'on' : 'off') + '"><input type="checkbox" class="u-active"' + (on ? ' checked' : '') + ' aria-label="Active"><span>' + (on ? 'Active' : 'Inactive') + '</span></label></td>' +
       mods().map(m => '<td>' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + '</td>').join('') +
@@ -1044,7 +1052,14 @@
       '<dt>Password</dt><dd>' + (u.noPassword ? 'No password yet' : u.mustChange ? 'One-time password – he sets his own at his next sign-in' : 'His own') + '</dd>' +
       '<dt>Last sign-in</dt><dd>' + (u.lastLogin ? esc(new Date(u.lastLogin).toLocaleString('en-IN')) : '–') + '</dd>' +
       '<dt>Access</dt><dd>' + (mine.length ? mine.map(a => esc(modOf(a.module)) + ' – ' + (a.role === 'admin' ? 'Admin' : 'User') + ' · ' + esc(siteOf(a.site)) + ' (' + esc(a.site) + ')').join('<br>') : 'No module on any site') + '</dd></dl>' +
-      '<p class="note" style="margin-top:14px">The status, the access and a new one-time password are changed in the users list (Back to users).</p>';
+      '<p class="note" style="margin-top:14px">The status, the access and a new one-time password are changed in the users list (Back to users).</p>' +
+      // (02-11-2026) THE BETA CHANNEL: a tester opens the new (beta) version of the modules first – web and app; everybody else the stable one
+      '<h3 class="sa-grp">Beta (testing)</h3>' + (d.step7 ? '<label class="sa-chk"><input type="checkbox" id="u_tester"' + (u.tester ? ' checked' : '') + '> <b>Tester</b> – opens the new versions first (web and app). Everybody else keeps the stable version.</label>'
+        : '<p class="note">Needs the Portal\'s database step 7 first: run sql/portal_step7_beta.sql once in the Portal\'s Supabase → SQL Editor.</p>');
+    const tb = $('u_tester');
+    if (tb) tb.addEventListener('change', async () => { tb.disabled = true;
+      try { await api('/api/admin', { action: 'testerSet', email: u.email, tester: tb.checked }); toast(tb.checked ? u.name + ' is a tester – his next opening shows the beta version.' : u.name + ' is back on the stable version.'); await load(); users(); }
+      catch (er) { tb.checked = !tb.checked; fail(er); } finally { tb.disabled = false; } });
   }
   async function userLogins(email) {
     const box = $('pg_login'); if (!box || box.dataset.done === email) return; box.innerHTML = '<p class="note">Loading…</p>';
@@ -1371,7 +1386,8 @@
   function modules() {
     const d = S.data; if (!d) return;
     S.modRow = (m, isNew) => '<tr data-key="' + esc(m.key) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="m-key" placeholder="key, e.g. store" style="width:150px"><input class="m-name" placeholder="name, e.g. Store" style="width:150px;margin-top:4px">' : '<div class="sa-co">' + pgIcon(m.name) + '<div><input class="m-name" maxlength="40" value="' + esc(m.name) + '" aria-label="Name" style="width:160px"><small>' + esc(m.key) + '</small></div></div>') + '</td>' +
-      '<td class="w"><input class="m-url" placeholder="https://…" value="' + esc(m.url || '') + '" aria-label="Link"></td><td><select class="m-status ' + (m.status === 'live' ? 'live' : 'off') + '" aria-label="Status"><option value="live"' + (m.status === 'live' ? ' selected' : '') + '>Live</option><option value="off"' + (m.status !== 'live' ? ' selected' : '') + '>Off</option></select></td>' +
+      '<td class="w"><input class="m-url" placeholder="https://…" value="' + esc(m.url || '') + '" aria-label="Link"></td>' +
+      '<td class="w"><input class="m-beta" placeholder="' + (S.data.step7 ? 'none – everybody stable' : 'needs step 7') + '" value="' + esc(m.beta_url || '') + '" aria-label="Beta link"' + (S.data.step7 ? '' : ' disabled') + '></td><td><select class="m-status ' + (m.status === 'live' ? 'live' : 'off') + '" aria-label="Status"><option value="live"' + (m.status === 'live' ? ' selected' : '') + '>Live</option><option value="off"' + (m.status !== 'live' ? ' selected' : '') + '>Off</option></select></td>' +
       '<td><div class="acts"><button class="sa-btn primary sm m-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (isNew ? '<button class="link m-cancel" type="button">Cancel</button>' : '') + (!isNew && m.key !== 'mechanical' && m.status !== 'live' ? '<button class="link del m-del" type="button">Delete</button>' : '') + '</div></td></tr>';
     $('m_rows').innerHTML = d.modules.map(m => S.modRow(m, false)).join('');
   }
@@ -1379,7 +1395,8 @@
   $('m_rows').addEventListener('change', e => { if (e.target.classList.contains('m-status')) e.target.className = 'm-status ' + e.target.value; });
   $('m_rows').addEventListener('click', e => { if (e.target.closest('.m-cancel')) { e.target.closest('tr').remove(); return; }
     const sv = e.target.closest('.m-save'); if (!sv) return; const tr = sv.closest('tr'), isNew = !!tr.dataset.new;
-    busy(sv, 'Saving…', async () => { try { await api('/api/admin', { action: 'moduleSave', isNew: isNew, key: isNew ? tr.querySelector('.m-key').value.trim() : tr.dataset.key, name: tr.querySelector('.m-name').value, url: tr.querySelector('.m-url').value.trim(), status: tr.querySelector('.m-status').value });
+    busy(sv, 'Saving…', async () => { try { await api('/api/admin', Object.assign({ action: 'moduleSave', isNew: isNew, key: isNew ? tr.querySelector('.m-key').value.trim() : tr.dataset.key, name: tr.querySelector('.m-name').value, url: tr.querySelector('.m-url').value.trim(), status: tr.querySelector('.m-status').value },
+        S.data.step7 ? { betaUrl: tr.querySelector('.m-beta').value.trim() } : {}));
       toast('Module saved.'); await load(); modules(); } catch (er) { fail(er); } }); });
   // delete a module that is Off – its key typed again; everybody's access to it goes too
   $('m_rows').addEventListener('click', e => { const b = e.target.closest('.m-del'); if (!b) return; const key = b.closest('tr').dataset.key, m = S.data.modules.find(x => x.key === key) || {};
@@ -1387,6 +1404,26 @@
     const typed = window.prompt('Delete the module ' + (m.name || key) + '?\n\nIt leaves the list' + (n ? ' and ' + n + ' access given to it are removed' : '') + '. Its own app and data are not touched.\n\nType the module key (' + key + ') to delete it:');
     if (typed === null) return;
     busy(b, 'Deleting…', async () => { try { await api('/api/admin', { action: 'moduleDelete', key: key, confirm: typed }); toast('Module deleted.'); await load(); modules(); } catch (er) { fail(er); } }); });
+  // (02-11-2026) VERSIONS – the beta ones (only the testers have them) and the stable one (everybody). "Give to everybody" on a beta
+  // version: the Portal moves every module's web to the tested code, makes the app's version the stable one and tells every phone.
+  async function versions() {
+    const rows = $('v_rows'), note = $('v_note'); rows.innerHTML = '<tr><td colspan="6">Loading…</td></tr>'; note.hidden = true;
+    let v; try { v = await api('/api/admin', { action: 'versions' }); } catch (er) { rows.innerHTML = '<tr><td colspan="6">' + esc(msgOf(er)) + '</td></tr>'; return; }
+    if (!v.token) { note.hidden = false; note.textContent = 'The Portal has no GitHub key yet (GITHUB_RELEASE_TOKEN in Vercel) – the versions show, but "Give to everybody" works only after the one-time set-up.'; }
+    const day = t => t ? new Date(t).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '–';
+    rows.innerHTML = v.versions.map(r => '<tr data-tag="' + esc(r.tag) + '"><td><b>' + esc(r.version || r.name || r.tag) + '</b>' + (r.build ? '<br><small>build ' + esc(r.build) + '</small>' : '') + '</td>' +
+      '<td>' + esc(day(r.at)) + '</td><td class="new">' + esc(r.new || '–') + '</td><td>' + esc(r.web.join(', ') || '–') + '</td><td>' + (r.app ? 'Yes' : '–') + '</td>' +
+      '<td>' + (r.stable ? '<span class="sa-pill dot on">Stable – everybody</span>' : r.beta ? '<span class="sa-pill beta" style="margin:0">Beta – testers</span>' : '<span class="sa-pill">Older</span>') +
+      (r.canMakeStable ? '<br><button class="sa-btn primary sm v-make" type="button" style="margin-top:8px"' + (v.token ? '' : ' disabled') + '>Give to everybody (Stable)</button>' : '') + '</td></tr>').join('') ||
+      '<tr><td colspan="6">No version yet – the first one comes from the app\'s beta build.</td></tr>';
+  }
+  $('v_reload').addEventListener('click', () => versions());
+  $('v_rows').addEventListener('click', e => { const b = e.target.closest('.v-make'); if (!b) return; const tag = b.closest('tr').dataset.tag;
+    const typed = window.prompt('Give version ' + tag + ' to everybody?\n\nThe web of every module becomes the tested version, the app becomes the stable one and every phone is told to update. Only what the testers had goes live.\n\nType the version (' + tag + ') to go ahead:');
+    if (typed === null) return;
+    busy(b, 'Making it stable…', async () => { try { const r = await api('/api/admin', { action: 'makeStable', tag: tag, confirm: typed.trim() });
+      toast('Version ' + (r.version || r.tag) + ' is stable for everybody.' + (r.moved.filter(x => x !== 'App').length ? ' Web live: ' + r.moved.filter(x => x !== 'App').join(', ') + '.' : '') + (r.told ? ' Every phone is told to update.' : ''));
+      await versions(); } catch (er) { fail(er); } }); });
   // activity – the last 200 lines from the server; What / From / To / the search only choose which of them show
   const day = at => { const d = new Date(at), p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); };
   const auditRow = x => '<tr><td>' + esc(new Date(x.at).toLocaleString('en-IN')) + '</td><td><div class="sa-co">' + av(x.actor, x.actor) + '<span>' + esc(x.actor) + '</span></div></td><td><span class="sa-pill act">' + esc(x.action) + '</span></td><td>' + esc(x.target) + '</td><td class="sa-detail-txt"><small>' + esc(x.detail ? JSON.stringify(x.detail) : '') + '</small></td></tr>';
