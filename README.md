@@ -109,7 +109,8 @@ sangahla".
   change.) Without it the versions show and the button says the key is missing.
 * **Database: `sql/portal_step7_beta.sql`** – once, in the Portal's Supabase: it only adds `users.tester` (false) and `modules.beta_url`
   (empty). Until then everybody is stable, as today, and the tester switch says the step is needed.
-* Tests: unit 19/19; the rig's `test/beta.rig.test.js` (2/2, with `test/github-standin.js` – nothing reaches GitHub).
+* Tests: unit 19/19; the rig's `test/beta.rig.test.js` (2/2, with `test/github-standin.js` – nothing reaches GitHub) and
+  `test/beta.e2e.rig.test.js` (2/2: the beta copies of Mechanical and the Store next to the stable ones, on databases with no test mark).
 
 ## The Store's workflow: who verifies, who approves, what goes to Head Office (29-10-2026; the Portal's step 6, the Store's step 9)
 His words: "pratek kamamadhe … entry krnarana to verification la pathawel … verification kel tr te auto jyanche kadhe approval aahe
