@@ -10,7 +10,7 @@
 'use strict';
 const test = require('node:test'), assert = require('node:assert'), { execSync, spawn } = require('child_process'), path = require('path'), fs = require('fs'), os = require('os');
 const P = 'http://127.0.0.1:3010', MECH = '/home/claude/rclerp', STORE = '/home/claude/rcl-store';
-const sql = q => execSync('timeout 60 su postgres -c "psql -d rcl_portal -tA -q"', { input: q }).toString().trim();
+const sql = (q, d) => execSync('timeout 60 su postgres -c "psql -d ' + (d || 'rcl_portal') + ' -tA -q"', { input: q }).toString().trim();
 const lit = v => "'" + String(v).replace(/'/g, "''") + "'";
 const SAPW = ['Super#Admin2040', 'Super#Admin2041'], PW = 'Beta#Rig2026!xYz';
 const SITES_KEY = 'rig-sites-key-0123456789-abcdefghij';
@@ -33,8 +33,11 @@ function start(cwd, port, env) {
 }
 async function up(port) { for (let i = 0; i < 80; i++) { try { const r = await fetch('http://127.0.0.1:' + port + '/', { signal: AbortSignal.timeout(2000) }); if (r.status < 500) return; } catch (e) { /* not yet */ } await new Promise(r => setTimeout(r, 250)); } throw new Error('not up: ' + port); }
 const BETA = { VERCEL_ENV: 'preview', VERCEL_GIT_COMMIT_REF: 'beta', RCL_CHANNEL: 'beta' }, OTHER = { VERCEL_ENV: 'preview', VERCEL_GIT_COMMIT_REF: 'feature-x', RCL_CHANNEL: '' };
-let SA, N, mods, mechDir;
+let SA, N, mods, mechDir, saWasMech;
 test.before(async () => {
+  // (the Super Admin's sign-in at Mechanical's beta copy makes him a Mechanical user of S1, as any first opening does – taken away
+  // after, when he was not one before: the rig stays as it was for the other tests)
+  saWasMech = sql("select count(*) from app_users where email = 'sa@rcl.test'", 'rcl') !== '0';
   // Mechanical's working tree as the rig runs it (its own folder: the beta copies must not touch /home/claude/vercel)
   mechDir = fs.mkdtempSync(path.join(os.tmpdir(), 'rcl-beta-mech-'));
   execSync('tar --exclude=./.git --exclude=./public --exclude=./node_modules -cf - . | (cd ' + mechDir + ' && tar -xf -)', { cwd: MECH, timeout: 60000 });
@@ -60,6 +63,7 @@ test.before(async () => {
 });
 test.after(async () => {
   try { sql("update users set tester = false where email in ('sa@rcl.test', 'beta-n@beta.test'); update modules set beta_url = null;"); } catch (e) { /* (the database) */ }
+  if (!saWasMech) try { sql("delete from rcl_user_sites where email = 'sa@rcl.test'; delete from app_users where email = 'sa@rcl.test';", 'rcl'); } catch (e) { /* (the database) */ }
   procs.forEach(p => { try { process.kill(-p.pid); } catch (e) { /* gone */ } });
   try { fs.rmSync(mechDir, { recursive: true, force: true }); } catch (e) { /* (left in the temporary folder) */ }
 });
