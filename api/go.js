@@ -12,6 +12,8 @@ const ses = require('../lib/session');
 const keys = require('../lib/keys');
 const { audit } = require('../lib/audit');
 const { myItems } = require('./auth');
+// (with Mechanical update-208) the site whose Mechanical opens at its own address (<Mechanical>/ho/) – Head Office
+const HO_SITE = 'HO';
 
 /* (29-10-2026, his requirement printed with an empty heading: "mala te kahi save karayla nko sangu … mi agodar sagle save keley") THE
  * PAPERS' HEADING – the Store's PO and Purchase Requisition Form – comes with the Store's ticket, from what the Super Admin gave here:
@@ -71,5 +73,7 @@ module.exports = handler(async (req, res) => {
   if (!renew) await audit(u.email, 'Opened module', mod + ' · ' + site, null);
   if (asJson) return send(res, 200, { ticket: ticket });
   // (02-11-2026) the module's address from his own list: a TESTER goes to its beta copy (when it has one), everybody else to the stable one
-  redirect(res, String(it.url).replace(/\/+$/, '') + '/#sso=' + ticket + (page ? '&page=' + enc(page) : ''));
+  // (with Mechanical update-208, 03-11-2026) Head Office's Mechanical at its own address: <Mechanical>/ho/ (no other site there; the
+  // main address has no Head Office)
+  redirect(res, String(it.url).replace(/\/+$/, '') + (mod === 'mechanical' && site === HO_SITE ? '/ho/' : '/') + '#sso=' + ticket + (page ? '&page=' + enc(page) : ''));
 });

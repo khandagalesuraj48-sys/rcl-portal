@@ -351,3 +351,16 @@ test('(with Mechanical update-203) Sites → Day & tank check: the hour the site
   const row = f.srRow([{ no: 'MH-1', type: 'Tipper', ownership: 'Rental', not: '' }, { no: 'MH-2', type: 'JCB', ownership: 'Own', not: 'no Tank Capacity' }], { no: 'MH-1', on: false, days: 3 });
   assert.ok(/<option value="MH-1" selected>MH-1 · Tipper · Rental<\/option>/.test(row) && /MH-2 · JCB · Own – no Tank Capacity/.test(row) && /<option value="0" selected>Not<\/option>/.test(row) && /value="3"/.test(row), row);
 });
+
+test('(with Mechanical update-208) Head Office\'s Mechanical opens at its own address <Mechanical>/ho/ – every other module and site as before', () => {
+  const go = fs.readFileSync(path.join(__dirname, '..', 'api', 'go.js'), 'utf8');
+  assert.match(go, /const HO_SITE = 'HO';/);
+  assert.match(go, /redirect\(res, String\(it\.url\)\.replace\(\/\\\/\+\$\/, ''\) \+ \(mod === 'mechanical' && site === HO_SITE \? '\/ho\/' : '\/'\) \+ '#sso=' \+ ticket \+ \(page \? '&page=' \+ enc\(page\) : ''\)\);/);
+  // the address as built, for each case (a module's address may end with "/")
+  const at = (url, mod, site) => String(url).replace(/\/+$/, '') + (mod === 'mechanical' && site === 'HO' ? '/ho/' : '/') + '#sso=T';
+  assert.deepStrictEqual([at('https://x.vercel.app', 'mechanical', 'HO'), at('https://x.vercel.app/', 'mechanical', 'VTR'), at('https://x.vercel.app/store', 'store', 'HO')],
+    ['https://x.vercel.app/ho/#sso=T', 'https://x.vercel.app/#sso=T', 'https://x.vercel.app/store/#sso=T']);
+  // the ticket's answer (json=1, a module inside another) and the person's list (the app, the dashboard) are not changed
+  assert.match(go, /if \(asJson\) return send\(res, 200, \{ ticket: ticket \}\);/);
+  assert.doesNotMatch(fs.readFileSync(path.join(__dirname, '..', 'api', 'auth.js'), 'utf8'), /\/ho\//);
+});
