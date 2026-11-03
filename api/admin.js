@@ -220,6 +220,29 @@ const ACTIONS = {
     await audit(me.email, 'Diesel places', site, Object.assign({ places: (r.places || []).map(p => p.name + ' ' + p.cap + ' Ltr' + (p.fuel && p.fuel !== 'Diesel' ? ' ' + p.fuel : '')) }, mode ? { fuel: r.mode === 'card' ? 'fuel cards – no stock' : 'diesel places – stock' } : {}));
     return { ok: true, site: site, places: r.places || [], set: !!r.set, entries: !!r.entries, firstFixed: !!r.firstFixed, mode: r.mode === 'card' ? 'card' : 'stock', cardEntries: !!r.cardEntries };
   },
+  /* (with Mechanical's update-203, asked 02-11-2026: "super admin la asa access banaun de … portal madhun site wise change kru shakel";
+   * "super admin la access de konte site la tank check compulsory karaych konala … own rental hired and machine wise … kiti disani …
+   * changes edit delete") Sites → Day & tank check: the hour the site's day starts (06:00 unless set) and the tank check every N days
+   * before diesel – Mechanical keeps them in the site's own database and checks them (and lists the site's machinery). */
+  async siteRulesGet(me, x, req) {
+    const site = String(x.site || '').toUpperCase();
+    if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
+    const r = await mechAsk(req, me, { act: 'siteRules', site: site });
+    return { site: site, dayStart: r.dayStart || '06:00', tank: r.tank || { since: '', groups: {}, machines: [] }, machines: r.machines || [] };
+  },
+  async siteRulesSave(me, x, req) {
+    const site = String(x.site || '').toUpperCase();
+    if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
+    const dayStart = String(x.dayStart || '').trim();
+    if (!/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(dayStart)) throw fail(400, 'Day starts at: type the hour as HH:MM (for example 06:00).');
+    const t = x.tank && typeof x.tank === 'object' ? x.tank : {}, g = t.groups && typeof t.groups === 'object' ? t.groups : {}, d = v => String(v === undefined || v === null ? '' : v).trim().slice(0, 3);
+    const tank = { groups: { Own: d(g.Own), Rental: d(g.Rental), Hired: d(g.Hired) },
+      machines: (Array.isArray(t.machines) ? t.machines : []).slice(0, 500).filter(m => m && typeof m === 'object' && String(m.no || '').trim()).map(m => ({ no: String(m.no).replace(/\s+/g, ' ').trim().slice(0, 60), on: m.on !== false, days: d(m.days) })) };
+    const r = await mechAsk(req, me, { act: 'siteRulesSave', site: site, dayStart: dayStart, tank: tank });
+    const words = q => ['Own', 'Rental', 'Hired'].filter(k => (q.groups || {})[k]).map(k => k + ' ' + q.groups[k] + ' days').concat((q.machines || []).map(m => m.no + (m.on ? ' ' + (m.days || 'group') + ' days' : ' not'))).join(', ') || 'off';
+    await audit(me.email, 'Day & tank check', site, { dayStart: r.dayStart, tank: words(r.tank || {}) });
+    return { ok: true, site: site, dayStart: r.dayStart, tank: r.tank, machines: r.machines || [] };
+  },
   /* (with Mechanical's update-157, asked 24-10-2026) Sites → Backup: a site's numbered Google Sheets (Sheet 1, 2 …) and the
    * Portal's own – Mechanical keeps them and makes the backup (it checks every link: the backup robot can open it, it is no other
    * site's). x.target 'portal' = the Portal's backup, else x.site. */
