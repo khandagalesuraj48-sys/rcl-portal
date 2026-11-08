@@ -364,3 +364,26 @@ test('(with Mechanical update-208) Head Office\'s Mechanical opens at its own ad
   assert.match(go, /if \(asJson\) return send\(res, 200, \{ ticket: ticket \}\);/);
   assert.doesNotMatch(fs.readFileSync(path.join(__dirname, '..', 'api', 'auth.js'), 'utf8'), /\/ho\//);
 });
+
+test('(with Mechanical update-212) Sites → Vehicle photos of a site on fuel cards (HO): the Super Admin only; the photo made smaller on the page, seen first; its two files sent BESIDE the signed ticket, which names them by their SHA-256; a bigger body only for this route, after the sign-in is checked', async () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8'), adm = fs.readFileSync(path.join(__dirname, '..', 'api', 'admin.js'), 'utf8'), http = fs.readFileSync(path.join(__dirname, '..', 'lib', 'http.js'), 'utf8');
+  assert.match(adm, /async carPhotos\(me, x, req\) \{[\s\S]*?mechAsk\(req, me, Object\.assign\(\{ act: 'carPhotos', site: site \}, x\.fresh === true \? \{ fresh: true \} : \{\}\)\)/);
+  assert.match(adm, /async carPhotoSet\(me, x, req\) \{[\s\S]*?const r = await mechAsk\(req, me, \{ act: 'carPhotoSet', site: site, no: no, was: was, sha: \{ full: full\.sha, thumb: thumb\.sha \} \}, \{ full: full\.url, thumb: thumb\.url \}\);[\s\S]*?await audit\(me\.email, 'Vehicle photo'/);
+  assert.match(adm, /async carPhotoRemove\(me, x, req\) \{[\s\S]*?mechAsk\(req, me, \{ act: 'carPhotoRemove', site: site, no: no, was:/);
+  assert.match(adm, /body: JSON\.stringify\(\{ fn: 'portalAdmin', args: files \? \[t, files\] : \[t\] \}\)/, 'the files beside the ticket (the ticket stays small – Mechanical takes at most 8,000 letters)');
+  assert.match(adm, /const s = await ses\.need\(req, \{ super: true, ownPassword: true \}\);\n\s+const x = await readBody\(req, 4500000\)/, 'the Super Admin\'s sign-in is checked BEFORE the bigger body is read');
+  assert.match(http, /function readBody\(req, max\) \{\n\s+const lim = Number\(max\) > 0 \? Number\(max\) : 200000;/, 'every other route: 200 KB as before');
+  // the fingerprints: what Mechanical computes from the bytes it gets
+  const at = adm.indexOf('    const img = (v, max) =>'), to = adm.indexOf('    const full = img(x.full');
+  const fail = (c, m) => Object.assign(new Error(m), { status: c });
+  const img = new Function('fail', 'crypto', 'Buffer', adm.slice(at, to) + '; return img;')(fail, crypto, Buffer);
+  const b = Buffer.concat([Buffer.from([0xFF, 0xD8, 0xFF]), Buffer.from('car')]);
+  assert.deepStrictEqual(img('data:image/jpeg;base64,' + b.toString('base64'), 1000), { url: 'data:image/jpeg;base64,' + b.toString('base64'), sha: crypto.createHash('sha256').update(b).digest('hex') });
+  assert.throws(() => img('data:image/png;base64,AAAA', 1000), /must be a picture/);
+  assert.throws(() => img('data:image/jpeg;base64,' + Buffer.alloc(2000).toString('base64'), 1000), /too big/);
+  // the page: the link in a site's row, its panel closes with the others, made smaller here, seen first, Remove asks first
+  ['id="vp_panel"', 'class="link st-photos"', "action: 'carPhotos', site: site", "action: 'carPhotoSet', site: site, no: m.no, was: m.was, full: await vpData(m.full.blob), thumb: await vpData(m.thumb.blob)",
+    "action: 'carPhotoRemove', site: VP.site, no: c.no", 'accept="image/jpeg,image/png,image/webp"', 'vpJpeg(im, 1600, 0.82, 1536 * 1024)', 'vpJpeg(im, 480, 0.78, 380 * 1024)', 'Nothing is saved until you press Save photo.',
+    "window.confirm('Remove the photo of '", 'c.photo.exp - Date.now() < 90000', "im.dataset.tried = '1'; vpRefresh(true);", 'p.exp = Date.now() + p.left'].forEach(w => assert.ok(html.includes(w), w));
+  assert.strictEqual((html.match(/\$\('vp_panel'\)\.hidden = true;/g) || []).length, 6, 'every other panel of Sites closes it (New site, Diesel places, Day & tank check, Backup, Storage) and its own Close');
+});
