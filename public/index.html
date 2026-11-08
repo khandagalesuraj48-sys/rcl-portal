@@ -71,6 +71,22 @@
   .tabs button { min-height: 36px; padding: 6px 14px; border: 1px solid rgba(255,255,255,.4); border-radius: 999px; background: transparent; color: #fff; font-weight: 600; cursor: pointer; }
   .tabs button[aria-selected="true"] { background: #fff; color: var(--navy); }
   .tw { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  /* (update-212) Sites → Vehicle photos (a site on fuel cards – HO) */
+  .vph-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .vph-bar input { flex: 1 1 260px; min-width: 0; border: 1px solid #B8C0CC; border-radius: 10px; padding: 9px 12px; background: #fff; }
+  .vph-row { display: flex; align-items: center; gap: 14px; padding: 10px 2px; border-top: 1px solid #EEF1F4; flex-wrap: wrap; }
+  .vph-th { width: 112px; height: 70px; border-radius: 10px; overflow: hidden; flex: none; background: linear-gradient(160deg, #EEF2F5, #DCE3E8); display: flex; align-items: center; justify-content: center; color: #8A99A4; font-size: 12px; }
+  .vph-th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .vph-w { flex: 1 1 180px; min-width: 0; } .vph-w b { font-size: 16px; overflow-wrap: anywhere; } .vph-w small { display: block; color: var(--muted); }
+  .vph-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .vph-acts .del { color: var(--bad); }
+  .vph-back { position: fixed; inset: 0; background: rgba(15,31,61,.45); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .vph-box { background: #fff; border-radius: 16px; width: min(480px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 18px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+  .vph-box h3 { margin: 0 0 10px; }
+  .vph-pv { border-radius: 12px; overflow: hidden; aspect-ratio: 16 / 10; background: #E9EDF0; }
+  .vph-pv img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .vph-ok { color: var(--ok); font-weight: 600; font-size: 13px; margin: 8px 0 0; }
+  .vph-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
   table { border-collapse: collapse; width: 100%; font-size: 14px; }
   th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
   th { background: #F6F8FB; font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
@@ -458,6 +474,7 @@
         </div>
         <div class="panel pg" id="dp_panel" hidden></div>
         <div class="panel pg" id="sr_panel" hidden></div>
+        <div class="panel pg" id="vp_panel" hidden></div>
         <div class="panel pg" id="bk_panel" hidden></div>
         <div class="panel pg" id="sto_panel" hidden></div>
         <div class="sa-card">
@@ -1159,7 +1176,7 @@
     const d = S.data; if (!d) return;
     const comp = c => '<select class="st-comp" aria-label="Company"><option value="">–</option>' + d.companies.map(x => '<option value="' + esc(x.id) + '"' + (x.id === c ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>';
     const stat = v => '<select class="st-status ' + (v === 'closed' ? 'closed' : 'active') + '" aria-label="State"><option value="active"' + (v !== 'closed' ? ' selected' : '') + '>Active</option><option value="closed"' + (v === 'closed' ? ' selected' : '') + '>Closed</option></select>';
-    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<span class="sa-code">' + esc(s.code) + '</span>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '" aria-label="Site name"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="sa-btn primary sm st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button><button class="link st-rules" type="button" data-code="' + esc(s.code) + '">Day &amp; tank check</button><button class="link st-backup" type="button" data-code="' + esc(s.code) + '">Backup</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>' +
+    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<span class="sa-code">' + esc(s.code) + '</span>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '" aria-label="Site name"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="sa-btn primary sm st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button><button class="link st-rules" type="button" data-code="' + esc(s.code) + '">Day &amp; tank check</button><button class="link st-photos" type="button" data-code="' + esc(s.code) + '">Vehicle photos</button><button class="link st-backup" type="button" data-code="' + esc(s.code) + '">Backup</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>' +
       // (29-10-2026) under each site: its address and its contact – the Store's papers (PO: Shipping Address, Site Contact; the requirement's contact)
       '<tr class="st-sub" data-for="' + esc(s.code || '') + '"><td></td><td colspan="4"><div class="st-more"><label>Site address<input class="st-addr" maxlength="300" value="' + esc(s.address || '') + '" placeholder="e.g. Site office, Valshind, NH 848"></label>' +
       '<label>Contact name<input class="st-cname" maxlength="80" value="' + esc(s.contact_name || '') + '" placeholder="e.g. Ramesh Patil"></label><label>Contact number<input class="st-cphone" maxlength="40" inputmode="tel" value="' + esc(s.contact_phone || '') + '" placeholder="e.g. 98765 43210"></label></div></td></tr>';
@@ -1168,7 +1185,7 @@
   $('st_rows').addEventListener('change', e => { if (e.target.classList.contains('st-status')) e.target.className = 'st-status ' + e.target.value; });
   // ---- New site (with Mechanical): a checklist the system works through – pressed again, it goes on where it stopped ----
   const NS_STEP = { link: '1. The Supabase project link', key: '2. The secret key – in Vercel, never here', connect: '3. The database answers with that key', tables: '4. Mechanical\'s tables in the new database', company: '5. Company settings (as the first site; the new name)', places: '6. Diesel places (name and tank size)', ready: '7. Ready' };
-  $('st_new').addEventListener('click', () => { const p = $('ns_panel'); p.hidden = false; $('dp_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; $('sr_panel').hidden = true;
+  $('st_new').addEventListener('click', () => { const p = $('ns_panel'); p.hidden = false; $('dp_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; $('sr_panel').hidden = true; $('vp_panel').hidden = true;
     $('ns_comp').innerHTML = '<option value="">–</option>' + S.data.companies.map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>').join('');
     $('ns_steps').hidden = true; if (!$('ns_places').innerHTML) $('ns_places').innerHTML = placesHtml([{}], false); p.scrollIntoView({ block: 'nearest' }); setTimeout(() => $('ns_code').focus(), 30); });
   $('ns_close').addEventListener('click', () => { $('ns_panel').hidden = true; });
@@ -1234,7 +1251,7 @@
     $('dp_box').hidden = card; const n = document.querySelector('#dp_panel .dp-cnote'); if (n) n.hidden = !card; });
   const dpMode = () => { const r = document.querySelector('#dp_panel input[name="dp_mode"]:checked'); return r ? r.value : ''; };
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-places'); if (!b) return; const site = b.dataset.code, box = $('dp_panel');
-    $('ns_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; $('sr_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading the diesel places from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
+    $('ns_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; $('sr_panel').hidden = true; $('vp_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading the diesel places from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
     api('/api/admin', { action: 'placesGet', site: site }).then(d => placesPanel(site, d))
       .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="dp_close">Close</button>'; }); });
   $('dp_panel').addEventListener('click', e => {
@@ -1268,7 +1285,7 @@
     groups: Object.fromEntries(['Own', 'Rental', 'Hired'].map(k => [k, document.querySelector('#sr_panel .sr-g[data-g="' + k + '"]').checked ? document.querySelector('#sr_panel .sr-gd[data-g="' + k + '"]').value.trim() : ''])),
     machines: [...document.querySelectorAll('#sr_rows tr')].map(tr => ({ no: tr.querySelector('.sr-no').value, on: tr.querySelector('.sr-on').value === '1', days: tr.querySelector('.sr-days').value.trim() })).filter(x => x.no) } });
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-rules'); if (!b) return; const site = b.dataset.code, box = $('sr_panel');
-    $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
+    $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; $('vp_panel').hidden = true; box.hidden = false; box.innerHTML = '<p class="note">Loading from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
     api('/api/admin', { action: 'siteRulesGet', site: site }).then(d => srPanel(site, d))
       .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="sr_close">Close</button>'; }); });
   $('sr_panel').addEventListener('click', e => {
@@ -1278,6 +1295,101 @@
     if (e.target.id !== 'sr_save') return; const b = e.target, site = b.dataset.site;
     busy(b, 'Saving…', async () => { try { const d = await api('/api/admin', Object.assign({ action: 'siteRulesSave', site: site }, srRead()));
       srPanel(site, d); toast('Day & tank check of ' + site + ' saved: the day starts at ' + d.dayStart + '.'); } catch (er) { fail(er); } }); });
+  /* (with Mechanical's update-212, asked 08-11-2026: "super admin portal madhun photo set karu shakel vehicle number wise ok ani change pn kru
+   * shakel") VEHICLE PHOTOS of a site on fuel cards (HO): every machinery of its Asset Master, by its number, with its photo – Upload /
+   * Change / Remove. The picture is turned upright and made smaller HERE (at most 1600 px, and a small one of 480 px for the gallery),
+   * seen first, saved only by "Save photo". Mechanical keeps it in the site's private store (a removed photo's file stays there) and
+   * checks it again; its links last 15 minutes – the list asks for new ones before that (or when a picture does not open). */
+  const VP = { site: '', cars: [], q: '', at: 0, pick: null, made: null };
+  const vpKey = v => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  function vpRows() {
+    const q = VP.q.trim().toLowerCase(), k = vpKey(VP.q);
+    const list = !q ? VP.cars : VP.cars.filter(c => (k && vpKey(c.no).indexOf(k) > -1) || [c.make, c.name, c.type].some(v => String(v || '').toLowerCase().indexOf(q) > -1));
+    $('vp_rows').innerHTML = list.length ? list.map(c => { const ph = c.photo && c.photo.t && !c.photo.err ? c.photo : null;
+      return '<div class="vph-row" data-no="' + esc(c.no) + '"><div class="vph-th">' + (ph ? '<img src="' + esc(ph.t) + '" alt="' + esc(c.no) + '" loading="lazy" data-vpno="' + esc(c.no) + '">' : c.photo ? 'Opens in a moment' : 'No photo') + '</div>' +
+        '<div class="vph-w"><b>' + esc(c.no) + '</b><small>' + esc([c.make, c.name].filter(Boolean).join(' · ') || c.type || '') + ' · ' + esc(c.fuel || '') + (c.status === 'Inactive' ? ' · <span style="color:var(--bad)">Inactive</span>' : '') + '</small></div>' +
+        '<div class="vph-acts">' + (c.photo ? '<button class="sa-btn sm vp-set" type="button">Change photo</button><button class="sa-btn sm vp-del del" type="button">Remove</button>' : '<button class="sa-btn primary sm vp-set" type="button">Upload photo</button>') + '</div></div>'; }).join('')
+      : '<p class="note">' + (VP.cars.length ? 'No machinery matches "' + esc(VP.q.trim()) + '".' : 'This site has no machinery in its Asset Master yet.') + '</p>';
+  }
+  function vpPanel(site, d) {
+    const st = S.data.sites.find(x => x.code === site) || {};
+    VP.site = site; VP.cars = d.cars || []; VP.at = Date.now();
+    $('vp_panel').innerHTML = '<div class="panel-head"><h2>Vehicle photos – ' + esc(st.name || site) + ' (' + esc(site) + ')</h2><span class="note">Each machinery of this site\'s Asset Master, by its number. The photo shows on the site\'s Dashboard → Fuel cards and cars (web and app). Kept in this site\'s private file store; a removed photo\'s file stays there.</span></div>' +
+      '<div class="vph-bar"><input id="vp_q" type="search" placeholder="Search number, make or model" aria-label="Search number, make or model" value="' + esc(VP.q) + '"><button class="sa-btn sm" type="button" id="vp_close">Close</button></div>' +
+      '<div id="vp_rows"></div><input type="file" id="vp_file" accept="image/jpeg,image/png,image/webp" hidden>';
+    vpRows();
+  }
+  function vpOpen(site) {
+    const box = $('vp_panel');
+    $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('bk_panel').hidden = true; $('sto_panel').hidden = true; $('sr_panel').hidden = true; box.hidden = false;
+    box.innerHTML = '<p class="note">Loading the machinery of ' + esc(site) + ' from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
+    return api('/api/admin', { action: 'carPhotos', site: site }).then(d => vpPanel(site, d))
+      .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="vp_close">Close</button>'; });
+  }
+  $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-photos'); if (b) { VP.q = ''; vpOpen(b.dataset.code); } });
+  // the links of the photos: new ones before they end (a minute and a half left), or when a picture does not open – once at a time
+  let vpFresh = null;
+  function vpRefresh() {
+    if (vpFresh || !VP.site || $('vp_panel').hidden) return; const site = VP.site;
+    vpFresh = api('/api/admin', { action: 'carPhotos', site: site }).then(d => { if (VP.site !== site) return; const waited = VP.cars.some(c => c.photo && c.photo.err); VP.cars = d.cars || []; VP.at = Date.now();
+      if (waited) { vpRows(); return; }
+      document.querySelectorAll('#vp_rows img[data-vpno]').forEach(im => { const c = VP.cars.find(x => x.no === im.dataset.vpno); if (c && c.photo && c.photo.t && im.getAttribute('src') !== c.photo.t) { im.dataset.tried = ''; im.setAttribute('src', c.photo.t); } }); }).catch(() => { /* the next check */ }).finally(() => { vpFresh = null; });
+  }
+  setInterval(() => { if (document.hidden || $('vp_panel').hidden || !VP.site) return; if (VP.cars.some(c => c.photo && (c.photo.err || (c.photo.exp && c.photo.exp - Date.now() < 90000)))) vpRefresh(); }, 60000);
+  document.addEventListener('error', e => { const im = e.target; if (!im || im.tagName !== 'IMG' || !im.dataset || !im.dataset.vpno) return;
+    if (im.dataset.tried) { const th = im.parentNode; im.remove(); if (th) th.textContent = 'Photo could not open'; return; } im.dataset.tried = '1'; vpRefresh(); }, true);
+  // a picture → upright, at most `lim` px, a JPEG under `max` bytes
+  async function vpPic(file) {
+    try { if (/Apple/.test(navigator.vendor || '') || typeof createImageBitmap !== 'function') throw new Error('img'); return await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+    catch (e) { const u = URL.createObjectURL(file);
+      try { return await new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => no(new Error('This picture cannot be read – pick another.')); im.src = u; }); }
+      finally { setTimeout(() => URL.revokeObjectURL(u), 4000); } }
+  }
+  async function vpJpeg(im, lim, q, max) {
+    const W = im.width || im.naturalWidth, H = im.height || im.naturalHeight, sc = Math.min(1, lim / Math.max(W, H)), cv = document.createElement('canvas');
+    cv.width = Math.max(1, Math.round(W * sc)); cv.height = Math.max(1, Math.round(H * sc));
+    const g = cv.getContext('2d'); g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, cv.width, cv.height); g.imageSmoothingQuality = 'high'; g.drawImage(im, 0, 0, cv.width, cv.height);
+    let blob = null; for (let i = 0; i < 6; i++) { blob = await new Promise(ok => cv.toBlob(ok, 'image/jpeg', q)); if (blob && blob.size <= max) break; q = Math.max(0.4, q - 0.1); }
+    if (!blob || blob.size > max) throw new Error('This picture could not be made small enough – pick another.');
+    return { blob: blob, w: cv.width, h: cv.height };
+  }
+  const vpSize = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+  const vpData = blob => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).replace(/^data:image\/jpe?g;base64,/, 'data:image/jpeg;base64,')); r.onerror = () => no(new Error('This photo cannot be read – pick it again.')); r.readAsDataURL(blob); });
+  function vpBoxClose() { const b = $('vp_box'); if (b) b.remove(); if (VP.made && VP.made.url) URL.revokeObjectURL(VP.made.url); VP.made = null; }
+  $('vp_panel').addEventListener('input', e => { if (e.target.id === 'vp_q') { VP.q = e.target.value; vpRows(); } });
+  $('vp_panel').addEventListener('click', e => {
+    if (e.target.id === 'vp_close') { $('vp_panel').hidden = true; VP.site = ''; return; }
+    const row = e.target.closest('.vph-row'); if (!row) return; const c = VP.cars.find(x => x.no === row.dataset.no); if (!c) return;
+    if (e.target.closest('.vp-set')) { VP.pick = { no: c.no, was: c.photo ? c.photo.v || '' : '' }; const f = $('vp_file'); f.value = ''; f.click(); return; }
+    if (e.target.closest('.vp-del')) {
+      if (!window.confirm('Remove the photo of ' + c.no + '?\n\nThe car shows its picture icon again on the site\'s Dashboard. The photo file stays kept in the site\'s private store.')) return;
+      const b = e.target.closest('.vp-del');
+      busy(b, 'Removing…', async () => { try { await api('/api/admin', { action: 'carPhotoRemove', site: VP.site, no: c.no, was: c.photo ? c.photo.v || '' : '' }); c.photo = null; vpRows(); toast('Photo of ' + c.no + ' removed.'); } catch (er) { fail(er); } });
+    }
+  });
+  $('vp_panel').addEventListener('change', async e => {
+    if (e.target.id !== 'vp_file') return; const f = e.target.files && e.target.files[0], p = VP.pick; if (!f || !p) return;
+    if (!(/^image\/(jpeg|png|webp)$/.test(f.type) || (!f.type && /\.(jpe?g|png|webp)$/i.test(f.name || '')))) { toast('The photo must be a JPG, PNG or WebP picture.', true); return; }
+    if (f.size > 25 * 1048576) { toast('This picture is too big (more than 25 MB) – pick a smaller one.', true); return; }
+    try {
+      const im = await vpPic(f), full = await vpJpeg(im, 1600, 0.82, 1536 * 1024), thumb = await vpJpeg(im, 480, 0.78, 380 * 1024);
+      if (im.close) { try { im.close(); } catch (er) { /* freed anyway */ } }
+      vpBoxClose(); VP.made = { no: p.no, was: p.was, full: full, thumb: thumb, url: URL.createObjectURL(full.blob) };
+      document.body.insertAdjacentHTML('beforeend', '<div class="vph-back" id="vp_box"><div class="vph-box" role="dialog" aria-modal="true" aria-label="Photo"><h3>' + esc((p.was ? 'Change photo – ' : 'Photo – ') + p.no) + '</h3>' +
+        '<div class="vph-pv"><img alt="The new photo" src="' + VP.made.url + '"></div><p class="vph-ok">New photo – ' + full.w + ' × ' + full.h + ', ' + vpSize(full.blob.size) + (f.size > full.blob.size ? ' (made smaller here from ' + vpSize(f.size) + ')' : '') + '. Nothing is saved until you press Save photo.</p>' +
+        '<div class="vph-btns"><button class="sa-btn sm" type="button" id="vp_cancel">Cancel</button><button class="sa-btn primary sm" type="button" id="vp_save">Save photo</button></div></div></div>');
+      setTimeout(() => { const b = $('vp_save'); if (b) b.focus(); }, 30);
+    } catch (er) { toast(String((er && er.message) || 'This picture cannot be read – pick another.'), true); }
+  });
+  document.addEventListener('click', e => {
+    if (e.target.id === 'vp_cancel' || e.target.id === 'vp_box') { vpBoxClose(); return; }
+    if (e.target.id !== 'vp_save' || !VP.made) return; const m = VP.made, b = e.target, site = VP.site;
+    busy(b, 'Saving…', async () => { try {
+      const r = await api('/api/admin', { action: 'carPhotoSet', site: site, no: m.no, was: m.was, full: await vpData(m.full.blob), thumb: await vpData(m.thumb.blob) });
+      vpBoxClose(); const c = VP.cars.find(x => x.no === m.no); if (c) c.photo = r.photo || null; vpRows(); toast('Photo of ' + m.no + ' saved.');
+    } catch (er) { fail(er); } });
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('vp_box')) vpBoxClose(); });
   /* (with Mechanical's update-157, asked 24-10-2026) BACKUP SHEETS: every site its own Google Sheets, numbered (Sheet 1, 2 …), and
    * the Portal its own. "Change link" puts another Sheet in place of the one in use (the whole copy goes there); "Add Sheet N"
    * starts the next one when the one in use is full – the one before stays as it is. Each Sheet is shared with the backup robot. */
@@ -1314,7 +1426,7 @@
     $('bk_panel').dataset.who = JSON.stringify(who); $('bk_panel').dataset.act = act ? String(act.n) : '';
   }
   function bkOpen(who) {
-    const box = $('bk_panel'); $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('sto_panel').hidden = true; $('sr_panel').hidden = true; box.hidden = false;
+    const box = $('bk_panel'); $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('sto_panel').hidden = true; $('sr_panel').hidden = true; $('vp_panel').hidden = true; box.hidden = false;
     box.innerHTML = '<p class="note">Loading the backup Sheets from Mechanical…</p>'; box.scrollIntoView({ block: 'nearest' });
     api('/api/admin', Object.assign({ action: 'bkGet' }, who)).then(d => bkPanel(who, d))
       .catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="bk_close">Close</button>'; });
@@ -1374,7 +1486,7 @@
         '<button class="sa-btn sm" type="button" id="sto_refresh">Refresh</button><button class="sa-btn sm" type="button" id="sto_close">Close</button></div>';
   }
   function stoOpen() {
-    const box = $('sto_panel'); $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('bk_panel').hidden = true; $('sr_panel').hidden = true; box.hidden = false;
+    const box = $('sto_panel'); $('ns_panel').hidden = true; $('dp_panel').hidden = true; $('bk_panel').hidden = true; $('sr_panel').hidden = true; $('vp_panel').hidden = true; box.hidden = false;
     box.innerHTML = '<p class="note">Asking every site how full it is…</p>'; box.scrollIntoView({ block: 'nearest' });
     api('/api/admin', { action: 'stoGet' }).then(stoPanel).catch(er => { box.innerHTML = '<p class="err">' + esc(msgOf(er)) + '</p><button class="sa-btn sm" type="button" id="sto_close">Close</button>'; });
   }

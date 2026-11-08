@@ -105,7 +105,7 @@ async function papersTell(req, me, code, compId) {
 }
 const STEP5 = 'The site is saved – but its address and contact need the Portal\'s database step 5 first: run sql/portal_step5_site_papers.sql once in the Portal\'s Supabase → SQL Editor, then save them again.';
 const papersWarn = w => w ? { warn: 'Saved. But the papers of the modules (the Store\'s PO and requirement) could not be told (' + w + ') – save again in a minute.' } : {};
-async function mechAsk(req, me, claims) {
+async function mechAsk(req, me, claims, files) {      // (update-212) files: a car's photo – sent BESIDE the ticket (a ticket is small); the ticket names them by their SHA-256
   const m = ((await db('GET', 'modules?select=url,status&key=eq.mechanical')) || [])[0];
   if (!m || !m.url) throw fail(400, 'Mechanical has no link yet – set it under Modules.', 'nolink');
   const now = Math.floor(Date.now() / 1000);
@@ -113,7 +113,7 @@ async function mechAsk(req, me, claims) {
   // Mechanical's PORTAL_URL; before, it was the address this request came to, and Mechanical said "made by another Portal"
   const t = await keys.sign(Object.assign({ iss: publicUrl() || origin(req), aud: 'mechanical-admin', sub: me.email, iat: now, exp: now + 60, jti: crypto.randomBytes(16).toString('hex') }, claims));
   let r, j = {};
-  try { r = await fetch(String(m.url).replace(/\/+$/, '') + '/api/rpc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fn: 'portalAdmin', args: [t] }), signal: AbortSignal.timeout(25000) }); }
+  try { r = await fetch(String(m.url).replace(/\/+$/, '') + '/api/rpc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fn: 'portalAdmin', args: files ? [t, files] : [t] }), signal: AbortSignal.timeout(files ? 45000 : 25000) }); }
   catch (e) { throw fail(503, 'Mechanical could not be reached – try again in a moment.', 'mech'); }
   try { j = await r.json(); } catch (e) { j = { error: 'Mechanical did not answer properly (' + r.status + ').' }; }
   if (j.error) throw fail(r.status >= 500 ? 502 : 400, 'Mechanical: ' + j.error, 'mech');      // (never 401: that would sign the Super Admin out here)
@@ -242,6 +242,37 @@ const ACTIONS = {
     const words = q => ['Own', 'Rental', 'Hired'].filter(k => (q.groups || {})[k]).map(k => k + ' ' + q.groups[k] + ' days').concat((q.machines || []).map(m => m.no + (m.on ? ' ' + (m.days || 'group') + ' days' : ' not'))).join(', ') || 'off';
     await audit(me.email, 'Day & tank check', site, { dayStart: r.dayStart, tank: words(r.tank || {}) });
     return { ok: true, site: site, dayStart: r.dayStart, tank: r.tank, machines: r.machines || [] };
+  },
+  /* (with Mechanical's update-212, asked 08-11-2026: "super admin portal madhun photo set karu shakel vehicle number wise ok ani change pn kru
+   * shakel") Sites → Vehicle photos – a site on fuel cards (HO): every machinery of its Asset Master with its photo; a car's photo set,
+   * changed or removed. Mechanical keeps the photos in the site's own private file store and checks everything again – a site not on
+   * fuel cards refuses; the two files must be exactly those this signed request names (their SHA-256); a removed photo's file stays. */
+  async carPhotos(me, x, req) {
+    const site = String(x.site || '').toUpperCase();
+    if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
+    const r = await mechAsk(req, me, { act: 'carPhotos', site: site });
+    return { site: site, cars: Array.isArray(r.cars) ? r.cars : [] };
+  },
+  async carPhotoSet(me, x, req) {
+    const site = String(x.site || '').toUpperCase(), no = String(x.no || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+    if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
+    if (!no) throw fail(400, 'Pick the car.');
+    const img = (v, max) => { const m = /^data:image\/jpeg;base64,([A-Za-z0-9+\/=]+)$/.exec(String(v || ''));
+      if (!m) throw fail(400, 'The photo must be a picture (JPG, PNG or WebP) – pick it again.');
+      const b = Buffer.from(m[1], 'base64'); if (!b.length || b.length > max) throw fail(400, 'This photo is too big – pick it again (the page makes it smaller).');
+      return { url: String(v), sha: crypto.createHash('sha256').update(b).digest('hex') }; };
+    const full = img(x.full, 2 * 1024 * 1024), thumb = img(x.thumb, 400 * 1024), was = x.was === undefined || x.was === null ? null : String(x.was).slice(0, 40);
+    const r = await mechAsk(req, me, { act: 'carPhotoSet', site: site, no: no, was: was, sha: { full: full.sha, thumb: thumb.sha } }, { full: full.url, thumb: thumb.url });
+    await audit(me.email, 'Vehicle photo', no + ' · ' + site, { photo: was ? 'changed' : 'added', file: full.sha.slice(0, 16) });
+    return Object.assign({ site: site }, r);
+  },
+  async carPhotoRemove(me, x, req) {
+    const site = String(x.site || '').toUpperCase(), no = String(x.no || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+    if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
+    if (!no) throw fail(400, 'Pick the car.');
+    const r = await mechAsk(req, me, { act: 'carPhotoRemove', site: site, no: no, was: x.was === undefined || x.was === null ? null : String(x.was).slice(0, 40) });
+    await audit(me.email, 'Vehicle photo', no + ' · ' + site, { photo: 'removed (its file stays in the site\'s store)' });
+    return Object.assign({ site: site }, r);
   },
   /* (with Mechanical's update-157, asked 24-10-2026) Sites → Backup: a site's numbered Google Sheets (Sheet 1, 2 …) and the
    * Portal's own – Mechanical keeps them and makes the backup (it checks every link: the backup robot can open it, it is no other
@@ -494,7 +525,7 @@ module.exports = handler(async (req, res) => {
   if (req.method !== 'POST') return send(res, 405, { error: 'POST only.' });
   sameSite(req);
   const s = await ses.need(req, { super: true, ownPassword: true });
-  const x = await readBody(req), a = String(x.action || '');
+  const x = await readBody(req, 4500000), a = String(x.action || '');      // (update-212: a car's photo – only after the Super Admin's sign-in is checked)
   if (!Object.prototype.hasOwnProperty.call(ACTIONS, a)) return send(res, 404, { error: 'Unknown action.' });
   send(res, 200, await ACTIONS[a](s.user, x, req));
 });
