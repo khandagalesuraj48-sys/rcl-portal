@@ -1302,6 +1302,8 @@
    * checks it again; its links last 15 minutes – the list asks for new ones before that (or when a picture does not open). */
   const VP = { site: '', cars: [], q: '', at: 0, pick: null, made: null };
   const vpKey = v => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  // when a link ends – counted from this computer's own clock (Mechanical says how long it has left)
+  const vpLocal = cars => { cars.forEach(c => { const p = c && c.photo; if (p && typeof p.left === 'number') p.exp = Date.now() + p.left; }); return cars; };
   function vpRows() {
     const q = VP.q.trim().toLowerCase(), k = vpKey(VP.q);
     const list = !q ? VP.cars : VP.cars.filter(c => (k && vpKey(c.no).indexOf(k) > -1) || [c.make, c.name, c.type].some(v => String(v || '').toLowerCase().indexOf(q) > -1));
@@ -1313,7 +1315,7 @@
   }
   function vpPanel(site, d) {
     const st = S.data.sites.find(x => x.code === site) || {};
-    VP.site = site; VP.cars = d.cars || []; VP.at = Date.now();
+    VP.site = site; VP.cars = vpLocal(d.cars || []); VP.at = Date.now();
     $('vp_panel').innerHTML = '<div class="panel-head"><h2>Vehicle photos – ' + esc(st.name || site) + ' (' + esc(site) + ')</h2><span class="note">Each machinery of this site\'s Asset Master, by its number. The photo shows on the site\'s Dashboard → Fuel cards and cars (web and app). Kept in this site\'s private file store; a removed photo\'s file stays there.</span></div>' +
       '<div class="vph-bar"><input id="vp_q" type="search" placeholder="Search number, make or model" aria-label="Search number, make or model" value="' + esc(VP.q) + '"><button class="sa-btn sm" type="button" id="vp_close">Close</button></div>' +
       '<div id="vp_rows"></div><input type="file" id="vp_file" accept="image/jpeg,image/png,image/webp" hidden>';
@@ -1329,15 +1331,15 @@
   $('st_rows').addEventListener('click', e => { const b = e.target.closest('.st-photos'); if (b) { VP.q = ''; vpOpen(b.dataset.code); } });
   // the links of the photos: new ones before they end (a minute and a half left), or when a picture does not open – once at a time
   let vpFresh = null;
-  function vpRefresh() {
+  function vpRefresh(fresh) {
     if (vpFresh || !VP.site || $('vp_panel').hidden) return; const site = VP.site;
-    vpFresh = api('/api/admin', { action: 'carPhotos', site: site }).then(d => { if (VP.site !== site) return; const waited = VP.cars.some(c => c.photo && c.photo.err); VP.cars = d.cars || []; VP.at = Date.now();
+    vpFresh = api('/api/admin', Object.assign({ action: 'carPhotos', site: site }, fresh ? { fresh: true } : {})).then(d => { if (VP.site !== site) return; const waited = VP.cars.some(c => c.photo && c.photo.err); VP.cars = vpLocal(d.cars || []); VP.at = Date.now();
       if (waited) { vpRows(); return; }
       document.querySelectorAll('#vp_rows img[data-vpno]').forEach(im => { const c = VP.cars.find(x => x.no === im.dataset.vpno); if (c && c.photo && c.photo.t && im.getAttribute('src') !== c.photo.t) { im.dataset.tried = ''; im.setAttribute('src', c.photo.t); } }); }).catch(() => { /* the next check */ }).finally(() => { vpFresh = null; });
   }
   setInterval(() => { if (document.hidden || $('vp_panel').hidden || !VP.site) return; if (VP.cars.some(c => c.photo && (c.photo.err || (c.photo.exp && c.photo.exp - Date.now() < 90000)))) vpRefresh(); }, 60000);
   document.addEventListener('error', e => { const im = e.target; if (!im || im.tagName !== 'IMG' || !im.dataset || !im.dataset.vpno) return;
-    if (im.dataset.tried) { const th = im.parentNode; im.remove(); if (th) th.textContent = 'Photo could not open'; return; } im.dataset.tried = '1'; vpRefresh(); }, true);
+    if (im.dataset.tried) { const th = im.parentNode; im.remove(); if (th) th.textContent = 'Photo could not open'; return; } im.dataset.tried = '1'; vpRefresh(true); }, true);
   // a picture → upright, at most `lim` px, a JPEG under `max` bytes
   async function vpPic(file) {
     try { if (/Apple/.test(navigator.vendor || '') || typeof createImageBitmap !== 'function') throw new Error('img'); return await createImageBitmap(file, { imageOrientation: 'from-image' }); }

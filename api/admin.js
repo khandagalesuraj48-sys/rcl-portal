@@ -250,7 +250,7 @@ const ACTIONS = {
   async carPhotos(me, x, req) {
     const site = String(x.site || '').toUpperCase();
     if (!/^[A-Z0-9]{1,12}$/.test(site) || !await siteOk(site)) throw fail(400, 'Pick a site.');
-    const r = await mechAsk(req, me, { act: 'carPhotos', site: site });
+    const r = await mechAsk(req, me, Object.assign({ act: 'carPhotos', site: site }, x.fresh === true ? { fresh: true } : {}));      // (fresh: a picture did not open – new links)
     return { site: site, cars: Array.isArray(r.cars) ? r.cars : [] };
   },
   async carPhotoSet(me, x, req) {
