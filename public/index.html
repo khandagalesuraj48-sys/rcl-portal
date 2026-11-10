@@ -309,6 +309,23 @@
     .sa-acc { grid-template-columns: minmax(0, 1fr); }
     .sa-dl { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } .sa-dl dd { margin-bottom: 10px; }
   }
+  /* ================= (motion – his brief of 10-11-2026 "Enterprise UI Animation & Micro-Interaction Upgrade"; the same as Mechanical's) =================
+   * Visual only: nothing here changes what a button does, when a request is sent or what it answers. transform / opacity only; off with the
+   * system's reduced motion. A page of the console zooms in, the sign-in card pops in, a photo box pops in (Scale Pop, from 72 %), a "⋯" menu
+   * drops in, a button is pressed in, the message slides in. */
+  @keyframes moPop { from { opacity: 0; transform: scale(.72); } 60% { opacity: 1; } to { opacity: 1; transform: none; } }
+  @keyframes moZoomIn { from { opacity: 0; transform: scale(.965); } to { opacity: 1; transform: none; } }
+  @keyframes moDrop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+  @keyframes moFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes moToast { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }      /* (the message is centred with translateX(-50%) – kept) */
+  .sa-page:not([hidden]) { animation: moZoomIn .22s cubic-bezier(.2, .7, .3, 1) both; }
+  section.center:not([hidden]) > * { animation: moPop .3s cubic-bezier(.34, 1.45, .64, 1) both; }
+  .vph-back { animation: moFade .18s ease both; } .vph-back .vph-box { animation: moPop .26s cubic-bezier(.34, 1.45, .64, 1) both; }
+  .sa-pop:not([hidden]) { animation: moDrop .18s cubic-bezier(.2, .7, .3, 1) both; }
+  .btn, .sa-btn, .sa-tabs2 button { transition: transform .12s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease, color .16s ease, opacity .16s ease; }
+  .btn:active:not(:disabled), .sa-btn:active:not(:disabled), .sa-tabs2 button:active { transform: scale(.97); }
+  #toast:not([hidden]) { animation: moToast .22s cubic-bezier(.2, .7, .3, 1) both; }
+  @media (prefers-reduced-motion: reduce) { .sa-page, section.center > *, .vph-back, .vph-box, .sa-pop, #toast { animation: none !important; } .btn:active, .sa-btn:active, .sa-tabs2 button:active { transform: none !important; } }
 </style>
 </head>
 <body>

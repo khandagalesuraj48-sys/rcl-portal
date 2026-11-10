@@ -387,3 +387,15 @@ test('(with Mechanical update-212) Sites → Vehicle photos of a site on fuel ca
     "window.confirm('Remove the photo of '", 'c.photo.exp - Date.now() < 90000', "im.dataset.tried = '1'; vpRefresh(true);", 'p.exp = Date.now() + p.left'].forEach(w => assert.ok(html.includes(w), w));
   assert.strictEqual((html.match(/\$\('vp_panel'\)\.hidden = true;/g) || []).length, 6, 'every other panel of Sites closes it (New site, Diesel places, Day & tank check, Backup, Storage) and its own Close');
 });
+
+test('(10-11-2026, his animation brief) motion – a console page zooms in, the sign-in card and a photo box pop in (from 72 %), a "⋯" menu drops in, buttons are pressed in, the message slides in kept centred; transform / opacity only; off with reduced motion', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const css = html.slice(html.indexOf('(motion – his brief of 10-11-2026'), html.indexOf('</style>', html.indexOf('(motion – his brief of 10-11-2026')));
+  assert.ok(css.length > 800 && html.indexOf('(motion – his brief of 10-11-2026') < html.indexOf('</style>'));
+  assert.match(css, /\.sa-page:not\(\[hidden\]\) \{ animation: moZoomIn \.22s/);
+  assert.match(css, /\.vph-back \.vph-box \{ animation: moPop \.26s/);
+  assert.match(css, /\.sa-pop:not\(\[hidden\]\) \{ animation: moDrop \.18s/);
+  assert.match(css, /@keyframes moToast \{ from \{ opacity: 0; transform: translate\(-50%, 10px\); \} to \{ opacity: 1; transform: translate\(-50%, 0\); \} \}/);
+  [...css.matchAll(/@keyframes (\w+) \{([^@]*?)\} \}/g)].forEach(k => assert.doesNotMatch(k[2], /\b(width|height|top|left|margin|padding)\s*:/, k[1] + ': transform / opacity only'));
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{ \.sa-page, section\.center > \*, \.vph-back, \.vph-box, \.sa-pop, #toast \{ animation: none !important; \}/);
+});
