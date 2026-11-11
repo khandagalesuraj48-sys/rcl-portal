@@ -423,5 +423,27 @@ test('(11-11-2026, his pick "orbit 1 number mast aahe … screen white aswi" + t
   assert.doesNotMatch(fn, /l_pass'\)\.value/, 'it never reads the password');
   assert.match(fn, /\$\('l_email'\)\.value\.length/);
   assert.match(html, /@media \(prefers-reduced-motion: reduce\) \{ \.orbit \.ring, \.orbit \.ic span \{ animation: none !important; \} \.masc \.pu, \.masc \.hand \{ transition: none; \} \}/);
-  assert.match(html, /@media \(max-width: 860px\) \{ \.orbit \{ display: none; \}/, 'a phone: the card only');
+  // (a phone: the orbit on top since the same day – the next test)
+});
+
+test('(11-11-2026) after sign-in straight into the ERP under the loading look; the sign-in page on a phone – the orbit on top, the character above the keyboard', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  assert.match(html, /<div id="go_boot" hidden role="status">/);
+  assert.match(html, /const goOut = url => \{ \$\('go_boot'\)\.hidden = false; location\.replace\(url\); \};/);
+  assert.match(html, /if \(e\.persisted\) \{ \$\('go_boot'\)\.hidden = true; start\(\); \}/, 'Back from the browser\'s memory: not left under the look');
+  assert.doesNotMatch(html, /location\.replace\(goLink\(/, 'every way into a module goes through goOut');
+  // several modules, no "My start": the last one opened here, else Machinery, else the first – never for the Super Admin, a message or ?menu=1
+  const hv = html.slice(html.indexOf('function homeView() {'), html.indexOf("const bySite = {};"));
+  assert.match(hv, /if \(items\.length > 1 && !params\.has\('menu'\) && !m && !me\.user\.super\) \{/);
+  assert.match(hv, /const it = items\.find\(i => i\.module \+ '\|' \+ i\.site === last\) \|\| items\.find\(i => i\.module === 'mechanical'\) \|\| items\[0\];/);
+  assert.match(html, /if \(me\.user\.super && !params\.has\('menu'\)\) return saView\(\);/, 'the Super Admin\'s console as before');
+  assert.match(html, /localStorage\.setItem\('rcl_portal_last', t\.dataset\.go\)/);
+  // a phone
+  const ph = html.slice(html.indexOf('/* A PHONE (asked 11-11-2026'), html.indexOf('.brand { display: flex;'));
+  assert.match(ph, /\.center \{ flex-direction: column;/);
+  assert.match(ph, /\.orbit \{ flex: 0 0 auto; min-height: 0; height: 256px; width: 100%; overflow: hidden; \}/, 'the orbit is shown on a phone');
+  assert.doesNotMatch(ph, /\.orbit \{ display: none; \}\s*\.card/, 'not hidden as before');
+  assert.match(ph, /\.center\.typing \.orbit \{ display: none; \}/);
+  assert.match(ph, /\.card\.si input \{ font-size: 16px; \}/, 'an iPhone does not enlarge the page');
+  assert.match(html, /const on = at && byHand && matchMedia\('\(max-width: 860px\)'\)\.matches/, 'folds only when he himself typed – not on the page\'s own first focus');
 });
