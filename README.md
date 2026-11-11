@@ -3,6 +3,14 @@
 One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … later).
 
 * **Everyone signs in here.** The Portal shows each person his own modules, site by site. A person with exactly one module on one site goes straight into it.
+* **The sign-in look (11-11-2026, his pick from the pictures: "orbit 1 number mast aahe … screen white aswi", "ha character ok
+  aahe", "he fkt web sathi aahe"):** a white page; on the left the One Click Solution logo in two rings with the modules'
+  pictures going round (`public/login/*.png` – Microsoft Fluent Emoji, MIT); on the right the card – the company's logo
+  (`public/login/company-logo.png`: another company = its own file), "Sign in", Email, Password, the blue button, "Forgot
+  password?" (opens the help and the Super Admin's recovery link that were always there) – and our own character looking over the
+  card: its eyes follow the email, it covers them while the password is typed, looks with one eye when the password is shown.
+  Look only: the form, its checks and the sign-in call are as before; the character is told a count of letters, never the
+  password. No movement with "reduce motion". Web only (the phone app has its own sign-in).
 * **A sign-in stays until "Sign out" (18-10-2026, asked: "user jo prynt log out krt nahi to prynt log in rahil mg app aso ki
   web").** No more "6 hours without use" and no more "30 days" – on the web, in the phone app and in the Windows app. It ends
   only at "Sign out" (here or in a module), when the Super Admin switches the person off or gives him a new password, or when

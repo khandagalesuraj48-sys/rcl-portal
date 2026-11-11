@@ -28,8 +28,44 @@
   /* sign-in pages: the One Click Solution look, as Mechanical's sign-in – the picture on the left, a white form on the right
      (on a phone: only the form) */
   .center { min-height: 100vh; min-height: 100dvh; display: flex; background: #fff; }
-  .center::before { content: ""; flex: 0 0 50%; background: url("https://cdn.21st.dev/assets/mirror/0d/0d205a1a31d40e927885b0ec5f603407caa10585b5bc6e8b08240402c7417e86.png") center / cover no-repeat, linear-gradient(135deg, #0f172a, #1e3a8a 55%, #1e293b); }
-  .card { width: 100%; max-width: 440px; margin: auto; padding: 28px 32px; background: #fff; }
+  /* (the sign-in look of 11-11-2026 – his pick "orbit 1 number mast aahe … screen white aswi", for every company the same: the
+     One Click Solution logo in the middle of two rings, the modules' pictures going round; no picture of one company's work) */
+  .orbit { flex: 0 0 54%; position: relative; overflow: hidden; min-height: 100vh; min-height: 100dvh; }
+  .orbit .ring { position: absolute; left: 50%; top: 50%; border-radius: 50%; border: 1.5px solid #CFE0F7; }
+  .orbit .ring.r1 { width: 300px; height: 300px; margin: -150px 0 0 -150px; animation: orbTurn 70s linear infinite; }
+  .orbit .ring.r2 { width: 430px; height: 430px; margin: -215px 0 0 -215px; animation: orbTurn 110s linear infinite reverse; }
+  .orbit .ic { position: absolute; left: 50%; top: 50%; width: 60px; height: 60px; margin: -30px 0 0 -30px; }
+  .orbit .ic span { display: grid; place-items: center; width: 60px; height: 60px; border-radius: 20px; background: #fff; border: 1px solid #E6EEF9; box-shadow: 0 10px 22px rgba(30,80,160,.16); }
+  .orbit .r1 .ic span { animation: orbTurn 70s linear infinite reverse; } .orbit .r2 .ic span { animation: orbTurn 110s linear infinite; }
+  .orbit .ic img { width: 38px; height: 38px; }
+  .orbit .hub { position: absolute; left: 50%; top: 50%; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 10px #F1F6FD, 0 18px 44px rgba(30,110,220,.28); }
+  .orbit .hub img { width: 112px; height: auto; }
+  @keyframes orbTurn { to { rotate: 360deg; } }
+  .card { width: 100%; max-width: 420px; margin: auto; padding: 26px 30px 22px; background: #fff; border-radius: 28px; border: 1px solid #E6EEF9; box-shadow: 0 22px 50px rgba(30,80,160,.2); position: relative; }
+  /* the sign-in card: the company's logo, "Sign in", round boxes, a blue button – and the character looking over its top */
+  .si-wrap { margin: auto; width: 100%; max-width: 420px; padding: 130px 0 24px; position: relative; }
+  .si-wrap .card { margin: 0; }
+  .card .co { display: block; height: 44px; width: auto; max-width: 70%; margin: 0 0 10px; }
+  .card.si h1 { font-size: 30px; margin: 0 0 16px; color: #0E1B33; }
+  .card.si .field { margin-bottom: 12px; } .card.si .err { min-height: 0; margin: 0 0 10px; }
+  .card.si input { min-height: 54px; padding: 12px 22px; border: 1.5px solid #D9E3F2; border-radius: 27px; background: #F5F8FC; font-size: 15.5px; }
+  .card.si input:focus { outline: none; border-color: #1E63D6; box-shadow: 0 0 0 1px #1E63D6; background: #fff; }
+  .card.si .pass input { padding-right: 52px; } .card.si .eye { right: 14px; }
+  .card.si .btn.primary { min-height: 54px; border-radius: 27px; background: linear-gradient(90deg, #1E63D6, #22C3E6); font-size: 16.5px; font-weight: 700; box-shadow: 0 12px 26px rgba(30,110,220,.35); }
+  .card.si .btn.primary:hover { box-shadow: 0 14px 30px rgba(30,110,220,.45); }
+  .card.si .forgot { display: block; margin: 12px auto 0; color: #8A97AD; font-size: 13px; font-weight: 500; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  /* THE CHARACTER (our own: a round blue helper with a yellow site helmet). Look only: it follows the letters of the email with its
+     eyes, covers its eyes while the password is typed, looks with one eye when the password is shown. It reads nothing. */
+  .masc { position: absolute; left: 50%; top: 0; width: 190px; margin-left: -95px; pointer-events: none; }
+  .masc svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .masc .pu { transition: transform .12s ease-out; transform: translate(var(--px, 0px), var(--py, 0px)); }
+  .masc .hand { transition: transform .28s cubic-bezier(.34, 1.4, .64, 1); }
+  .masc[data-mood="cover"] .hl { transform: translate(30px, -70px); } .masc[data-mood="cover"] .hr { transform: translate(-30px, -70px); }
+  .masc[data-mood="peek"] .hl { transform: translate(30px, -70px); } .masc[data-mood="peek"] .hr { transform: translate(-8px, -18px); }
+  .masc .m2, .masc .m3 { display: none; }
+  .masc[data-mood="cover"] .m1, .masc[data-mood="peek"] .m1 { display: none; } .masc[data-mood="cover"] .m2 { display: block; } .masc[data-mood="peek"] .m3 { display: block; }
+  @media (prefers-reduced-motion: reduce) { .orbit .ring, .orbit .ic span { animation: none !important; } .masc .pu, .masc .hand { transition: none; } }
   .card .oc { display: flex; justify-content: center; margin-bottom: 20px; } .card .oc img { width: min(200px, 60%); height: auto; }
   .card h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; color: #111827; }
   .card .field label { font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px; }
@@ -42,7 +78,7 @@
   .pass { position: relative; } .pass input { padding-right: 48px; }
   .eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: 0; background: none; padding: 6px; border-radius: 50%; cursor: pointer; color: #6b7280; display: grid; }
   .eye:hover { background: #f3f4f6; } .eye svg { width: 20px; height: 20px; } .eye .off { display: none; } .eye.on .on { display: none; } .eye.on .off { display: block; }
-  @media (max-width: 860px) { .center::before { display: none; } .card { padding: 24px 20px; } .card h1 { text-align: center; font-size: 26px; } }
+  @media (max-width: 860px) { .orbit { display: none; } .card { padding: 24px 20px; margin: auto 14px; width: auto; } .si-wrap { padding-left: 14px; padding-right: 14px; } .si-wrap .card { margin: 0; } .card h1 { text-align: center; font-size: 26px; } .card.si h1 { text-align: left; } }
   .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
   .brand .mark { width: 40px; height: 40px; border-radius: 10px; background: var(--navy); color: var(--amber); display: grid; place-items: center; font-weight: 800; letter-spacing: .02em; }
   .brand b { font-size: 20px; } .brand small { display: block; color: var(--muted); font-size: 12.5px; }
@@ -332,20 +368,23 @@
 
 <!-- sign-in -->
 <section id="v_login" class="center" hidden>
-  <form class="card" id="f_login" autocomplete="on">
-    <div class="oc"><img src="oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
-    <h1>Welcome Back</h1>
-    <p class="note" style="margin:0 0 22px">One sign-in for every RCL ERP module · <span class="mr">एकाच login ने सगळे modules.</span></p>
+  <div class="si-wrap">
+  <div class="masc" id="l_masc" data-mood="idle" aria-hidden="true"><svg viewBox="0 0 200 190"><ellipse cx="100" cy="112" rx="74" ry="70" fill="#4FA3F7"/><ellipse cx="100" cy="118" rx="60" ry="54" fill="#6DB6FA"/><circle cx="52" cy="122" r="10" fill="#FF9DB0" opacity=".7"/><circle cx="148" cy="122" r="10" fill="#FF9DB0" opacity=".7"/><circle cx="74" cy="96" r="17" fill="#fff"/><g class="pu"><circle cx="74" cy="97" r="8" fill="#0E1B33"/><circle cx="77" cy="94" r="2.6" fill="#fff"/></g><circle cx="126" cy="96" r="17" fill="#fff"/><g class="pu"><circle cx="126" cy="97" r="8" fill="#0E1B33"/><circle cx="129" cy="94" r="2.6" fill="#fff"/></g><path class="m1" d="M86,128 q14,14 28,0" stroke="#0E1B33" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse class="m2" cx="100" cy="134" rx="6" ry="5" fill="#0E1B33"/><path class="m3" d="M88,130 q12,12 24,0" stroke="#0E1B33" stroke-width="4" fill="#fff" stroke-linecap="round"/><path d="M28,74 Q100,-18 172,74 Z" fill="#F7B92B"/><rect x="18" y="68" width="164" height="14" rx="7" fill="#E59E0C"/><rect x="92" y="14" width="16" height="56" rx="8" fill="#FFD466"/><g class="hand hl"><ellipse cx="42" cy="168" rx="24" ry="20" fill="#3C8DF0" stroke="#1E63D6" stroke-width="3"/><path d="M33,154 v10 M42,152 v11 M51,154 v10" stroke="#1E63D6" stroke-width="2.5" stroke-linecap="round"/></g><g class="hand hr"><ellipse cx="158" cy="168" rx="24" ry="20" fill="#3C8DF0" stroke="#1E63D6" stroke-width="3"/><path d="M149,154 v10 M158,152 v11 M167,154 v10" stroke="#1E63D6" stroke-width="2.5" stroke-linecap="round"/></g></svg></div>
+  <form class="card si" id="f_login" autocomplete="on">
+    <img class="co" src="login/company-logo.png" alt="" decoding="async">
+    <h1>Sign in</h1>
     <p class="note" id="l_msg" hidden></p>
-    <div class="field"><label for="l_email">Email</label><input id="l_email" type="email" autocomplete="username" required></div>
-    <div class="field"><label for="l_pass">Password</label><div class="pass"><input id="l_pass" type="password" autocomplete="current-password" required>
+    <div class="field"><label class="sr" for="l_email">Email</label><input id="l_email" type="email" placeholder="Email" autocomplete="username" required></div>
+    <div class="field"><label class="sr" for="l_pass">Password</label><div class="pass"><input id="l_pass" type="password" placeholder="Password" autocomplete="current-password" required>
       <button type="button" class="eye" id="l_eye" aria-label="Show password"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><line x1="2" x2="22" y1="2" y2="22"/></svg></button></div></div>
     <p class="err" id="l_err" role="alert"></p>
     <button class="btn primary" style="width:100%" id="l_btn" type="submit">Sign in</button>
-    <p class="note" style="margin-top:14px">Forgot your password? Ask the Super Admin to give you a one-time password.<br>
-      <button type="button" class="link" id="l_rec">Super Admin: set a new password with the recovery code</button></p>
+    <button type="button" class="link forgot" id="l_forgot" aria-expanded="false" aria-controls="l_help">Forgot password?</button>
+    <div id="l_help" hidden><p class="note" style="margin-top:10px">Forgot your password? Ask the Super Admin to give you a one-time password.<br>
+      <button type="button" class="link" id="l_rec">Super Admin: set a new password with the recovery code</button></p></div>
     <p class="note" id="l_setup" hidden><button type="button" class="link" id="l_setup_btn">First start: bring the users over from Mechanical</button></p>
   </form>
+  </div>
 </section>
 
 <!-- first start: import from Mechanical -->
@@ -830,6 +869,19 @@
       try { await api('/api/auth', { action: 'login', email: $('l_email').value.trim(), password: $('l_pass').value }); $('l_pass').value = ''; await start(); }
       catch (e) { $('l_err').textContent = msgOf(e); }
     }); });
+  // (11-11-2026) the sign-in look: the orbit on the left of every sign-in page; "Forgot password?" opens the help that was always
+  // there; the character's moods – look only (it is told a COUNT of letters of the email and whether the password is shown, nothing else)
+  const ORBIT = '<div class="orbit" aria-hidden="true"><div class="ring r1"><div class="ic" style="translate:141px 51px"><span><img src="login/tractor.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:-115px 96px"><span><img src="login/package.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:-26px -148px"><span><img src="login/inbox_tray.png" alt="" width="38" height="38" decoding="async"></span></div></div><div class="ring r2"><div class="ic" style="translate:74px 202px"><span><img src="login/building_construction.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:-169px 132px"><span><img src="login/receipt.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:-178px -120px"><span><img src="login/bar_chart.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:59px -207px"><span><img src="login/fuel_pump.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:215px -8px"><span><img src="login/notebook.png" alt="" width="38" height="38" decoding="async"></span></div></div><div class="hub"><img src="oc-logo.webp" alt="" width="640" height="462" decoding="async"></div></div>';
+  for (const sec of document.querySelectorAll('section.center')) sec.insertAdjacentHTML('afterbegin', ORBIT);
+  $('l_forgot').addEventListener('click', () => { const h = $('l_help'); h.hidden = !h.hidden; $('l_forgot').setAttribute('aria-expanded', String(!h.hidden)); });
+  const mascMood = () => {
+    const m = $('l_masc'), a = document.activeElement;
+    m.dataset.mood = a === $('l_pass') || a === $('l_eye') ? ($('l_pass').type === 'text' ? 'peek' : 'cover') : a === $('l_email') ? 'look' : 'idle';
+    const n = Math.min(1, $('l_email').value.length / 26);
+    m.style.setProperty('--px', m.dataset.mood === 'look' ? (-6 + 12 * n).toFixed(1) + 'px' : '0px');
+    m.style.setProperty('--py', m.dataset.mood === 'look' ? '4px' : '0px');
+  };
+  for (const id of ['l_email', 'l_pass', 'l_eye']) for (const ev of ['focus', 'blur', 'input', 'click']) $(id).addEventListener(ev, () => setTimeout(mascMood, 0));
   $('l_eye').addEventListener('click', () => { const show = $('l_pass').type === 'password'; $('l_pass').type = show ? 'text' : 'password'; $('l_eye').classList.toggle('on', show); $('l_eye').setAttribute('aria-label', show ? 'Hide password' : 'Show password'); });
   $('l_setup_btn').addEventListener('click', () => { show('v_setup'); setTimeout(() => $('s_email').focus(), 30); });
   $('s_back').addEventListener('click', () => loginView());
