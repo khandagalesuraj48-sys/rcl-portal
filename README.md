@@ -252,4 +252,7 @@ kraych aahe size swata tharau shakel … period wise day wise timing wise".
   Size – App and Web for the size chosen, this file's own size, "✓ fits" or "its edges will be cut" – and **"✂ Fit the picture"**
   (App / Web): the picture under a frame of the place's shape, moved and made bigger or smaller, cut to exactly that size and kept
   as a new file (a video cannot be cut here: it is made in the size). The App and the Web have different shapes: one post each.
+* (12-11-2026, asked: "ek vedio mi set kela aahe … porter madhun play pn hot nahiye") **A video is tried in the browser before it is
+  added** (`adPlays`): a file named .mp4 in a form no browser plays ("mp4v" / MPEG-4, HEVC …) is not added – he is told to make it
+  as MP4 with H.264 video (AAC sound). A post whose video does not play says so in its preview.
 
