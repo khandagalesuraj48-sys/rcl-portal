@@ -551,5 +551,5 @@ test('company first (12-11-2026): under the one address a device that has not ch
   r = run('/portal/', '#co=<script>', null); assert.strictEqual(r.gate, true, 'only letters and digits are a code');
   r = run('/', '', null); assert.strictEqual(r.gate, false, 'the Portal\'s own address and the rig: as before');
   assert.match(page, /async function loginView\(\) \{\n    if \(coGate\(\)\) return;\n    show\('v_login'\);/);
-  assert.match(page, /<a class="link forgot" id="l_co" href="\/company\?change" hidden>Change company<\/a>/);
+  assert.match(page, /<a class="link forgot" id="l_co" href="\/company\?change" style="[^"]*" hidden>Change company<\/a>/);
 });
