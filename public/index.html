@@ -41,6 +41,22 @@
   .orbit .hub { position: absolute; left: 50%; top: 50%; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 10px #F1F6FD, 0 18px 44px rgba(30,110,220,.28); }
   .orbit .hub img { width: 112px; height: auto; }
   @keyframes orbTurn { to { rotate: 360deg; } }
+  /* (11-11-2026, asked: "old screen yete ani to meter pn yeto to nko aahe … lagech sign in hoil") on the way into a module: the
+     same white look as the module's own loading (Mechanical update-224) – the logo in two turning rings – so the sign-in and the
+     module's first page are one screen to the eye */
+  #go_boot { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: #fff; } #go_boot[hidden] { display: none; }
+  .boot-box { display: flex; flex-direction: column; align-items: center; }
+  .boot-orb { position: relative; width: 300px; height: 300px; max-width: 80vw; max-height: 80vw; display: grid; place-items: center; }
+  .boot-orb .bring { position: absolute; border-radius: 50%; border: 1.5px solid #CFE0F7; }
+  .boot-orb .bring.b1 { inset: 46px; animation: bootTurn 5s linear infinite; } .boot-orb .bring.b2 { inset: 0; animation: bootTurn 8s linear infinite reverse; }
+  .boot-orb .bring i { position: absolute; width: 14px; height: 14px; border-radius: 50%; top: -7px; left: calc(50% - 7px); box-shadow: 0 4px 10px rgba(30,80,160,.25); }
+  .boot-orb .bring i + i { top: auto; bottom: -7px; }
+  .boot-orb .b1 i { background: #1E63D6; } .boot-orb .b1 i + i { background: #22C3E6; } .boot-orb .b2 i { background: #F7B92B; } .boot-orb .b2 i + i { background: #2E9E6F; }
+  .boot-hub { position: relative; width: 132px; height: 132px; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 9px #F1F6FD, 0 18px 44px rgba(30,110,220,.28); }
+  .boot-hub img { width: 98px; height: auto; }
+  .boot-box b { font: 600 14px system-ui, sans-serif; color: #8A97AD; letter-spacing: .02em; margin-top: 18px; }
+  @keyframes bootTurn { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .boot-orb .bring { animation: none !important; } }
   .card { width: 100%; max-width: 420px; margin: auto; padding: 26px 30px 22px; background: #fff; border-radius: 28px; border: 1px solid #E6EEF9; box-shadow: 0 22px 50px rgba(30,80,160,.2); position: relative; }
   /* the sign-in card: the company's logo, "Sign in", round boxes, a blue button – and the character looking over its top */
   .si-wrap { margin: auto; width: 100%; max-width: 420px; padding: 130px 0 24px; position: relative; }
@@ -78,7 +94,25 @@
   .pass { position: relative; } .pass input { padding-right: 48px; }
   .eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: 0; background: none; padding: 6px; border-radius: 50%; cursor: pointer; color: #6b7280; display: grid; }
   .eye:hover { background: #f3f4f6; } .eye svg { width: 20px; height: 20px; } .eye .off { display: none; } .eye.on .on { display: none; } .eye.on .off { display: block; }
-  @media (max-width: 860px) { .orbit { display: none; } .card { padding: 24px 20px; margin: auto 14px; width: auto; } .si-wrap { padding-left: 14px; padding-right: 14px; } .si-wrap .card { margin: 0; } .card h1 { text-align: center; font-size: 26px; } .card.si h1 { text-align: left; } }
+  /* A PHONE (asked 11-11-2026: "mobile warun … te round firtana disat nahiye … keyboard open zal ki te character warti hide houn
+     jate … pratek ios / android screen proper asw"): the orbit is ON TOP, smaller, still turning; the card with the character
+     under it. While a box is being typed in (the keyboard is up): the orbit, the logo and the heading fold away and the page is at
+     its top, so the character and both boxes stay above the keyboard on a small phone too. */
+  @media (max-width: 860px) {
+    .center { flex-direction: column; min-height: 100vh; min-height: 100svh; }
+    .orbit { flex: 0 0 auto; min-height: 0; height: 256px; width: 100%; overflow: hidden; }
+    .orbit > * { scale: .5; } .orbit .ring.r1 { margin: -150px 0 0 -150px; } .orbit .ring.r2 { margin: -215px 0 0 -215px; }
+    .card { padding: 24px 20px; margin: auto 14px; width: auto; } .card h1 { text-align: center; font-size: 26px; } .card.si h1 { text-align: left; }
+    .si-wrap { margin: 0 auto auto; padding: 96px 14px calc(18px + env(safe-area-inset-bottom, 0px)); } .si-wrap .card { margin: 0; }
+    .masc { width: 150px; margin-left: -75px; }
+    .card.si input { font-size: 16px; }      /* (an iPhone enlarges the page for letters under 16 px) */
+    .center.typing .orbit { display: none; }
+    .center.typing .si-wrap { padding-top: calc(84px + env(safe-area-inset-top, 0px)); }
+    .center.typing .masc { top: env(safe-area-inset-top, 0px); width: 136px; margin-left: -68px; }
+    .center.typing .card.si { padding-top: 16px; padding-bottom: 14px; } .center.typing .card.si .co, .center.typing .card.si h1, .center.typing .card.si .forgot { display: none; }
+    .center.typing .card.si input { min-height: 48px; } .center.typing .card.si .btn.primary { min-height: 48px; }
+  }
+  @media (max-width: 860px) and (max-height: 740px) { .orbit { height: 196px; } .orbit > * { scale: .38; } .si-wrap { padding-top: 88px; } .card.si .co { height: 36px; } }
   .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
   .brand .mark { width: 40px; height: 40px; border-radius: 10px; background: var(--navy); color: var(--amber); display: grid; place-items: center; font-weight: 800; letter-spacing: .02em; }
   .brand b { font-size: 20px; } .brand small { display: block; color: var(--muted); font-size: 12.5px; }
@@ -365,6 +399,7 @@
 </style>
 </head>
 <body>
+<div id="go_boot" hidden role="status"><div class="boot-box"><div class="boot-orb" aria-hidden="true"><span class="bring b2"><i></i><i></i></span><span class="bring b1"><i></i><i></i></span><span class="boot-hub"><img src="oc-logo.webp" alt="" width="640" height="462" decoding="async"></span></div><b>Signing in</b></div></div>
 
 <!-- sign-in -->
 <section id="v_login" class="center" hidden>
@@ -838,6 +873,9 @@
   const next = (() => { const n = params.get('next') || ''; return /^\/?api\/go\?/.test(n) ? BASE + n.replace(/^\//, '') : ''; })();
 
   // ---------- start ----------
+  // into a module: the loading look first, then the address (the look stays until the module's page takes over)
+  const goOut = url => { $('go_boot').hidden = false; location.replace(url); };
+  window.addEventListener('pageshow', e => { if (e.persisted) { $('go_boot').hidden = true; start(); } });      // back to this page from the browser's memory: not left under the look
   async function start() {
     // a module's "Logout" comes here with ?signout=1: the Portal sign-in ends too (one sign-out for every module)
     if (params.has('signout')) { params.delete('signout'); history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : ''));
@@ -849,10 +887,10 @@
       b.style.cssText = 'display:block;height:22px;line-height:22px;padding:0 8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;background:#F59E0B;color:#111;font:700 12px/22px system-ui,sans-serif;text-align:center'; document.body.insertBefore(b, document.body.firstChild); }      // (in the page's flow, above its top bar – it hides nothing)
     if (!me.signedIn) return loginView();
     if (me.mustChange) return pwView(true);
-    if (next) { location.replace(next); return; }      // (a module asked for the sign-in – the Super Admin too opens it now)
+    if (next) { goOut(next); return; }      // (a module asked for the sign-in – the Super Admin too opens it now)
     if (me.user.super && !params.has('menu')) return saView();
     // "My start": the module he chose opens straight after sign-in (from a module's "Modules" button, ?menu=1: the dashboard)
-    if (me.start && !params.has('menu') && !params.has('msg') && !params.has('pw')) { const [mo, si] = me.start.split('|'); location.replace(goLink({ module: mo, site: si })); return; }
+    if (me.start && !params.has('menu') && !params.has('msg') && !params.has('pw')) { const [mo, si] = me.start.split('|'); goOut(goLink({ module: mo, site: si })); return; }
     // a module's password button comes here with ?pw=1: the Portal's own "Change password" (one password for every module)
     if (params.has('pw')) { params.delete('pw'); history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : '')); params.set('menu', '1'); homeView(); return pwView(false); }
     homeView();
@@ -882,6 +920,14 @@
     m.style.setProperty('--py', m.dataset.mood === 'look' ? '4px' : '0px');
   };
   for (const id of ['l_email', 'l_pass', 'l_eye']) for (const ev of ['focus', 'blur', 'input', 'click']) $(id).addEventListener(ev, () => setTimeout(mascMood, 0));
+  // a phone: while a box of the sign-in is being typed in, the page folds to the character and the boxes (CSS .typing) and is at its top
+  // (only when the person himself touched or typed in a box – the page's own first focus opens no keyboard)
+  let byHand = false;
+  const typing = () => { const a = document.activeElement, at = a === $('l_email') || a === $('l_pass') || a === $('l_eye'); if (!at) byHand = false;
+    const on = at && byHand && matchMedia('(max-width: 860px)').matches, sec = $('v_login');
+    if (sec.classList.contains('typing') === on) return; sec.classList.toggle('typing', on); if (on) { try { window.scrollTo(0, 0); } catch (e) { /* stays */ } } };
+  for (const id of ['l_email', 'l_pass', 'l_eye']) { for (const ev of ['pointerdown', 'keydown', 'input']) $(id).addEventListener(ev, () => { byHand = true; setTimeout(typing, 60); });
+    for (const ev of ['focus', 'blur']) $(id).addEventListener(ev, () => setTimeout(typing, 60)); }
   $('l_eye').addEventListener('click', () => { const show = $('l_pass').type === 'password'; $('l_pass').type = show ? 'text' : 'password'; $('l_eye').classList.toggle('on', show); $('l_eye').setAttribute('aria-label', show ? 'Hide password' : 'Show password'); });
   $('l_setup_btn').addEventListener('click', () => { show('v_setup'); setTimeout(() => $('s_email').focus(), 30); });
   $('s_back').addEventListener('click', () => loginView());
@@ -943,15 +989,25 @@
     $('h_name').textContent = me.user.name; $('h_email').textContent = me.user.email; $('h_sa').hidden = !me.user.super;
     const m = params.get('msg'); $('h_msg').hidden = m !== 'noaccess'; $('h_msg').textContent = 'You do not have that module on that site. Ask the Super Admin.';
     // one module on one site: open it straight away (from a module's "Modules" button: ?menu=1 – stay here)
-    if (items.length === 1 && !params.has('menu') && !m && !me.user.super) { location.replace(goLink(items[0])); return; }
+    if (items.length === 1 && !params.has('menu') && !m && !me.user.super) { goOut(goLink(items[0])); return; }
+    // (11-11-2026, asked: "fkt ata ji new screen banwali ti ekach asel baki konti screen nahi lagech sign in hoil") several
+    // modules / sites and no "My start": straight into the ERP too – the one he opened last from here, else Machinery (its menu has his
+    // other modules and "Change site"), else his first. This page stays one click away (a module's "Modules" button, ?menu=1).
+    if (items.length > 1 && !params.has('menu') && !m && !me.user.super) {
+      let last = ''; try { last = localStorage.getItem('rcl_portal_last') || ''; } catch (e) { /* none kept */ }
+      const it = items.find(i => i.module + '|' + i.site === last) || items.find(i => i.module === 'mechanical') || items[0];
+      goOut(goLink(it)); return;
+    }
     const bySite = {}; items.forEach(i => { (bySite[i.site] = bySite[i.site] || { name: i.siteName, company: i.company, mods: [] }).mods.push(i); });
     $('h_sites').innerHTML = Object.keys(bySite).map(c => { const s = bySite[c];
       return '<div class="site panel"><h3>' + esc(s.name) + ' <small>' + esc(c) + (s.company ? ' · ' + esc(s.company) : '') + '</small></h3><div class="mods">' +
         s.mods.map(i => { const k = i.module + '|' + i.site, mine = me.start === k;
-          return '<div class="modw"><a class="mod' + (mine ? ' start' : '') + '" href="' + esc(goLink(i)) + '"><b>' + esc(i.moduleName) + '</b><span>' + esc(i.siteName) + '</span><span class="tag">' + (i.role === 'admin' ? 'Admin' : 'User') + '</span></a>' +
+          return '<div class="modw"><a class="mod' + (mine ? ' start' : '') + '" data-go="' + esc(k) + '" href="' + esc(goLink(i)) + '"><b>' + esc(i.moduleName) + '</b><span>' + esc(i.siteName) + '</span><span class="tag">' + (i.role === 'admin' ? 'Admin' : 'User') + '</span></a>' +
             (me.startReady && items.length > 1 ? '<button type="button" class="link star" data-k="' + esc(mine ? '' : k) + '">' + (mine ? '★ Opens at sign-in – remove' : '☆ Open this at sign-in') + '</button>' : '') + '</div>'; }).join('') + '</div></div>'; }).join('');
     $('h_none').hidden = items.length > 0;
   }
+  // the module opened from here is the one that opens at the next sign-in (this browser)
+  $('h_sites').addEventListener('click', e => { const t = e.target.closest('a[data-go]'); if (t) { try { localStorage.setItem('rcl_portal_last', t.dataset.go); } catch (x) { /* not kept */ } } });
   const goLink = i => BASE + 'api/go?module=' + encodeURIComponent(i.module) + '&site=' + encodeURIComponent(i.site);
   $('h_out').addEventListener('click', signOut);
   $('h_sites').addEventListener('click', async e => { const b = e.target.closest('button.star'); if (!b) return;

@@ -11,6 +11,11 @@ One sign-in for every RCL ERP module (Mechanical first; Store, Engineering … l
   card: its eyes follow the email, it covers them while the password is typed, looks with one eye when the password is shown.
   Look only: the form, its checks and the sign-in call are as before; the character is told a count of letters, never the
   password. No movement with "reduce motion". Web only (the phone app has its own sign-in).
+  **On a phone's browser** the orbit is on top (smaller, turning) and the card under it; while a box is typed in, the page folds to
+  the character, the two boxes and the button, so they stay above the keyboard (iPhone SE … Pixel sizes tried).
+  **After sign-in** the person goes straight into the ERP under a white loading look (`#go_boot`, the same as Mechanical's
+  update-224): "My start", else the module opened last from here, else Machinery, else his first; the Portal's own page is one
+  click away (a module's "Modules" button). The Super Admin opens his console as before.
 * **A sign-in stays until "Sign out" (18-10-2026, asked: "user jo prynt log out krt nahi to prynt log in rahil mg app aso ki
   web").** No more "6 hours without use" and no more "30 days" – on the web, in the phone app and in the Windows app. It ends
   only at "Sign out" (here or in a module), when the Super Admin switches the person off or gives him a new password, or when
