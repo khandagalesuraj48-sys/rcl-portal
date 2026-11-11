@@ -260,4 +260,7 @@ kraych aahe size swata tharau shakel … period wise day wise timing wise".
   (3.42 : 1); its shape is fixed in each place. **"✂ Fit to strip – Web and App"**: the post's image or video under two frames, moved
   and made bigger; only how it sits is kept (`ads.fit`, `sql/portal_step9_ads_fit.sql`; `lib/ads.js` `fitOf`, `RATIO`) – the file is
   not changed, so a video is fitted too. The sizes Banner / Card / Full screen and the tool that cut a picture's file are gone.
+* (12-11-2026, asked: "tya patticha size wadhwata yeil as banw … web sathi ha option nko fkt android and ios app sathi") **In the app
+  only a post can be made higher** than the strip – "Fit to strip" → "Height in the app" (strip … tall, up to 9 : 16). Kept with
+  the fit (`fit.app.r` = its shape there, 3.42 … 0.56; no new SQL). The web's strip stays as it is.
 

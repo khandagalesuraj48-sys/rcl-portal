@@ -1180,18 +1180,23 @@
   }
   function adDim() {
     const p = AD.cur; if (!p) return; const f = AD.f.fit || p.fit || {};
-    const moved = k => f[k] && (f[k].x !== 50 || f[k].y !== 50 || f[k].z !== 1) ? ' <span class="ok">✓ fitted</span>' : '';
+    const moved = k => (f[k] && (f[k].x !== 50 || f[k].y !== 50 || f[k].z !== 1) ? ' <span class="ok">✓ fitted</span>' : '') + (k === 'app' && f.app && f.app.r < 3.4 ? ' <span class="ok">· higher in the app: 1080 × ' + Math.round(1080 / f.app.r) + ' px</span>' : '');
     $('ad_dim').innerHTML = '<div><b>The strip</b> – best made in (width × height):</div><div>Web: <b>1920 × 150 px</b>' + moved('web') + '</div><div>App: <b>1080 × 316 px</b>' + moved('app') + '</div>' +
       (AD.f.w ? '<div class="now">This file: ' + AD.f.w + ' × ' + AD.f.h + ' px</div>' : '') +
-      '<small>Any image or video can be used: it fills the strip and what does not fit is cut at the edges. "Fit to strip" chooses which part is seen – once for the Web, once for the App.</small>';
+      '<small>Any image or video can be used: it fills the strip and what does not fit is cut at the edges. "Fit to strip" chooses which part is seen – once for the Web, once for the App. In the App only, a post can also be made higher there (for an upright video).</small>';
   }
   function adFit() {
     const p = AD.cur; if (!p) return;
-    const cur = AD.f.fit || p.fit || {}, F = { web: Object.assign({ x: 50, y: 50, z: 1 }, cur.web), app: Object.assign({ x: 50, y: 50, z: 1 }, cur.app) };
+    const cur = AD.f.fit || p.fit || {}, F = { web: Object.assign({ x: 50, y: 50, z: 1 }, cur.web), app: Object.assign({ x: 50, y: 50, z: 1, r: 3.42 }, cur.app) };
+    delete F.web.r;      // (the height is the app's only)
     const media = k => p.media === 'video' ? '<video data-k="' + k + '" src="' + esc(p.url) + '" muted loop autoplay playsinline></video>' : '<img data-k="' + k + '" src="' + esc(p.url) + '" alt="" draggable="false">';
-    const part = (k, name) => '<div class="adf-part"><div class="adf-h"><b>' + name + '</b><span>' + AD_STRIP[k][0] + ' × ' + AD_STRIP[k][1] + '</span></div><div class="adf-frame" data-k="' + k + '" style="aspect-ratio:' + AD_STRIP[k][0] + '/' + AD_STRIP[k][1] + '">' + media(k) + '</div><div class="adc-row"><span>Smaller</span><input type="range" min="100" max="400" value="' + Math.round(F[k].z * 100) + '" data-z="' + k + '" aria-label="Size – ' + name + '"><span>Bigger</span><button class="sa-btn sm" type="button" data-mid="' + k + '">Middle</button></div></div>';
+    const part = (k, name) => '<div class="adf-part"><div class="adf-h"><b>' + name + '</b><span>' + AD_STRIP[k][0] + ' × ' + AD_STRIP[k][1] + '</span></div><div class="adf-frame" data-k="' + k + '" style="aspect-ratio:' + AD_STRIP[k][0] + '/' + AD_STRIP[k][1] + '">' + media(k) + '</div><div class="adc-row"><span>Smaller</span><input type="range" min="100" max="400" value="' + Math.round(F[k].z * 100) + '" data-z="' + k + '" aria-label="Size – ' + name + '"><span>Bigger</span><button class="sa-btn sm" type="button" data-mid="' + k + '">Middle</button></div>' + (k === 'app' ? '<div class="adc-row"><span>Height in the app: strip</span><input type="range" min="29" max="178" value="' + Math.round(100 / F.app.r) + '" id="adf_h" aria-label="Height of the post in the app"><span>tall</span><b id="adf_hs"></b></div>' : '') + '</div>';
     document.body.insertAdjacentHTML('beforeend', '<div class="adc-back" id="adc"><div class="adc-box" role="dialog" aria-modal="true" aria-label="Fit to strip"><h2>Fit to strip</h2><p>Move the picture inside each frame with the mouse or the finger; make it bigger with the slider. What is inside a frame is what people see there.</p>' + part('web', 'Web – the Dashboard') + part('app', 'App – Home') + '<div class="adc-row"><span class="sp"></span><button class="sa-btn" id="adc_no" type="button">Cancel</button><button class="sa-btn primary" id="adc_ok" type="button">Use this</button></div></div></div>');
     const box = $('adc'), el = k => box.querySelector('.adf-frame[data-k="' + k + '"] > *'), put = k => { el(k).style.cssText = adFitCss(F[k]); };
+    // (the app only) the post's height there: from the strip (1080 × 316) to an upright video (9 : 16); the frame shows it
+    const tall = () => { const fr = box.querySelector('.adf-frame[data-k="app"]'), r = F.app.r; fr.style.aspectRatio = String(r); fr.style.maxWidth = Math.round(Math.min(520, 400 * r)) + 'px';
+      $('adf_hs').textContent = r >= 3.4 ? 'Strip' : '1080 × ' + Math.round(1080 / r) + ' px'; };
+    tall(); $('adf_h').addEventListener('input', () => { const h = Number($('adf_h').value); F.app.r = h <= 30 ? 3.42 : Math.max(0.56, Math.round(10000 / h) / 100); tall(); });
     ['web', 'app'].forEach(k => { put(k);
       const fr = box.querySelector('.adf-frame[data-k="' + k + '"]'); let drag = null;
       fr.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; fr.setPointerCapture(e.pointerId); e.preventDefault(); });
@@ -1201,7 +1206,7 @@
         F[k].x = Math.round(F[k].x * 100) / 100; F[k].y = Math.round(F[k].y * 100) / 100; drag = { x: e.clientX, y: e.clientY }; put(k); });
       ['pointerup', 'pointercancel'].forEach(n => fr.addEventListener(n, () => { drag = null; })); });
     box.addEventListener('input', e => { const k = e.target.dataset.z; if (k) { F[k].z = Number(e.target.value) / 100; put(k); } });
-    box.addEventListener('click', e => { const k = e.target.dataset.mid; if (k) { F[k] = { x: 50, y: 50, z: 1 }; box.querySelector('input[data-z="' + k + '"]').value = 100; put(k); } });
+    box.addEventListener('click', e => { const k = e.target.dataset.mid; if (k) { F[k] = Object.assign(k === 'app' ? { r: F.app.r } : {}, { x: 50, y: 50, z: 1 }); box.querySelector('input[data-z="' + k + '"]').value = 100; put(k); } });
     const shut = () => box.remove();
     $('adc_no').addEventListener('click', shut);
     $('adc_ok').addEventListener('click', () => { AD.f.fit = F; adDim(); shut(); toast('Fitted – now save the post.'); });

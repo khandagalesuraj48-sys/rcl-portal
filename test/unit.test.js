@@ -505,12 +505,17 @@ test('ads (step 9): one size – the strip; "Fit to strip" keeps how a post sits
   const A = require('../lib/ads');
   const page = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8'), api = fs.readFileSync(path.join(__dirname, '../api/ads.js'), 'utf8'), sql = fs.readFileSync(path.join(__dirname, '../sql/portal_step9_ads_fit.sql'), 'utf8');
   assert.deepStrictEqual(A.RATIO, { web: 12.8, app: 3.42 });
-  assert.deepStrictEqual(A.fitOf(null), { web: { x: 50, y: 50, z: 1 }, app: { x: 50, y: 50, z: 1 } }, 'not fitted = from its middle, as before');
-  assert.deepStrictEqual(A.fitOf({ web: { x: 12.345, y: 101, z: 9 }, app: { x: '80', y: 0, z: 2.5 }, more: 1 }), { web: { x: 12.35, y: 50, z: 1 }, app: { x: 80, y: 0, z: 2.5 } }, 'a wrong value becomes the middle / no zoom');
+  assert.deepStrictEqual(A.fitOf(null), { web: { x: 50, y: 50, z: 1 }, app: { x: 50, y: 50, z: 1, r: 3.42 } }, 'not fitted = from its middle, the strip, as before');
+  assert.deepStrictEqual(A.fitOf({ web: { x: 12.345, y: 101, z: 9 }, app: { x: '80', y: 0, z: 2.5 }, more: 1 }), { web: { x: 12.35, y: 50, z: 1 }, app: { x: 80, y: 0, z: 2.5, r: 3.42 } }, 'a wrong value becomes the middle / no zoom');
+  // (the app only) a post made higher there: its shape, from the strip (3.42) to an upright video (0.56); the web has none
+  assert.deepStrictEqual(A.fitOf({ web: { r: 1 }, app: { r: 0.8 } }), { web: { x: 50, y: 50, z: 1 }, app: { x: 50, y: 50, z: 1, r: 0.8 } });
+  assert.strictEqual(A.fitOf({ app: { r: 0.2 } }).app.r, 3.42, 'higher than an upright video: the strip'); assert.strictEqual(A.fitOf({ app: { r: 9 } }).app.r, 3.42);
+  assert.strictEqual(A.fitPlain({ app: { r: 1 } }), false, 'a higher post needs step 9 as a fitted one does');
   assert.strictEqual(A.fitPlain({}), true); assert.strictEqual(A.fitPlain({ app: { x: 51 } }), false);
   const ok = { title: 'a', kind: 'festival', size: 'card', path: '2026/0123456789abcdef01234567.mp4', onApp: true, onWeb: true, from: '2026-11-11', to: '2026-11-14', days: '1', timeFrom: '06:00', timeTo: '23:00', seconds: 12, fit: { web: { x: 30, y: 70, z: 1.5 } } };
   const r = A.clean(ok);
-  assert.strictEqual(r.size, 'strip', 'whatever is sent: a strip'); assert.deepStrictEqual(r.fit, { web: { x: 30, y: 70, z: 1.5 }, app: { x: 50, y: 50, z: 1 } });
+  assert.strictEqual(r.size, 'strip', 'whatever is sent: a strip'); assert.deepStrictEqual(r.fit, { web: { x: 30, y: 70, z: 1.5 }, app: { x: 50, y: 50, z: 1, r: 3.42 } });
+  assert.match(page, /id="adf_h"/, 'the height slider is in the app\'s part'); assert.match(page, /delete F\.web\.r;/, 'never for the web');
   assert.match(api, /size: 'strip', seconds: r\.seconds,[^\n]*fit: A\.fitOf\(r\.fit\), ratio: A\.RATIO/, 'every post goes out as a strip with its fit and the strip\'s shape');
   assert.match(api, /if \(!A\.fitPlain\(row\.fit\)\) throw fail\(409, STEP9, 'step9'\);/, 'before step 9 a fitted post says what to run; a plain one is kept as before');
   assert.match(sql, /alter table public\.ads add column if not exists fit jsonb;/);
