@@ -248,4 +248,8 @@ kraych aahe size swata tharau shakel … period wise day wise timing wise".
 * The console: **Advertise** – "Add images / videos" (several at once, each kept Inactive), then each is set and saved Active.
 * `vercel.json` – the page may send a file to, and play a video from, the Portal's Supabase (`connect-src`, `media-src`).
 * Shown on the web's Dashboard and the app's Home by their own updates (Mechanical, rcl-mobile).
+* (11-11-2026, asked: "mala eth size pn de … ek tool pn de jyatun mi size kami jast perfect banau shakel") **The sizes in pixels** under
+  Size – App and Web for the size chosen, this file's own size, "✓ fits" or "its edges will be cut" – and **"✂ Fit the picture"**
+  (App / Web): the picture under a frame of the place's shape, moved and made bigger or smaller, cut to exactly that size and kept
+  as a new file (a video cannot be cut here: it is made in the size). The App and the Web have different shapes: one post each.
 
