@@ -456,7 +456,7 @@ test('ads: a post as the Super Admin gives it – cleaned; a wrong one refused w
   const r = A.clean(ok);
   assert.deepStrictEqual([r.title, r.media, r.days, r.sites, r.active, r.on_app, r.on_web, r.seconds], ['शुभ दीपावली', 'video', '1357', ['VTR'], true, true, true, 12]);
   const bad = (ch, re) => assert.throws(() => A.clean(Object.assign({}, ok, ch)), e => re.test(e.message), JSON.stringify(ch));
-  bad({ title: ' ' }, /name/); bad({ kind: 'x' }, /kind/); bad({ size: 'huge' }, /size/); bad({ path: '../secret.mp4' }, /image or the video/); bad({ path: 'https://x/y.mp4' }, /image or the video/);
+  bad({ title: ' ' }, /name/); bad({ kind: 'x' }, /kind/); bad({ path: '../secret.mp4' }, /image or the video/); bad({ path: 'https://x/y.mp4' }, /image or the video/);
   bad({ poster: '2026/0123456789abcdef01234568.mp4' }, /still picture/); bad({ onApp: false, onWeb: false }, /where it shows/); bad({ from: '2026-02-30' }, /period/);
   bad({ to: '2026-11-10' }, /ends before/); bad({ days: '089' }, /day of the week/); bad({ timeFrom: '6am' }, /hours/); bad({ timeTo: '05:00' }, /hours end/); bad({ seconds: 2 }, /3 to 60/); bad({ seconds: 600 }, /3 to 60/);
   assert.strictEqual(A.clean(Object.assign({}, ok, { active: false })).active, false, 'Inactive is kept – a post is never deleted');
@@ -501,13 +501,22 @@ test('ads: the console has the Advertise page – several files at once, each ke
   assert.match(v, /media-src 'self' https: blob:; connect-src 'self' https:\/\/\*\.supabase\.co;/);
 });
 
-test('ads: the sizes are said in pixels (App and Web) and a picture can be fitted into one – cut to exactly that size, kept as a new file', () => {
-  const page = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
-  assert.match(page, /const AD_DIM = \{ strip: \{ app: \[1080, 316\], web: \[1920, 150\] \}, banner: \{ app: \[1080, 540\], web: \[1920, 280\] \}, card: \{ app: \[1080, 540\], web: \[720, 600\] \}, full: \{ app: \[1080, 1920\], web: \[1920, 280\] \} \};/);
-  assert.match(page, /id="ad_dim"/); assert.match(page, /id="ad_crop_app"/); assert.match(page, /id="ad_crop_web"/);
-  assert.match(page, /\$\('ad_crop_f'\)\.hidden = p\.media !== 'image';/, 'the tool is for a picture – a video is made in the size');
-  assert.match(page, /cv\.toBlob\(async blob =>[\s\S]{0,260}adPut\(new File\(\[blob\], 'fit\.jpg', \{ type: 'image\/jpeg' \}\)\)/, 'the cut picture is kept as a new file');
-  assert.match(page, /path: AD\.f\.path \|\| p\.path/, 'the post takes the fitted file when there is one');
+test('ads (step 9): one size – the strip; "Fit to strip" keeps how a post sits in it for the web and for the app (the file is not changed)', () => {
+  const A = require('../lib/ads');
+  const page = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8'), api = fs.readFileSync(path.join(__dirname, '../api/ads.js'), 'utf8'), sql = fs.readFileSync(path.join(__dirname, '../sql/portal_step9_ads_fit.sql'), 'utf8');
+  assert.deepStrictEqual(A.RATIO, { web: 12.8, app: 3.42 });
+  assert.deepStrictEqual(A.fitOf(null), { web: { x: 50, y: 50, z: 1 }, app: { x: 50, y: 50, z: 1 } }, 'not fitted = from its middle, as before');
+  assert.deepStrictEqual(A.fitOf({ web: { x: 12.345, y: 101, z: 9 }, app: { x: '80', y: 0, z: 2.5 }, more: 1 }), { web: { x: 12.35, y: 50, z: 1 }, app: { x: 80, y: 0, z: 2.5 } }, 'a wrong value becomes the middle / no zoom');
+  assert.strictEqual(A.fitPlain({}), true); assert.strictEqual(A.fitPlain({ app: { x: 51 } }), false);
+  const ok = { title: 'a', kind: 'festival', size: 'card', path: '2026/0123456789abcdef01234567.mp4', onApp: true, onWeb: true, from: '2026-11-11', to: '2026-11-14', days: '1', timeFrom: '06:00', timeTo: '23:00', seconds: 12, fit: { web: { x: 30, y: 70, z: 1.5 } } };
+  const r = A.clean(ok);
+  assert.strictEqual(r.size, 'strip', 'whatever is sent: a strip'); assert.deepStrictEqual(r.fit, { web: { x: 30, y: 70, z: 1.5 }, app: { x: 50, y: 50, z: 1 } });
+  assert.match(api, /size: 'strip', seconds: r\.seconds,[^\n]*fit: A\.fitOf\(r\.fit\), ratio: A\.RATIO/, 'every post goes out as a strip with its fit and the strip\'s shape');
+  assert.match(api, /if \(!A\.fitPlain\(row\.fit\)\) throw fail\(409, STEP9, 'step9'\);/, 'before step 9 a fitted post says what to run; a plain one is kept as before');
+  assert.match(sql, /alter table public\.ads add column if not exists fit jsonb;/);
+  assert.match(page, /id="ad_fit"/); assert.doesNotMatch(page, /id="ad_size"|adCrop|AD_DIM/, 'no other size, no cutting of files');
+  assert.match(page, /const adFitCss = f => 'object-fit:cover;object-position:' \+ f\.x \+ '% ' \+ f\.y \+ '%;transform:scale\(' \+ f\.z \+ '\);transform-origin:' \+ f\.x \+ '% ' \+ f\.y \+ '%';/);
+  assert.match(page, /size: 'strip', fit: AD\.f\.fit \|\| p\.fit \|\| null,/);
 });
 
 test('ads: a video is tried in the browser before it is added – one that cannot play is refused with what to make instead; a post whose video does not play says so', () => {

@@ -255,4 +255,9 @@ kraych aahe size swata tharau shakel … period wise day wise timing wise".
 * (12-11-2026, asked: "ek vedio mi set kela aahe … porter madhun play pn hot nahiye") **A video is tried in the browser before it is
   added** (`adPlays`): a file named .mp4 in a form no browser plays ("mp4v" / MPEG-4, HEVC …) is not added – he is told to make it
   as MP4 with H.264 video (AAC sound). A post whose video does not play says so in its preview.
+* (12-11-2026 – **step 9**, asked: "jast mothe size thewaychich nahi fkt strip madhe thewaychi … fit to strip as ek option de te mi
+  dable ki vedio image web and app nusar set hoil") **One size: the strip** – on the web 1920 × 150 (12.8 : 1), in the app 1080 × 316
+  (3.42 : 1); its shape is fixed in each place. **"✂ Fit to strip – Web and App"**: the post's image or video under two frames, moved
+  and made bigger; only how it sits is kept (`ads.fit`, `sql/portal_step9_ads_fit.sql`; `lib/ads.js` `fitOf`, `RATIO`) – the file is
+  not changed, so a video is fitted too. The sizes Banner / Card / Full screen and the tool that cut a picture's file are gone.
 
