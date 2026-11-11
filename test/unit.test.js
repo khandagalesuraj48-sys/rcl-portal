@@ -447,3 +447,56 @@ test('(11-11-2026) after sign-in straight into the ERP under the loading look; t
   assert.match(ph, /\.card\.si input \{ font-size: 16px; \}/, 'an iPhone does not enlarge the page');
   assert.match(html, /const on = at && byHand && matchMedia\('\(max-width: 860px\)'\)\.matches/, 'folds only when he himself typed – not on the page\'s own first focus');
 });
+
+/* ---------------- the Advertise Corner (11-11-2026, step 8) – its rules ---------------- */
+test('ads: a post as the Super Admin gives it – cleaned; a wrong one refused with the words for him', () => {
+  const A = require('../lib/ads');
+  const ok = { title: '  शुभ   दीपावली ', kind: 'festival', size: 'strip', path: '2026/0123456789abcdef01234567.mp4', poster: '2026/0123456789abcdef01234568.jpg', onApp: true, onWeb: true,
+    from: '2026-11-11', to: '2026-11-14', days: '7135', timeFrom: '06:00', timeTo: '23:00', seconds: 12, sites: ['VTR', 'VTR', ' '], company: '' };
+  const r = A.clean(ok);
+  assert.deepStrictEqual([r.title, r.media, r.days, r.sites, r.active, r.on_app, r.on_web, r.seconds], ['शुभ दीपावली', 'video', '1357', ['VTR'], true, true, true, 12]);
+  const bad = (ch, re) => assert.throws(() => A.clean(Object.assign({}, ok, ch)), e => re.test(e.message), JSON.stringify(ch));
+  bad({ title: ' ' }, /name/); bad({ kind: 'x' }, /kind/); bad({ size: 'huge' }, /size/); bad({ path: '../secret.mp4' }, /image or the video/); bad({ path: 'https://x/y.mp4' }, /image or the video/);
+  bad({ poster: '2026/0123456789abcdef01234568.mp4' }, /still picture/); bad({ onApp: false, onWeb: false }, /where it shows/); bad({ from: '2026-02-30' }, /period/);
+  bad({ to: '2026-11-10' }, /ends before/); bad({ days: '089' }, /day of the week/); bad({ timeFrom: '6am' }, /hours/); bad({ timeTo: '05:00' }, /hours end/); bad({ seconds: 2 }, /3 to 60/); bad({ seconds: 600 }, /3 to 60/);
+  assert.strictEqual(A.clean(Object.assign({}, ok, { active: false })).active, false, 'Inactive is kept – a post is never deleted');
+});
+
+test('ads: shows only in its period, on its days, in its hours (India\'s clock), on its place, site and company', () => {
+  const A = require('../lib/ads');
+  // 11-11-2026 is a Wednesday (3); 16:30 UTC = 22:00 in India; 18:45 UTC = 00:15 of the NEXT day in India
+  assert.deepStrictEqual(A.india(Date.UTC(2026, 10, 11, 16, 30)), { date: '2026-11-11', time: '22:00', day: 3 });
+  assert.deepStrictEqual(A.india(Date.UTC(2026, 10, 14, 18, 45)), { date: '2026-11-15', time: '00:15', day: 7 });
+  const r = { active: true, on_app: true, on_web: false, date_from: '2026-11-11', date_to: '2026-11-14', days: '123456', time_from: '06:00:00', time_to: '23:00:00', sites: ['VTR'], company: 'RCL' };
+  const at = { date: '2026-11-11', time: '22:00', day: 3 }, w = { platform: 'app', site: 'VTR', company: 'RCL' };
+  assert.strictEqual(A.live(r, w, at), true);
+  assert.strictEqual(A.live(r, Object.assign({}, w, { platform: 'web' }), at), false, 'not on the web');
+  assert.strictEqual(A.live(r, w, Object.assign({}, at, { date: '2026-11-10' })), false, 'before its period');
+  assert.strictEqual(A.live(r, w, Object.assign({}, at, { date: '2026-11-15' })), false, 'after its period');
+  assert.strictEqual(A.live(r, w, Object.assign({}, at, { day: 7 })), false, 'not on a Sunday');
+  assert.strictEqual(A.live(r, w, Object.assign({}, at, { time: '05:59' })), false, 'before its hours');
+  assert.strictEqual(A.live(r, w, Object.assign({}, at, { time: '23:01' })), false, 'after its hours');
+  assert.strictEqual(A.live(r, Object.assign({}, w, { site: '18B' }), at), false, 'another site');
+  assert.strictEqual(A.live(r, Object.assign({}, w, { company: 'SKL' }), at), false, 'another company');
+  assert.strictEqual(A.live(Object.assign({}, r, { sites: [], company: '' }), { platform: 'app', site: '18B', company: 'SKL' }, at), true, 'no site, no company given = everybody');
+  assert.strictEqual(A.live(Object.assign({}, r, { active: false }), w, at), false, 'Inactive');
+});
+
+test('ads: the endpoint – "live" for a person signed in with access to the site only; everything else for the Super Admin only; no delete', () => {
+  const src = fs.readFileSync(path.join(__dirname, '../api/ads.js'), 'utf8'), sql = fs.readFileSync(path.join(__dirname, '../sql/portal_step8_ads.sql'), 'utf8');
+  assert.ok(src.indexOf("action === 'live'") < src.indexOf('ses.need(req, { super: true })') && src.indexOf('ses.need(req, { super: true })') < src.indexOf("action === 'list'"), 'list / uploadUrl / save / order come after the Super Admin check');
+  assert.match(src, /access\?select=site&email=eq\./, 'live: his access line on that site is asked');
+  assert.ok(!/db\('DELETE'/.test(src), 'no post is deleted');
+  assert.match(sql, /values \('ads', 'ads', false,/, 'the bucket is private');
+  assert.match(sql, /enable row level security/); assert.match(sql, /revoke all on public\.ads from public, anon, authenticated/);
+  assert.ok(!/grant[^;]*delete[^;]*public\.ads/i.test(sql), 'the server has no right to delete a post');
+});
+
+test('ads: the console has the Advertise page – several files at once, each kept Inactive first; the page may reach the file store', () => {
+  const page = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8'), v = fs.readFileSync(path.join(__dirname, '../vercel.json'), 'utf8');
+  assert.match(page, /data-t="ads"/); assert.match(page, /<section id="t_ads" class="sa-page" hidden>/);
+  assert.match(page, /id="ad_files" type="file"[^>]*multiple/);
+  assert.match(page, /action: 'save', title: f\.name[^\n]*active: false/, 'a new file is kept Inactive until he sets it');
+  assert.match(page, /'versions', 'ads', 'audit'/, 'the page is one of the console\'s pages');
+  assert.match(v, /media-src 'self' https: blob:; connect-src 'self' https:\/\/\*\.supabase\.co;/);
+});
