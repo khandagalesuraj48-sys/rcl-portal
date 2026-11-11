@@ -251,6 +251,7 @@
   .ad-form { padding: 16px 18px; } .ad-form[hidden] { display: none; }
   .ad-prev { border-radius: 14px; overflow: hidden; background: #0F1F3D; margin-bottom: 14px; display: grid; place-items: center; max-height: 260px; }
   .ad-prev video, .ad-prev img { max-width: 100%; max-height: 260px; display: block; }
+  .ad-prev .ad-bad { margin: 0; padding: 22px 18px; color: #FECACA; font-size: 14px; line-height: 1.5; }
   .ad-f { display: block; font-size: 12.5px; font-weight: 600; color: var(--s-muted); margin-bottom: 12px; } .ad-f small { font-weight: 400; }
   .ad-f input:not([type=file]), .ad-f select { display: block; width: 100%; min-height: 40px; margin-top: 4px; padding: 7px 11px; border: 1px solid var(--s-line); border-radius: 10px; font: inherit; font-size: 14.5px; color: var(--s-ink); background: #fff; box-sizing: border-box; }
   .ad-f input[type=file] { display: block; margin-top: 6px; }
@@ -1152,6 +1153,9 @@
   function adOpen(p) {
     AD.cur = p; AD.f = { poster: p.posterPath || '', path: '', w: 0, h: 0 }; $('ad_form').hidden = false; adList();
     $('ad_prev').innerHTML = adMedia(p).replace('preload="metadata"', 'autoplay controls');
+    const pv = $('ad_prev').querySelector('video');
+    if (pv) { const bad = () => { if (AD.cur === p) $('ad_prev').innerHTML = '<p class="ad-bad">' + esc(AD_NOPLAY.replace('{0}', p.title).replace(' – it was not added', '')) + '</p>'; };
+      pv.addEventListener('error', bad, { once: true }); pv.addEventListener('loadeddata', () => { if (!pv.videoWidth) bad(); }, { once: true }); }
     $('ad_title').value = p.title; adChips('ad_kind', AD_KINDS, p.kind); adChips('ad_where', [['app', 'App'], ['web', 'Web']], [p.onApp ? 'app' : '', p.onWeb ? 'web' : ''], true);
     adChips('ad_size', AD_SIZES, p.size); adChips('ad_days', AD_DAYS, p.days.split(''), true);
     $('ad_from').value = p.from; $('ad_to').value = p.to; $('ad_tf').value = p.timeFrom; $('ad_tt').value = p.timeTo; $('ad_sec').value = p.seconds;
@@ -1218,6 +1222,22 @@
   $('ad_crop_app').addEventListener('click', () => adCrop('app'));
   $('ad_crop_web').addEventListener('click', () => adCrop('web'));
   function adClose() { AD.cur = null; $('ad_form').hidden = true; $('ad_prev').innerHTML = ''; adList(); }
+  /* (12-11-2026, asked: "ek vedio mi set kela aahe … porter madhun play pn hot nahiye") A VIDEO IS TRIED HERE FIRST: a file can be
+   * named .mp4 and still be in a form no browser or phone plays (made with "mp4v" / MPEG-4, HEVC / H.265, ProRes …). Such a file
+   * is not added – he is told what to make instead. A post whose video does not play says so in its preview. */
+  const AD_NOPLAY = '"{0}" cannot be played by a browser or the app – it was not added. Make the video again as MP4 with H.264 video (sound: AAC), then add it. (Video tools call it "MP4 – H.264" or "libx264"; "mp4v", "MPEG-4", "HEVC / H.265" do not play.)';
+  function adPlays(file) {
+    return new Promise(done => {
+      let url = ''; const v = document.createElement('video'); let t = 0;
+      const end = ok => { clearTimeout(t); try { v.removeAttribute('src'); v.load(); if (url) URL.revokeObjectURL(url); } catch (e) { /* gone */ } done(ok); };
+      try { url = URL.createObjectURL(file); } catch (e) { return done(true); }      // cannot be tried here: let it through
+      v.muted = true; v.preload = 'auto';
+      v.addEventListener('loadeddata', () => end(v.videoWidth > 0 && v.videoHeight > 0), { once: true });      // a picture of it came: it plays
+      v.addEventListener('error', () => end(false), { once: true });
+      t = setTimeout(() => end(v.readyState >= 2 ? v.videoWidth > 0 : false), 8000);
+      v.src = url;
+    });
+  }
   // one file → its place in the private store (a link of the server for this one file) → its path
   async function adPut(file) {
     const u = await api('/api/ads', { action: 'uploadUrl', type: file.type, bytes: file.size });
@@ -1231,6 +1251,7 @@
     $('ad_add').classList.add('busy'); let ok = 0;
     for (const f of files) {
       try {
+        if (/^video\//.test(f.type) && !(await adPlays(f))) { toast(AD_NOPLAY.replace('{0}', f.name), true); adNote(AD_NOPLAY.replace('{0}', f.name)); continue; }
         toast('Sending ' + f.name + ' …');
         const path = await adPut(f);
         await api('/api/ads', { action: 'save', title: f.name.replace(/\.[^.]+$/, '').slice(0, 80) || 'Post', kind: 'notice', size: 'strip', path: path, onApp: true, onWeb: true, from: today, to: end, days: '1234567', timeFrom: '00:00', timeTo: '23:59', seconds: /^video\//.test(f.type) ? 12 : 6, sites: [], company: '', active: false });

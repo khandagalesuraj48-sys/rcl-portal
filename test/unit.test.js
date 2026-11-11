@@ -509,3 +509,11 @@ test('ads: the sizes are said in pixels (App and Web) and a picture can be fitte
   assert.match(page, /cv\.toBlob\(async blob =>[\s\S]{0,260}adPut\(new File\(\[blob\], 'fit\.jpg', \{ type: 'image\/jpeg' \}\)\)/, 'the cut picture is kept as a new file');
   assert.match(page, /path: AD\.f\.path \|\| p\.path/, 'the post takes the fitted file when there is one');
 });
+
+test('ads: a video is tried in the browser before it is added – one that cannot play is refused with what to make instead; a post whose video does not play says so', () => {
+  const page = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
+  assert.match(page, /if \(\/\^video\\\/\/\.test\(f\.type\) && !\(await adPlays\(f\)\)\) \{ toast\(AD_NOPLAY/);
+  assert.match(page, /const AD_NOPLAY = '[^']*MP4 with H\.264 video[^']*'/);
+  assert.match(page, /v\.addEventListener\('error', \(\) => end\(false\), \{ once: true \}\);/);
+  assert.match(page, /pv\.addEventListener\('error', bad, \{ once: true \}\)/);
+});
