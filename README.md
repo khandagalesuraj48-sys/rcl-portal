@@ -237,3 +237,15 @@ The rcl-mobile release workflow puts the files there; the Portal only reads them
 outside `android/`, a missing fingerprint, a link to another site) is never given to the phones.
 
 The Portal's home page shows **Download the Android app** when a version is there (for the first install).
+
+## The Advertise Corner (11-11-2026 – the Portal's step 8)
+Asked: "Rachana Media & Celebration Hub … he aple advertise corner asel"; "super admin tharau shakel vedio app web kuthe show
+kraych aahe size swata tharau shakel … period wise day wise timing wise".
+* `sql/portal_step8_ads.sql` – the table `ads` and the PRIVATE bucket `ads` (run by the owner on 11-11-2026).
+* `lib/ads.js` – the rules: what a post may be; whether it shows now (its period, days, hours – India's clock – its place, site, company).
+* `api/ads.js` – `live` for a person signed in with access to the site; `list`, `uploadUrl`, `save`, `order` for the Super Admin only.
+  A file goes from the browser straight to the bucket with a link made for that one file; a post is never deleted (Inactive).
+* The console: **Advertise** – "Add images / videos" (several at once, each kept Inactive), then each is set and saved Active.
+* `vercel.json` – the page may send a file to, and play a video from, the Portal's Supabase (`connect-src`, `media-src`).
+* Shown on the web's Dashboard and the app's Home by their own updates (Mechanical, rcl-mobile).
+

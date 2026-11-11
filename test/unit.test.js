@@ -491,3 +491,12 @@ test('ads: the endpoint – "live" for a person signed in with access to the sit
   assert.match(sql, /enable row level security/); assert.match(sql, /revoke all on public\.ads from public, anon, authenticated/);
   assert.ok(!/grant[^;]*delete[^;]*public\.ads/i.test(sql), 'the server has no right to delete a post');
 });
+
+test('ads: the console has the Advertise page – several files at once, each kept Inactive first; the page may reach the file store', () => {
+  const page = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8'), v = fs.readFileSync(path.join(__dirname, '../vercel.json'), 'utf8');
+  assert.match(page, /data-t="ads"/); assert.match(page, /<section id="t_ads" class="sa-page" hidden>/);
+  assert.match(page, /id="ad_files" type="file"[^>]*multiple/);
+  assert.match(page, /action: 'save', title: f\.name[^\n]*active: false/, 'a new file is kept Inactive until he sets it');
+  assert.match(page, /'versions', 'ads', 'audit'/, 'the page is one of the console\'s pages');
+  assert.match(v, /media-src 'self' https: blob:; connect-src 'self' https:\/\/\*\.supabase\.co;/);
+});

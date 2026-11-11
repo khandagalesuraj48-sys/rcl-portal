@@ -235,6 +235,33 @@
   /* pages */
   .sa-body { padding: 22px 24px 48px; max-width: 1400px; width: 100%; }
   .sa-page[hidden] { display: none !important; }
+  /* (11-11-2026) the Advertise Corner */
+  .ad-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 18px; align-items: start; }
+  @media (max-width: 980px) { .ad-grid { grid-template-columns: 1fr; } }
+  .ad-list { padding: 12px; } .ad-empty { margin: 14px; color: var(--s-muted); }
+  .ad-row { display: flex; align-items: center; gap: 12px; padding: 9px 10px; border-radius: 12px; border: 2px solid transparent; cursor: pointer; }
+  .ad-row:hover { background: #F5F8FF; } .ad-row.on { border-color: #2563EB; background: #F5F8FF; } .ad-row.off { opacity: .6; }
+  .ad-th { width: 84px; height: 56px; border-radius: 10px; background: #0F1F3D center / cover no-repeat; flex: none; position: relative; overflow: hidden; }
+  .ad-th video, .ad-th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ad-row b { display: block; font-size: 14.5px; } .ad-row small { color: var(--s-muted); font-size: 12.5px; }
+  .ad-row .mid { flex: 1; min-width: 0; } .ad-row .mid b, .ad-row .mid small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+  .ad-st { border-radius: 99px; padding: 3px 10px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .ad-st.live { background: #DCFCE7; color: #166534; } .ad-st.wait { background: #DBEAFE; color: #1E40AF; } .ad-st.off { background: #E5E7EB; color: #4B5563; } .ad-st.done { background: #FEF3C7; color: #92400E; }
+  .ad-mv { display: flex; flex-direction: column; } .ad-mv button { border: 0; background: none; cursor: pointer; font-size: 13px; line-height: 1; padding: 3px 5px; color: var(--s-muted); } .ad-mv button:disabled { opacity: .25; cursor: default; }
+  .ad-form { padding: 16px 18px; } .ad-form[hidden] { display: none; }
+  .ad-prev { border-radius: 14px; overflow: hidden; background: #0F1F3D; margin-bottom: 14px; display: grid; place-items: center; max-height: 260px; }
+  .ad-prev video, .ad-prev img { max-width: 100%; max-height: 260px; display: block; }
+  .ad-f { display: block; font-size: 12.5px; font-weight: 600; color: var(--s-muted); margin-bottom: 12px; } .ad-f small { font-weight: 400; }
+  .ad-f input:not([type=file]), .ad-f select { display: block; width: 100%; min-height: 40px; margin-top: 4px; padding: 7px 11px; border: 1px solid var(--s-line); border-radius: 10px; font: inherit; font-size: 14.5px; color: var(--s-ink); background: #fff; box-sizing: border-box; }
+  .ad-f input[type=file] { display: block; margin-top: 6px; }
+  .ad-two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .ad-ch { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
+  .ad-ch button { border: 1px solid var(--s-line); background: #fff; color: var(--s-ink); border-radius: 99px; padding: 7px 14px; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+  .ad-ch button[aria-pressed=true] { background: #1D4ED8; border-color: #1D4ED8; color: #fff; }
+  .ad-sz button { border-radius: 12px; min-width: 96px; display: grid; justify-items: center; gap: 6px; padding: 10px; }
+  .ad-sz i { display: block; border-radius: 4px; background: linear-gradient(135deg, #7A1F4E, #F0782A); }
+  .ad-acts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+
   .sa-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px; margin-bottom: 18px; }
   .sa-head > div { flex: 1 1 320px; min-width: 0; }
   .sa-head > .acts { flex: 0 1 auto; flex-wrap: wrap; justify-content: flex-end; } .sa-head > .acts .sa-btn { white-space: nowrap; }      /* (Sites: its 4 buttons on one line, each on one line) */
@@ -504,6 +531,7 @@
       <button type="button" role="tab" data-t="companies" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="11" height="18" rx="1.5"/><path d="M15 9h4.5a.5.5 0 0 1 .5.5V21H15"/><path d="M8 7h3M8 11h3M8 15h3"/></svg>Companies</button>
       <button type="button" role="tab" data-t="modules" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Modules</button>
       <button type="button" role="tab" data-t="versions" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5-8 4.5-8-4.5z"/><path d="M4 12l8 4.5 8-4.5"/><path d="M4 16.5l8 4.5 8-4.5"/></svg>Versions</button>
+      <button type="button" role="tab" data-t="ads" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M10 9l5 2.5-5 2.5z"/><path d="M8 21h8"/></svg>Advertise</button>
       <button type="button" role="tab" data-t="audit" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Activity</button>
       <button type="button" role="tab" data-t="me" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 4-6.5 8-6.5s7.2 2.3 8 6.5"/></svg>My Account</button>
     </nav>
@@ -605,6 +633,29 @@
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5-8 4.5-8-4.5z"/><path d="M4 12l8 4.5 8-4.5"/><path d="M4 16.5l8 4.5 8-4.5"/></svg>Beta → Stable</span><h1>Versions</h1><p>A new version goes first to the <b>testers</b> (Beta). When it is fine, <b>Give to everybody</b> makes it the stable one: the web of every module becomes that version and every phone gets the app update.</p></div>
           <div class="acts"><button class="sa-btn outline" id="v_reload" type="button">Refresh</button><button class="sa-btn primary" id="v_beta" type="button">New beta version</button></div></div>
         <div class="sa-card"><p class="note" id="v_note" hidden></p><div class="tw"><table class="sa-ver"><thead><tr><th>Version</th><th>Date</th><th>What's new</th><th>Web</th><th>App</th><th>State</th></tr></thead><tbody id="v_rows"><tr><td colspan="6">Loading…</td></tr></tbody></table></div></div>
+      </section>
+      <!-- (11-11-2026) THE ADVERTISE CORNER: the posts (images, videos) shown on the web's Dashboard and the app's Home – step 8 -->
+      <section id="t_ads" class="sa-page" hidden>
+        <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M10 9l5 2.5-5 2.5z"/></svg>Media &amp; Celebration</span><h1>Advertise Corner</h1><p>Festival wishes, achievements, notices – images and videos shown on the web's Dashboard and the app's Home.</p></div>
+          <div class="acts"><button class="sa-btn outline" id="ad_reload" type="button">Refresh</button><label class="sa-btn primary" id="ad_add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add images / videos<input id="ad_files" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple hidden></label></div></div>
+        <p class="note" id="ad_note" hidden></p>
+        <div class="ad-grid">
+          <div class="sa-card ad-list" id="ad_list"><p class="ad-empty">Loading…</p></div>
+          <form class="sa-card ad-form" id="ad_form" hidden>
+            <div class="ad-prev" id="ad_prev"></div>
+            <label class="ad-f">Name<input id="ad_title" maxlength="80" autocomplete="off"></label>
+            <div class="ad-f">Kind<div class="ad-ch" id="ad_kind"></div></div>
+            <div class="ad-f">Where it shows<div class="ad-ch" id="ad_where"></div></div>
+            <div class="ad-f">Size<div class="ad-ch ad-sz" id="ad_size"></div></div>
+            <div class="ad-two"><label class="ad-f">From<input id="ad_from" type="date"></label><label class="ad-f">To<input id="ad_to" type="date"></label></div>
+            <div class="ad-f">Days<div class="ad-ch" id="ad_days"></div></div>
+            <div class="ad-two"><label class="ad-f">From (hour)<input id="ad_tf" type="time"></label><label class="ad-f">To (hour)<input id="ad_tt" type="time"></label></div>
+            <div class="ad-two"><label class="ad-f">A slide stays (seconds)<input id="ad_sec" type="number" min="3" max="60"></label><label class="ad-f">Company<select id="ad_co"></select></label></div>
+            <div class="ad-f">Sites <small>(none ticked = every site)</small><div class="ad-ch" id="ad_sites"></div></div>
+            <label class="ad-f ad-vp" id="ad_poster_f" hidden>Still picture of the video <small>(shown first, and on a slow network)</small><input id="ad_poster" type="file" accept="image/jpeg,image/png,image/webp"><span id="ad_poster_s"></span></label>
+            <div class="ad-acts"><button class="sa-btn" id="ad_cancel" type="button">Close</button><button class="sa-btn outline" id="ad_off" type="button">Save as Inactive</button><button class="sa-btn primary" id="ad_save" type="submit">Save – Active</button></div>
+          </form>
+        </div>
       </section>
       <section id="t_audit" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Audit logs</span><h1>Activity</h1><p>Sign-ins, users, access, sites, companies, modules – the last 200.</p></div>
@@ -1051,11 +1102,96 @@
   function fail(e) { if (e.code === 'session' || e.status === 401) { toast(MR.session, true); return loginView(); } toast(msgOf(e), true); }
   function tab(t) {
     S.tab = t; document.querySelectorAll('#sa_tabs button[data-t]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === t)));
-    ['users', 'sites', 'wf', 'companies', 'modules', 'versions', 'audit', 'me'].forEach(k => { $('t_' + k).hidden = k !== t; });
+    ['users', 'sites', 'wf', 'companies', 'modules', 'versions', 'ads', 'audit', 'me'].forEach(k => { $('t_' + k).hidden = k !== t; });
     $('v_sa').classList.remove('nav-open'); menuClose(); $('sa_q').value = '';
-    if (t === 'users') { userClose(); users(); } else if (t === 'sites') sites(); else if (t === 'wf') workflow(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'versions') versions(); else if (t === 'audit') audit(); else if (t === 'me') meTab(S.meTab || 'pw');
+    if (t === 'users') { userClose(); users(); } else if (t === 'sites') sites(); else if (t === 'wf') workflow(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'versions') versions(); else if (t === 'ads') ads(); else if (t === 'audit') audit(); else if (t === 'me') meTab(S.meTab || 'pw');
     window.scrollTo(0, 0);
   }
+  /* ---------------- (11-11-2026) THE ADVERTISE CORNER (/api/ads; the Portal's step 8) ----------------
+   * "Add images / videos": several at once – each file goes straight to the private place of the files (a link of the server, for
+   * that one file), then is kept as an INACTIVE post; he opens it, sets where, the size, the period, the days and the hours, and
+   * saves it Active. A post is never deleted: Inactive. */
+  const AD = { posts: [], cur: null, f: {}, now: null };
+  const AD_KINDS = [['festival', '🪔 Festival'], ['birthday', '🎂 Birthday'], ['achievement', '🏆 Achievement'], ['notice', '📣 Notice'], ['campaign', '⭐ Campaign']];
+  const AD_SIZES = [['strip', 'Strip', 70, 14], ['banner', 'Banner', 70, 26], ['card', 'Card', 34, 44], ['full', 'Full screen', 26, 46]];
+  const AD_DAYS = [['1', 'Mon'], ['2', 'Tue'], ['3', 'Wed'], ['4', 'Thu'], ['5', 'Fri'], ['6', 'Sat'], ['7', 'Sun']];
+  const adNote = t => { $('ad_note').textContent = t || ''; $('ad_note').hidden = !t; };
+  const adMedia = (p, cls) => p.media === 'video' ? '<video ' + (cls || '') + ' src="' + esc(p.url) + '"' + (p.poster ? ' poster="' + esc(p.poster) + '"' : '') + ' muted loop playsinline preload="metadata"></video>' : '<img ' + (cls || '') + ' src="' + esc(p.url) + '" alt="" loading="lazy">';
+  function adState(p) {
+    if (!p.active) return ['off', 'Inactive'];
+    const n = AD.now || {}; if (n.date && n.date > p.to) return ['done', 'Over'];
+    if (n.date && n.date >= p.from && p.days.indexOf(String(n.day)) > -1 && n.time >= p.timeFrom && n.time <= p.timeTo) return ['live', 'Live'];
+    return ['wait', 'Scheduled'];
+  }
+  async function ads() {
+    let r; try { r = await api('/api/ads', { action: 'list' }); } catch (e) { $('ad_list').innerHTML = ''; if (e.code === 'step8') { adNote(e.message); return; } return fail(e); }
+    adNote(''); AD.posts = r.posts || []; AD.now = r.now || null; adList();
+    if (AD.cur) { const p = AD.posts.find(x => x.id === AD.cur.id); if (p) adOpen(p); else adClose(); }
+  }
+  function adList() {
+    const L = AD.posts;
+    $('ad_list').innerHTML = L.length ? L.map((p, i) => { const st = adState(p); return '<div class="ad-row' + (AD.cur && AD.cur.id === p.id ? ' on' : '') + (p.active ? '' : ' off') + '" data-id="' + esc(p.id) + '"><span class="ad-mv"><button type="button" data-mv="-1" title="Earlier"' + (i ? '' : ' disabled') + '>▲</button><button type="button" data-mv="1" title="Later"' + (i < L.length - 1 ? '' : ' disabled') + '>▼</button></span><span class="ad-th">' + adMedia(p) + '</span><span class="mid"><b>' + esc(p.title) + '</b><small>' + esc((AD_SIZES.find(z => z[0] === p.size) || ['', p.size])[1] + ' · ' + [p.onApp ? 'App' : '', p.onWeb ? 'Web' : ''].filter(Boolean).join(' + ') + ' · ' + p.from.split('-').reverse().join('-') + ' → ' + p.to.split('-').reverse().join('-')) + '</small></span><span class="ad-st ' + st[0] + '">' + st[1] + '</span></div>'; }).join('') : '<p class="ad-empty">No post yet. Use "Add images / videos".</p>';
+  }
+  const adChips = (id, list, on, many) => { $(id).innerHTML = list.map(x => '<button type="button" data-v="' + esc(x[0]) + '" aria-pressed="' + (many ? on.indexOf(x[0]) > -1 : on === x[0]) + '">' + (x[2] ? '<i style="width:' + x[2] + 'px;height:' + x[3] + 'px"></i>' : '') + esc(x[1]) + '</button>').join(''); $(id).dataset.many = many ? '1' : ''; };
+  const adPicked = id => Array.from($(id).querySelectorAll('button[aria-pressed=true]')).map(b => b.dataset.v);
+  ['ad_kind', 'ad_where', 'ad_size', 'ad_days', 'ad_sites'].forEach(id => $(id).addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return;
+    if ($(id).dataset.many) b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); else $(id).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); }));
+  function adOpen(p) {
+    AD.cur = p; AD.f = { poster: p.posterPath || '' }; $('ad_form').hidden = false; adList();
+    $('ad_prev').innerHTML = adMedia(p).replace('preload="metadata"', 'autoplay controls');
+    $('ad_title').value = p.title; adChips('ad_kind', AD_KINDS, p.kind); adChips('ad_where', [['app', 'App'], ['web', 'Web']], [p.onApp ? 'app' : '', p.onWeb ? 'web' : ''], true);
+    adChips('ad_size', AD_SIZES, p.size); adChips('ad_days', AD_DAYS, p.days.split(''), true);
+    $('ad_from').value = p.from; $('ad_to').value = p.to; $('ad_tf').value = p.timeFrom; $('ad_tt').value = p.timeTo; $('ad_sec').value = p.seconds;
+    const D = S.data || {};
+    $('ad_co').innerHTML = '<option value="">Every company</option>' + (D.companies || []).map(c => '<option value="' + esc(c.id) + '"' + (c.id === p.company ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
+    adChips('ad_sites', (D.sites || []).filter(x => x.status === 'active' || p.sites.indexOf(x.code) > -1).map(x => [x.code, x.name || x.code]), p.sites, true);
+    $('ad_poster_f').hidden = p.media !== 'video'; $('ad_poster').value = ''; $('ad_poster_s').textContent = p.posterPath ? ' ✓ there is one' : '';
+  }
+  function adClose() { AD.cur = null; $('ad_form').hidden = true; $('ad_prev').innerHTML = ''; adList(); }
+  // one file → its place in the private store (a link of the server for this one file) → its path
+  async function adPut(file) {
+    const u = await api('/api/ads', { action: 'uploadUrl', type: file.type, bytes: file.size });
+    let r; try { r = await fetch(u.url, { method: 'PUT', headers: { 'Content-Type': file.type, 'x-upsert': 'false' }, body: file }); } catch (e) { throw new Error('"' + file.name + '" could not be sent – check the internet and try again.'); }
+    if (!r.ok) { let t = ''; try { t = (await r.text()).slice(0, 160); } catch (e) { t = ''; } throw new Error('"' + file.name + '" was not kept (' + r.status + '). ' + t); }
+    return u.path;
+  }
+  $('ad_files').addEventListener('change', async () => {
+    const files = Array.from($('ad_files').files || []); $('ad_files').value = ''; if (!files.length) return;
+    const today = (AD.now && AD.now.date) || new Date().toISOString().slice(0, 10), end = new Date(Date.parse(today + 'T00:00:00Z') + 6 * 86400000).toISOString().slice(0, 10);
+    $('ad_add').classList.add('busy'); let ok = 0;
+    for (const f of files) {
+      try {
+        toast('Sending ' + f.name + ' …');
+        const path = await adPut(f);
+        await api('/api/ads', { action: 'save', title: f.name.replace(/\.[^.]+$/, '').slice(0, 80) || 'Post', kind: 'notice', size: 'strip', path: path, onApp: true, onWeb: true, from: today, to: end, days: '1234567', timeFrom: '00:00', timeTo: '23:59', seconds: /^video\//.test(f.type) ? 12 : 6, sites: [], company: '', active: false });
+        ok++;
+      } catch (e) { toast(msgOf(e), true); if (e.code === 'step8') { adNote(e.message); break; } }
+    }
+    $('ad_add').classList.remove('busy');
+    if (ok) { toast(ok + (ok === 1 ? ' post' : ' posts') + ' added as Inactive – open each, set it and save it Active.'); await ads(); const p = AD.posts[AD.posts.length - 1]; if (p) adOpen(p); }
+  });
+  $('ad_poster').addEventListener('change', async () => { const f = ($('ad_poster').files || [])[0]; if (!f) return; $('ad_poster_s').textContent = ' sending…';
+    try { AD.f.poster = await adPut(f); $('ad_poster_s').textContent = ' ✓ added – save the post'; } catch (e) { $('ad_poster_s').textContent = ''; toast(msgOf(e), true); } });
+  async function adSave(active) {
+    const p = AD.cur; if (!p) return; const w = adPicked('ad_where');
+    try {
+      await api('/api/ads', { action: 'save', id: p.id, title: $('ad_title').value, kind: adPicked('ad_kind')[0] || '', size: adPicked('ad_size')[0] || '', path: p.path, poster: AD.f.poster || '', onApp: w.indexOf('app') > -1, onWeb: w.indexOf('web') > -1,
+        from: $('ad_from').value, to: $('ad_to').value, days: adPicked('ad_days').join(''), timeFrom: $('ad_tf').value, timeTo: $('ad_tt').value, seconds: Number($('ad_sec').value), sites: adPicked('ad_sites'), company: $('ad_co').value, active: active });
+      toast(active ? 'Saved – Active.' : 'Saved – Inactive.'); await ads();
+    } catch (e) { fail(e); }
+  }
+  $('ad_form').addEventListener('submit', e => { e.preventDefault(); adSave(true); });
+  $('ad_off').addEventListener('click', () => adSave(false));
+  $('ad_cancel').addEventListener('click', adClose);
+  $('ad_reload').addEventListener('click', ads);
+  $('ad_list').addEventListener('click', async e => {
+    const row = e.target.closest('.ad-row'); if (!row) return; const i = AD.posts.findIndex(x => x.id === row.dataset.id); if (i < 0) return;
+    const mv = e.target.closest('button[data-mv]');
+    if (!mv) return adOpen(AD.posts[i]);
+    const j = i + Number(mv.dataset.mv); if (j < 0 || j >= AD.posts.length) return;
+    const ids = AD.posts.map(x => x.id); ids.splice(j, 0, ids.splice(i, 1)[0]);
+    try { await api('/api/ads', { action: 'order', ids: ids }); await ads(); } catch (er) { fail(er); }
+  });
   $('sa_tabs').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) tab(b.dataset.t); });
   $('sa_out').addEventListener('click', signOut);
   // (14-10-2026) the Super Admin opens the modules too: every site, every live module, as its Admin – and back to the console
