@@ -264,3 +264,10 @@ kraych aahe size swata tharau shakel … period wise day wise timing wise".
   only a post can be made higher** than the strip – "Fit to strip" → "Height in the app" (strip … tall, up to 9 : 16). Kept with
   the fit (`fit.app.r` = its shape there, 3.42 … 0.56; no new SQL). The web's strip stays as it is.
 
+## The company first (12-11-2026 – One Click Solution's first page)
+* Asked: "user adhi compny name takel … RCL takel mg RCL che page yeil ani RCL che fkt user login kru shakel". The first page is
+  Mechanical's `/company` (update-232): the company's code → that company's own sign-in. **Each company has its own Portal and
+  databases**, so only its own people can sign in there.
+* This Portal's part (`public/index.html`, `coGate`): under the one address (`/portal/…`) a device that has not chosen its
+  company is sent to `/company` before the sign-in; the sign-in shows "Company: RCL · Change company". `/portal/#signin` opens the
+  sign-in without it. Not on the Portal's own address or the rig. No SQL, no API change; the phone app is not changed.

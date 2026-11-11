@@ -531,3 +531,25 @@ test('ads: a video is tried in the browser before it is added – one that canno
   assert.match(page, /v\.addEventListener\('error', \(\) => end\(false\), \{ once: true \}\);/);
   assert.match(page, /pv\.addEventListener\('error', bad, \{ once: true \}\)/);
 });
+
+test('company first (12-11-2026): under the one address a device that has not chosen its company goes to /company; the sign-in has "Change company"; never on the Portal\'s own address', () => {
+  const page = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
+  const src = page.slice(page.indexOf("const CO_KEY = 'ocs_company'"), page.indexOf('async function loginView()'));
+  const run = (pathname, hash, stored, noStore) => {
+    const out = { to: '', kept: stored, hist: 0 };
+    const location = { pathname, hash, search: '', replace: u => { out.to = u; } };
+    const localStorage = { getItem: () => { if (noStore) throw new Error('x'); return out.kept; }, setItem: (k, v) => { if (noStore) throw new Error('x'); out.kept = v; } };
+    const history = { replaceState: () => { out.hist++; } };
+    out.gate = new Function('location', 'localStorage', 'history', src + '; return coGate();')(location, localStorage, history);
+    return out;
+  };
+  let r = run('/portal/', '', null); assert.strictEqual(r.gate, true); assert.strictEqual(r.to, '/company');
+  r = run('/portal/', '', 'RCL'); assert.strictEqual(r.gate, false); assert.strictEqual(r.to, '');
+  r = run('/portal/', '#co=rcl', null); assert.strictEqual(r.gate, false); assert.strictEqual(r.kept, 'RCL'); assert.strictEqual(r.hist, 1, 'the code leaves the address bar');
+  r = run('/portal/', '#signin', null); assert.strictEqual(r.gate, false, 'the way in without the first page');
+  r = run('/portal/', '', null, true); assert.strictEqual(r.gate, false, 'no storage: the sign-in as before, never a loop');
+  r = run('/portal/', '#co=<script>', null); assert.strictEqual(r.gate, true, 'only letters and digits are a code');
+  r = run('/', '', null); assert.strictEqual(r.gate, false, 'the Portal\'s own address and the rig: as before');
+  assert.match(page, /async function loginView\(\) \{\n    if \(coGate\(\)\) return;\n    show\('v_login'\);/);
+  assert.match(page, /<a class="link forgot" id="l_co" href="\/company\?change" hidden>Change company<\/a>/);
+});
