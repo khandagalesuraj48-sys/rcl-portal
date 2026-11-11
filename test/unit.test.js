@@ -500,3 +500,12 @@ test('ads: the console has the Advertise page – several files at once, each ke
   assert.match(page, /'versions', 'ads', 'audit'/, 'the page is one of the console\'s pages');
   assert.match(v, /media-src 'self' https: blob:; connect-src 'self' https:\/\/\*\.supabase\.co;/);
 });
+
+test('ads: the sizes are said in pixels (App and Web) and a picture can be fitted into one – cut to exactly that size, kept as a new file', () => {
+  const page = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
+  assert.match(page, /const AD_DIM = \{ strip: \{ app: \[1080, 316\], web: \[1920, 150\] \}, banner: \{ app: \[1080, 540\], web: \[1920, 280\] \}, card: \{ app: \[1080, 540\], web: \[720, 600\] \}, full: \{ app: \[1080, 1920\], web: \[1920, 280\] \} \};/);
+  assert.match(page, /id="ad_dim"/); assert.match(page, /id="ad_crop_app"/); assert.match(page, /id="ad_crop_web"/);
+  assert.match(page, /\$\('ad_crop_f'\)\.hidden = p\.media !== 'image';/, 'the tool is for a picture – a video is made in the size');
+  assert.match(page, /cv\.toBlob\(async blob =>[\s\S]{0,260}adPut\(new File\(\[blob\], 'fit\.jpg', \{ type: 'image\/jpeg' \}\)\)/, 'the cut picture is kept as a new file');
+  assert.match(page, /path: AD\.f\.path \|\| p\.path/, 'the post takes the fitted file when there is one');
+});
