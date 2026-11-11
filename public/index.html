@@ -271,6 +271,10 @@
   .adc-box h2 { margin: 0 0 2px; font-size: 20px; } .adc-box p { margin: 0 0 12px; color: var(--s-muted); font-size: 13.5px; }
   .adc-stage { background: #0F1F3D; border-radius: 12px; display: grid; place-items: center; padding: 14px; }
   .adc-stage canvas { max-width: 100%; height: auto; border-radius: 8px; cursor: grab; touch-action: none; background: #fff; box-shadow: 0 0 0 2px #fff; } .adc-stage canvas:active { cursor: grabbing; }
+  .adf-part { margin-top: 14px; } .adf-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; } .adf-h span { color: var(--s-muted); font-size: 12.5px; }
+  .adf-frame { position: relative; overflow: hidden; border-radius: 12px; background: #0F1F3D; cursor: grab; touch-action: none; box-shadow: 0 0 0 2px #BFD3FF; } .adf-frame:active { cursor: grabbing; }
+  .adf-frame[data-k=app] { max-width: 520px; }
+  .adf-frame > * { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; user-select: none; }
   .adc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 14px; } .adc-row input[type=range] { flex: 1 1 220px; } .adc-row .sp { flex: 1; }
 
   .sa-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px; margin-bottom: 18px; }
@@ -657,10 +661,9 @@
             <label class="ad-f">Name<input id="ad_title" maxlength="80" autocomplete="off"></label>
             <div class="ad-f">Kind<div class="ad-ch" id="ad_kind"></div></div>
             <div class="ad-f">Where it shows<div class="ad-ch" id="ad_where"></div></div>
-            <div class="ad-f">Size<div class="ad-ch ad-sz" id="ad_size"></div></div>
-            <!-- (11-11-2026, asked: "mala eth size pn de … tyach size madhe vedio image banwayla hawa ani … ek tool pn de jyatun mi size kami jast perfect banau shakel") -->
+            <!-- (12-11-2026, asked: "fkt strip madhe thewaychi … fit to strip as ek option de te mi dable ki vedio image web and app nusar set hoil") -->
             <div class="ad-dim" id="ad_dim"></div>
-            <div class="ad-f" id="ad_crop_f" hidden><div class="ad-ch"><button type="button" id="ad_crop_app">✂ Fit the picture – App</button><button type="button" id="ad_crop_web">✂ Fit the picture – Web</button></div></div>
+            <div class="ad-f"><div class="ad-ch"><button type="button" id="ad_fit">✂ Fit to strip – Web and App</button></div></div>
             <div class="ad-two"><label class="ad-f">From<input id="ad_from" type="date"></label><label class="ad-f">To<input id="ad_to" type="date"></label></div>
             <div class="ad-f">Days<div class="ad-ch" id="ad_days"></div></div>
             <div class="ad-two"><label class="ad-f">From (hour)<input id="ad_tf" type="time"></label><label class="ad-f">To (hour)<input id="ad_tt" type="time"></label></div>
@@ -1127,7 +1130,6 @@
    * saves it Active. A post is never deleted: Inactive. */
   const AD = { posts: [], cur: null, f: {}, now: null };
   const AD_KINDS = [['festival', '🪔 Festival'], ['birthday', '🎂 Birthday'], ['achievement', '🏆 Achievement'], ['notice', '📣 Notice'], ['campaign', '⭐ Campaign']];
-  const AD_SIZES = [['strip', 'Strip', 70, 14], ['banner', 'Banner', 70, 26], ['card', 'Card', 34, 44], ['full', 'Full screen', 26, 46]];
   const AD_DAYS = [['1', 'Mon'], ['2', 'Tue'], ['3', 'Wed'], ['4', 'Thu'], ['5', 'Fri'], ['6', 'Sat'], ['7', 'Sun']];
   const adNote = t => { $('ad_note').textContent = t || ''; $('ad_note').hidden = !t; };
   const adMedia = (p, cls) => p.media === 'video' ? '<video ' + (cls || '') + ' src="' + esc(p.url) + '"' + (p.poster ? ' poster="' + esc(p.poster) + '"' : '') + ' muted loop playsinline preload="metadata"></video>' : '<img ' + (cls || '') + ' src="' + esc(p.url) + '" alt="" loading="lazy">';
@@ -1144,20 +1146,20 @@
   }
   function adList() {
     const L = AD.posts;
-    $('ad_list').innerHTML = L.length ? L.map((p, i) => { const st = adState(p); return '<div class="ad-row' + (AD.cur && AD.cur.id === p.id ? ' on' : '') + (p.active ? '' : ' off') + '" data-id="' + esc(p.id) + '"><span class="ad-mv"><button type="button" data-mv="-1" title="Earlier"' + (i ? '' : ' disabled') + '>▲</button><button type="button" data-mv="1" title="Later"' + (i < L.length - 1 ? '' : ' disabled') + '>▼</button></span><span class="ad-th">' + adMedia(p) + '</span><span class="mid"><b>' + esc(p.title) + '</b><small>' + esc((AD_SIZES.find(z => z[0] === p.size) || ['', p.size])[1] + ' · ' + [p.onApp ? 'App' : '', p.onWeb ? 'Web' : ''].filter(Boolean).join(' + ') + ' · ' + p.from.split('-').reverse().join('-') + ' → ' + p.to.split('-').reverse().join('-')) + '</small></span><span class="ad-st ' + st[0] + '">' + st[1] + '</span></div>'; }).join('') : '<p class="ad-empty">No post yet. Use "Add images / videos".</p>';
+    $('ad_list').innerHTML = L.length ? L.map((p, i) => { const st = adState(p); return '<div class="ad-row' + (AD.cur && AD.cur.id === p.id ? ' on' : '') + (p.active ? '' : ' off') + '" data-id="' + esc(p.id) + '"><span class="ad-mv"><button type="button" data-mv="-1" title="Earlier"' + (i ? '' : ' disabled') + '>▲</button><button type="button" data-mv="1" title="Later"' + (i < L.length - 1 ? '' : ' disabled') + '>▼</button></span><span class="ad-th">' + adMedia(p) + '</span><span class="mid"><b>' + esc(p.title) + '</b><small>' + esc('Strip · ' + [p.onApp ? 'App' : '', p.onWeb ? 'Web' : ''].filter(Boolean).join(' + ') + ' · ' + p.from.split('-').reverse().join('-') + ' → ' + p.to.split('-').reverse().join('-')) + '</small></span><span class="ad-st ' + st[0] + '">' + st[1] + '</span></div>'; }).join('') : '<p class="ad-empty">No post yet. Use "Add images / videos".</p>';
   }
   const adChips = (id, list, on, many) => { $(id).innerHTML = list.map(x => '<button type="button" data-v="' + esc(x[0]) + '" aria-pressed="' + (many ? on.indexOf(x[0]) > -1 : on === x[0]) + '">' + (x[2] ? '<i style="width:' + x[2] + 'px;height:' + x[3] + 'px"></i>' : '') + esc(x[1]) + '</button>').join(''); $(id).dataset.many = many ? '1' : ''; };
   const adPicked = id => Array.from($(id).querySelectorAll('button[aria-pressed=true]')).map(b => b.dataset.v);
-  ['ad_kind', 'ad_where', 'ad_size', 'ad_days', 'ad_sites'].forEach(id => $(id).addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return;
+  ['ad_kind', 'ad_where', 'ad_days', 'ad_sites'].forEach(id => $(id).addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return;
     if ($(id).dataset.many) b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); else $(id).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); }));
   function adOpen(p) {
-    AD.cur = p; AD.f = { poster: p.posterPath || '', path: '', w: 0, h: 0 }; $('ad_form').hidden = false; adList();
+    AD.cur = p; AD.f = { poster: p.posterPath || '', path: '', w: 0, h: 0, fit: null }; $('ad_form').hidden = false; adList();
     $('ad_prev').innerHTML = adMedia(p).replace('preload="metadata"', 'autoplay controls');
     const pv = $('ad_prev').querySelector('video');
     if (pv) { const bad = () => { if (AD.cur === p) $('ad_prev').innerHTML = '<p class="ad-bad">' + esc(AD_NOPLAY.replace('{0}', p.title).replace(' – it was not added', '')) + '</p>'; };
       pv.addEventListener('error', bad, { once: true }); pv.addEventListener('loadeddata', () => { if (!pv.videoWidth) bad(); }, { once: true }); }
     $('ad_title').value = p.title; adChips('ad_kind', AD_KINDS, p.kind); adChips('ad_where', [['app', 'App'], ['web', 'Web']], [p.onApp ? 'app' : '', p.onWeb ? 'web' : ''], true);
-    adChips('ad_size', AD_SIZES, p.size); adChips('ad_days', AD_DAYS, p.days.split(''), true);
+    adChips('ad_days', AD_DAYS, p.days.split(''), true);
     $('ad_from').value = p.from; $('ad_to').value = p.to; $('ad_tf').value = p.timeFrom; $('ad_tt').value = p.timeTo; $('ad_sec').value = p.seconds;
     const D = S.data || {};
     $('ad_co').innerHTML = '<option value="">Every company</option>' + (D.companies || []).map(c => '<option value="' + esc(c.id) + '"' + (c.id === p.company ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('');
@@ -1165,62 +1167,46 @@
     $('ad_poster_f').hidden = p.media !== 'video'; $('ad_poster').value = ''; $('ad_poster_s').textContent = p.posterPath ? ' ✓ there is one' : '';
     adMeasure(); adDim();
   }
-  /* (11-11-2026) THE SIZES, said in pixels – so an image or a video is made in exactly the size of its place – and THE TOOL that fits
-   * a picture into it. The place on the phone and on the web have different shapes (the phone is narrow, the web is wide): for a
-   * perfect fit a post is made once for the App and once for the Web. A picture is shown filling its place: what does not fit is
-   * cut at the edges. A "Card" shows as a Banner in the app, a "Full screen" as a Banner on the web (as today). */
-  const AD_DIM = { strip: { app: [1080, 316], web: [1920, 150] }, banner: { app: [1080, 540], web: [1920, 280] }, card: { app: [1080, 540], web: [720, 600] }, full: { app: [1080, 1920], web: [1920, 280] } };
+  /* (12-11-2026, step 9) ONE SIZE: THE STRIP – on the web wide and low (1920 × 150), in the app as wide as the phone (1080 × 316).
+   * "Fit to strip": the post's image or video under two frames – the web's and the app's, each in its own shape – moved with the
+   * mouse or the finger and made bigger with the slider; what is inside a frame is what people see there, on any screen. The file
+   * itself is not changed (a video too): only how it sits is kept (x, y = the part in view, z = how much bigger). */
+  const AD_STRIP = { web: [1920, 150], app: [1080, 316] };
+  const adFitCss = f => 'object-fit:cover;object-position:' + f.x + '% ' + f.y + '%;transform:scale(' + f.z + ');transform-origin:' + f.x + '% ' + f.y + '%';
   function adMeasure() {      // the size of the file as it is now (an image: its pixels; a video: its frame)
     const m = $('ad_prev').querySelector('img,video'); if (!m) return;
     const got = () => { AD.f.w = m.naturalWidth || m.videoWidth || 0; AD.f.h = m.naturalHeight || m.videoHeight || 0; adDim(); };
     if (m.tagName === 'IMG') { if (m.complete) got(); else m.addEventListener('load', got, { once: true }); } else if (m.readyState >= 1) got(); else m.addEventListener('loadedmetadata', got, { once: true });
   }
   function adDim() {
-    const p = AD.cur; if (!p) return; const size = adPicked('ad_size')[0] || p.size, w = adPicked('ad_where'), d = AD_DIM[size] || AD_DIM.strip;
-    const fits = t => { if (!AD.f.w) return ''; const r = AD.f.w / AD.f.h, want = t[0] / t[1], ok = Math.abs(r - want) / want < 0.04; return ok ? ' <span class="ok">✓ fits</span>' : ' <span class="no">– its edges will be cut</span>'; };
-    const line = (k, name) => '<div>' + name + ': <b>' + d[k][0] + ' × ' + d[k][1] + ' px</b>' + (w.indexOf(k) > -1 ? fits(d[k]) : ' <span class="now">(not ticked)</span>') + '</div>';
-    $('ad_dim').innerHTML = '<div><b>Make it in this size</b> (width × height)</div>' + line('app', 'App') + line('web', 'Web') +
+    const p = AD.cur; if (!p) return; const f = AD.f.fit || p.fit || {};
+    const moved = k => f[k] && (f[k].x !== 50 || f[k].y !== 50 || f[k].z !== 1) ? ' <span class="ok">✓ fitted</span>' : '';
+    $('ad_dim').innerHTML = '<div><b>The strip</b> – best made in (width × height):</div><div>Web: <b>1920 × 150 px</b>' + moved('web') + '</div><div>App: <b>1080 × 316 px</b>' + moved('app') + '</div>' +
       (AD.f.w ? '<div class="now">This file: ' + AD.f.w + ' × ' + AD.f.h + ' px</div>' : '') +
-      '<small>The App and the Web have different shapes: for a perfect fit make one post for the App and one for the Web. On the web the place is as wide as the screen – keep the important part in the middle.' + (p.media === 'video' ? ' A video cannot be cut here: make it in this size.' : '') + '</small>';
-    $('ad_crop_f').hidden = p.media !== 'image';
+      '<small>Any image or video can be used: it fills the strip and what does not fit is cut at the edges. "Fit to strip" chooses which part is seen – once for the Web, once for the App.</small>';
   }
-  ['ad_size', 'ad_where'].forEach(id => $(id).addEventListener('click', () => setTimeout(adDim, 0)));
-  // the tool: the picture under a frame of the place's shape – moved with the finger / mouse, bigger or smaller with the slider;
-  // "Use this" cuts it to exactly the size, keeps the new file and puts it in the post (the first file stays where it was)
-  function adCrop(k) {
-    const p = AD.cur; if (!p || p.media !== 'image') return;
-    const size = adPicked('ad_size')[0] || p.size, T = (AD_DIM[size] || AD_DIM.strip)[k], W = T[0], H = T[1];
-    const img = new Image(); img.crossOrigin = 'anonymous';
-    img.onerror = () => toast('The picture could not be opened for fitting – press Refresh and try again.', true);
-    img.onload = () => {
-      document.body.insertAdjacentHTML('beforeend', '<div class="adc-back" id="adc"><div class="adc-box" role="dialog" aria-modal="true" aria-label="Fit the picture"><h2>Fit the picture – ' + (k === 'app' ? 'App' : 'Web') + ' · ' + esc((AD_SIZES.find(z => z[0] === size) || ['', size])[1]) + ' · ' + W + ' × ' + H + ' px</h2><p>Move the picture with the mouse or the finger. Make it bigger or smaller with the slider. What is inside the frame is what people see.</p><div class="adc-stage"><canvas id="adc_cv" width="' + W + '" height="' + H + '"></canvas></div><div class="adc-row"><span>Smaller</span><input id="adc_zoom" type="range" min="100" max="400" value="100" aria-label="Size of the picture"><span>Bigger</span><button class="sa-btn sm" id="adc_whole" type="button" title="The whole picture inside the frame (empty sides are filled white)">Show the whole picture</button></div><div class="adc-row"><span class="sp"></span><button class="sa-btn" id="adc_no" type="button">Cancel</button><button class="sa-btn primary" id="adc_ok" type="button">Use this</button></div></div></div>');
-      const cv = $('adc_cv'), g = cv.getContext('2d'), cover = Math.max(W / img.naturalWidth, H / img.naturalHeight), whole = Math.min(W / img.naturalWidth, H / img.naturalHeight);
-      const st = { base: cover, z: 1, x: 0, y: 0 };      // x, y: the picture's middle from the frame's middle, in the frame's pixels
-      const draw = () => { const sc = st.base * st.z, w = img.naturalWidth * sc, h = img.naturalHeight * sc, mx = Math.max(0, (w - W) / 2), my = Math.max(0, (h - H) / 2);
-        st.x = Math.min(mx, Math.max(-mx, st.x)); st.y = Math.min(my, Math.max(-my, st.y));
-        g.fillStyle = '#fff'; g.fillRect(0, 0, W, H); g.imageSmoothingQuality = 'high'; g.drawImage(img, (W - w) / 2 + st.x, (H - h) / 2 + st.y, w, h); };
-      draw();
-      let drag = null;
-      cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); });
-      cv.addEventListener('pointermove', e => { if (!drag) return; const k2 = W / cv.getBoundingClientRect().width; st.x += (e.clientX - drag.x) * k2; st.y += (e.clientY - drag.y) * k2; drag = { x: e.clientX, y: e.clientY }; draw(); });
-      ['pointerup', 'pointercancel'].forEach(n => cv.addEventListener(n, () => { drag = null; }));
-      $('adc_zoom').addEventListener('input', () => { st.z = Number($('adc_zoom').value) / 100; draw(); });
-      $('adc_whole').addEventListener('click', () => { st.base = st.base === cover ? whole : cover; st.z = 1; st.x = st.y = 0; $('adc_zoom').value = 100; $('adc_whole').textContent = st.base === cover ? 'Show the whole picture' : 'Fill the frame'; draw(); });
-      const shut = () => { const b = $('adc'); if (b) b.remove(); };
-      $('adc_no').addEventListener('click', shut);
-      $('adc_ok').addEventListener('click', () => { $('adc_ok').disabled = true;
-        cv.toBlob(async blob => {
-          try { if (!blob) throw new Error('The picture could not be cut – try again.');
-            const path = await adPut(new File([blob], 'fit.jpg', { type: 'image/jpeg' }));
-            AD.f.path = path; AD.f.w = W; AD.f.h = H; $('ad_prev').innerHTML = '<img src="' + cv.toDataURL('image/jpeg', 0.8) + '" alt="">'; adDim(); shut();
-            toast('Fitted to ' + W + ' × ' + H + ' px – now save the post.');
-          } catch (e) { $('adc_ok').disabled = false; toast(msgOf(e), true); }
-        }, 'image/jpeg', 0.9); });
-    };
-    img.src = p.url;
+  function adFit() {
+    const p = AD.cur; if (!p) return;
+    const cur = AD.f.fit || p.fit || {}, F = { web: Object.assign({ x: 50, y: 50, z: 1 }, cur.web), app: Object.assign({ x: 50, y: 50, z: 1 }, cur.app) };
+    const media = k => p.media === 'video' ? '<video data-k="' + k + '" src="' + esc(p.url) + '" muted loop autoplay playsinline></video>' : '<img data-k="' + k + '" src="' + esc(p.url) + '" alt="" draggable="false">';
+    const part = (k, name) => '<div class="adf-part"><div class="adf-h"><b>' + name + '</b><span>' + AD_STRIP[k][0] + ' × ' + AD_STRIP[k][1] + '</span></div><div class="adf-frame" data-k="' + k + '" style="aspect-ratio:' + AD_STRIP[k][0] + '/' + AD_STRIP[k][1] + '">' + media(k) + '</div><div class="adc-row"><span>Smaller</span><input type="range" min="100" max="400" value="' + Math.round(F[k].z * 100) + '" data-z="' + k + '" aria-label="Size – ' + name + '"><span>Bigger</span><button class="sa-btn sm" type="button" data-mid="' + k + '">Middle</button></div></div>';
+    document.body.insertAdjacentHTML('beforeend', '<div class="adc-back" id="adc"><div class="adc-box" role="dialog" aria-modal="true" aria-label="Fit to strip"><h2>Fit to strip</h2><p>Move the picture inside each frame with the mouse or the finger; make it bigger with the slider. What is inside a frame is what people see there.</p>' + part('web', 'Web – the Dashboard') + part('app', 'App – Home') + '<div class="adc-row"><span class="sp"></span><button class="sa-btn" id="adc_no" type="button">Cancel</button><button class="sa-btn primary" id="adc_ok" type="button">Use this</button></div></div></div>');
+    const box = $('adc'), el = k => box.querySelector('.adf-frame[data-k="' + k + '"] > *'), put = k => { el(k).style.cssText = adFitCss(F[k]); };
+    ['web', 'app'].forEach(k => { put(k);
+      const fr = box.querySelector('.adf-frame[data-k="' + k + '"]'); let drag = null;
+      fr.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; fr.setPointerCapture(e.pointerId); e.preventDefault(); });
+      fr.addEventListener('pointermove', e => { if (!drag) return; const r = fr.getBoundingClientRect();
+        // the picture follows the finger: the part in view moves the other way
+        F[k].x = Math.min(100, Math.max(0, F[k].x - (e.clientX - drag.x) / r.width * 100)); F[k].y = Math.min(100, Math.max(0, F[k].y - (e.clientY - drag.y) / r.height * 60));
+        F[k].x = Math.round(F[k].x * 100) / 100; F[k].y = Math.round(F[k].y * 100) / 100; drag = { x: e.clientX, y: e.clientY }; put(k); });
+      ['pointerup', 'pointercancel'].forEach(n => fr.addEventListener(n, () => { drag = null; })); });
+    box.addEventListener('input', e => { const k = e.target.dataset.z; if (k) { F[k].z = Number(e.target.value) / 100; put(k); } });
+    box.addEventListener('click', e => { const k = e.target.dataset.mid; if (k) { F[k] = { x: 50, y: 50, z: 1 }; box.querySelector('input[data-z="' + k + '"]').value = 100; put(k); } });
+    const shut = () => box.remove();
+    $('adc_no').addEventListener('click', shut);
+    $('adc_ok').addEventListener('click', () => { AD.f.fit = F; adDim(); shut(); toast('Fitted – now save the post.'); });
   }
-  $('ad_crop_app').addEventListener('click', () => adCrop('app'));
-  $('ad_crop_web').addEventListener('click', () => adCrop('web'));
+  $('ad_fit').addEventListener('click', adFit);
   function adClose() { AD.cur = null; $('ad_form').hidden = true; $('ad_prev').innerHTML = ''; adList(); }
   /* (12-11-2026, asked: "ek vedio mi set kela aahe … porter madhun play pn hot nahiye") A VIDEO IS TRIED HERE FIRST: a file can be
    * named .mp4 and still be in a form no browser or phone plays (made with "mp4v" / MPEG-4, HEVC / H.265, ProRes …). Such a file
@@ -1266,7 +1252,7 @@
   async function adSave(active) {
     const p = AD.cur; if (!p) return; const w = adPicked('ad_where');
     try {
-      await api('/api/ads', { action: 'save', id: p.id, title: $('ad_title').value, kind: adPicked('ad_kind')[0] || '', size: adPicked('ad_size')[0] || '', path: AD.f.path || p.path, poster: AD.f.poster || '', onApp: w.indexOf('app') > -1, onWeb: w.indexOf('web') > -1,
+      await api('/api/ads', { action: 'save', id: p.id, title: $('ad_title').value, kind: adPicked('ad_kind')[0] || '', size: 'strip', fit: AD.f.fit || p.fit || null, path: AD.f.path || p.path, poster: AD.f.poster || '', onApp: w.indexOf('app') > -1, onWeb: w.indexOf('web') > -1,
         from: $('ad_from').value, to: $('ad_to').value, days: adPicked('ad_days').join(''), timeFrom: $('ad_tf').value, timeTo: $('ad_tt').value, seconds: Number($('ad_sec').value), sites: adPicked('ad_sites'), company: $('ad_co').value, active: active });
       toast(active ? 'Saved – Active.' : 'Saved – Inactive.'); await ads();
     } catch (e) { fail(e); }

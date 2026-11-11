@@ -17,6 +17,8 @@ const { guard } = require('../lib/preview');
 const A = require('../lib/ads');
 
 const BUCKET = 'ads';
+const STEP9 = '"Fit to strip" needs the Portal\'s database step 9 first: run sql/portal_step9_ads_fit.sql once in the Portal\'s Supabase → SQL Editor, then save the post again.';
+const noFit = e => /PGRST204|42703/.test(String((e && e.message) || e)) && /fit/.test(String((e && e.message) || e));
 const STEP8 = 'The Advertise Corner needs the Portal\'s database step 8 first: run sql/portal_step8_ads.sql once in the Portal\'s Supabase → SQL Editor.';
 const store = () => ({ url: String(process.env.SUPABASE_URL || '').replace(/\/+$/, ''), key: String(process.env.SUPABASE_SECRET_KEY || '') });
 const missing = e => /PGRST205|42P01|Could not find the table|relation .*ads.* does not exist/i.test(String((e && e.message) || e));
@@ -43,7 +45,8 @@ async function signed(paths, seconds) {
   return out;
 }
 const rows = async q => { try { return (await db('GET', 'ads?select=*&' + q)) || []; } catch (e) { if (missing(e)) return null; throw e; } };
-const view = (r, urls) => ({ id: r.id, title: r.title, kind: r.kind, media: r.media, size: r.size, seconds: r.seconds, url: urls[r.path] || '', poster: r.poster ? urls[r.poster] || '' : '' });
+// (step 9) every post is a strip; how it sits in it (fit) and the strip's shape in each place (ratio) go with it
+const view = (r, urls) => ({ id: r.id, title: r.title, kind: r.kind, media: r.media, size: 'strip', seconds: r.seconds, url: urls[r.path] || '', poster: r.poster ? urls[r.poster] || '' : '', fit: A.fitOf(r.fit), ratio: A.RATIO });
 
 module.exports = handler(async (req, res) => {
   if (req.method !== 'POST') throw fail(405, 'POST only.');
@@ -92,14 +95,18 @@ module.exports = handler(async (req, res) => {
   if (action === 'save') {
     const row = Object.assign(A.clean(x), { updated_by: me.user.email, updated_at: new Date().toISOString() });
     const id = String(x.id || '');
+    if (id && !/^[0-9a-f-]{36}$/.test(id)) throw fail(400, 'This post is not in the list.');
+    const put = async w => {
+      if (id) { const r = await db('PATCH', 'ads?id=eq.' + id, w, 'return=representation'); if (!r || !r.length) throw fail(404, 'This post is not in the list.'); return; }
+      const last = ((await db('GET', 'ads?select=sort&order=sort.desc&limit=1')) || [])[0];
+      await db('POST', 'ads', [Object.assign({}, w, { created_by: me.user.email, sort: (last ? Number(last.sort) || 0 : 0) + 1 })], 'return=minimal');
+    };
     try {
-      if (id) {
-        if (!/^[0-9a-f-]{36}$/.test(id)) throw fail(400, 'This post is not in the list.');
-        const r = await db('PATCH', 'ads?id=eq.' + id, row, 'return=representation');
-        if (!r || !r.length) throw fail(404, 'This post is not in the list.');
-      } else {
-        const last = ((await db('GET', 'ads?select=sort&order=sort.desc&limit=1')) || [])[0];
-        await db('POST', 'ads', [Object.assign(row, { created_by: me.user.email, sort: (last ? Number(last.sort) || 0 : 0) + 1 })], 'return=minimal');
+      try { await put(row); }
+      catch (e) {      // before step 9 (no "fit" column): a post that is not fitted is kept as before; a fitted one says what to run
+        if (!noFit(e)) throw e;
+        if (!A.fitPlain(row.fit)) throw fail(409, STEP9, 'step9');
+        const w = Object.assign({}, row); delete w.fit; await put(w);
       }
     } catch (e) { if (missing(e)) throw fail(409, STEP8, 'step8'); throw e; }
     await audit(me.user.email, id ? 'ad.change' : 'ad.add', row.title, { size: row.size, app: row.on_app, web: row.on_web, from: row.date_from, to: row.date_to, active: row.active });
