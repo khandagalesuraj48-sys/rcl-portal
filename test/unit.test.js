@@ -399,3 +399,29 @@ test('(10-11-2026, his animation brief) motion – a console page zooms in, the 
   [...css.matchAll(/@keyframes (\w+) \{([^@]*?)\} \}/g)].forEach(k => assert.doesNotMatch(k[2], /\b(width|height|top|left|margin|padding)\s*:/, k[1] + ': transform / opacity only'));
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{ \.sa-page, section\.center > \*, \.vph-back, \.vph-box, \.sa-pop, #toast \{ animation: none !important; \}/);
 });
+
+test('(11-11-2026, his pick "orbit 1 number mast aahe … screen white aswi" + the character) the sign-in look – web only: the orbit, the card, the character (look only)', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  assert.doesNotMatch(html, /cdn\.21st\.dev/, 'no picture from another site any more');
+  assert.match(html, /for \(const sec of document\.querySelectorAll\('section\.center'\)\) sec\.insertAdjacentHTML\('afterbegin', ORBIT\);/, 'the orbit on every sign-in page');
+  for (const f of ['tractor', 'package', 'inbox_tray', 'building_construction', 'receipt', 'bar_chart', 'fuel_pump', 'notebook', 'company-logo']) {
+    assert.ok(fs.existsSync(path.join(__dirname, '..', 'public', 'login', f + '.png')), f + '.png is in the repository');
+  }
+  assert.ok(fs.existsSync(path.join(__dirname, '..', 'public', 'login', 'LICENSE-fluentui-emoji.txt')), 'the pictures\' licence');
+  // sign-in works as before: the same form, boxes, button and helps
+  const login = html.slice(html.indexOf('<section id="v_login"'), html.indexOf('</section>', html.indexOf('<section id="v_login"')));
+  for (const id of ['f_login', 'l_msg', 'l_email', 'l_pass', 'l_eye', 'l_err', 'l_btn', 'l_rec', 'l_setup', 'l_setup_btn']) assert.match(login, new RegExp('id="' + id + '"'), id);
+  assert.match(login, /<input id="l_email" type="email" placeholder="Email" autocomplete="username" required>/);
+  assert.match(login, /<input id="l_pass" type="password" placeholder="Password" autocomplete="current-password" required>/);
+  assert.match(login, /<label class="sr" for="l_email">Email<\/label>/, 'the boxes keep their names for a screen reader');
+  assert.match(html, /await api\('\/api\/auth', \{ action: 'login', email: \$\('l_email'\)\.value\.trim\(\), password: \$\('l_pass'\)\.value \}\)/, 'the sign-in call unchanged');
+  // the character: not in the way, not read aloud, told only a count of letters and whether the password is shown
+  assert.match(login, /<div class="masc" id="l_masc" data-mood="idle" aria-hidden="true">/);
+  assert.match(html, /\.masc \{[^}]*pointer-events: none;/);
+  const fn = html.slice(html.indexOf('const mascMood = () => {'), html.indexOf("$('l_eye').addEventListener('click', () => { const show"));
+  assert.match(fn, /\$\('l_pass'\)\.type === 'text' \? 'peek' : 'cover'/);
+  assert.doesNotMatch(fn, /l_pass'\)\.value/, 'it never reads the password');
+  assert.match(fn, /\$\('l_email'\)\.value\.length/);
+  assert.match(html, /@media \(prefers-reduced-motion: reduce\) \{ \.orbit \.ring, \.orbit \.ic span \{ animation: none !important; \} \.masc \.pu, \.masc \.hand \{ transition: none; \} \}/);
+  assert.match(html, /@media \(max-width: 860px\) \{ \.orbit \{ display: none; \}/, 'a phone: the card only');
+});
