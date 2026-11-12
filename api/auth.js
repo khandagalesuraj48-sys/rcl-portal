@@ -8,6 +8,9 @@ const { isPreview } = require('../lib/preview');
 const ses = require('../lib/session');
 const { audit } = require('../lib/audit');
 const { EMAIL, lc, recoveryCode, codeClean } = require('../lib/util');
+const crypto = require('crypto');
+const otp = require('../lib/otp');      // (step 10) a code sent by e-mail
+const mail = require('../lib/mail');
 
 // what the dashboard shows: the sites and modules this person may open (only active sites, only modules that are live).
 // (14-10-2026, asked: "super admin la pages … disle pahijet") the Super Admin (all = true) opens EVERY module of every site, as its Admin.
@@ -42,7 +45,95 @@ async function startOf(email) {
   catch (e) { if (/42703|start_item/.test(String(e && e.message))) return null; throw e; }
 }
 
+/* (12-11-2026, the Portal's step 10) HIS E-MAIL: proved his own (he typed the code sent to it) or not yet; how often he was told.
+ * null where the step-10 SQL is not run yet – everything of the codes is then simply not there (password sign-in as before). */
+async function emailOf(email) {
+  try { const r = ((await db('GET', 'users?select=email_verified_at,email_alerts,email_alert_at&email=eq.' + enc(email))) || [])[0]; return r ? { verified: !!r.email_verified_at, alerts: Number(r.email_alerts) || 0, at: r.email_alert_at } : null; }
+  catch (e) { if (otp.noStep(e)) return null; throw e; }
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const WRONG_CODE = 'The code is wrong or has expired.';
+
 const ACTIONS = {
+  // what the sign-in page offers (asked before anybody is signed in): the second way in – a code by e-mail – when it is switched on
+  async options() { return { body: { otp: otp.on('OTP_LOGIN') } }; },
+  /* SIGN-IN WITH A CODE, step 1: "send me a code". A code goes ONLY to a user of the Portal who is active, not the Super Admin,
+   * and whose e-mail is verified – never to an address the Portal does not know. The answer is the same whoever asks and takes
+   * about the same time, so nobody learns from it whether an e-mail is a user's. */
+  async otpSend(req, x) {
+    if (!otp.on('OTP_LOGIN')) throw fail(403, 'Sign-in with a code is not switched on.', 'off');
+    const t0 = Date.now(), email = lc(x.email).slice(0, 120);
+    if (!EMAIL.test(email)) throw fail(400, 'Enter your email.');
+    let why = '';
+    try {
+      const u = ((await db('GET', 'users?select=email,active,is_super&email=eq.' + enc(email))) || [])[0], e = u ? await emailOf(email) : null;
+      why = !u ? 'unknown email' : !u.active ? 'not active' : u.is_super ? 'the Super Admin signs in with his password' : !e ? 'step 10 not run' : !e.verified ? 'e-mail not verified' : '';
+      if (!why) { const r = await otp.send(req, email, 'login'); why = r.sent ? '' : r.why; if (r.sent) await audit(email, 'Sign-in code sent', '', null); }
+      if (why && why !== 'cooldown' && why !== 'unknown email') await audit(email, 'Sign-in code not sent', '', { why: why });
+    } catch (e) { console.error('[otpSend] ' + String((e && e.message) || e)); }
+    const left = 900 + crypto.randomInt(0, 300) - (Date.now() - t0); if (left > 0) await sleep(left);
+    return { body: { ok: true, wait: otp.COOL_S, minutes: otp.MINUTES } };
+  },
+  // step 2: the code. Right → the same sign-in as with the password (the same access, the same rules); it works once.
+  async otpLogin(req, x) {
+    if (!otp.on('OTP_LOGIN')) throw fail(403, 'Sign-in with a code is not switched on.', 'off');
+    const email = lc(x.email).slice(0, 120);
+    if (!EMAIL.test(email) || !String(x.code || '').trim()) throw fail(400, 'Enter your email and the code.');
+    const lim = await ses.limit(email);
+    const u = ((await db('GET', 'users?select=email,name,password_hash,active,is_super&email=eq.' + enc(email))) || [])[0], e = u && u.active && !u.is_super ? await emailOf(email) : null;
+    const good = !!e && e.verified && await otp.check(email, 'login', x.code);
+    if (!good) { await audit(email, 'Login failed', '', { why: 'code' }); throw fail(401, WRONG_CODE, 'code'); }
+    await lim.right();
+    const cookie = await ses.create(req, email);
+    await db('PATCH', 'users?email=eq.' + enc(email), { last_login_at: new Date().toISOString() }, 'return=minimal');
+    await audit(email, 'Login', '', { how: 'e-mail code' });
+    return { body: { user: { email: u.email, name: u.name, super: false }, mustChange: pw.mustChange(u.password_hash) }, headers: { 'Set-Cookie': cookie } };
+  },
+  /* "VERIFY MY E-MAIL" (signed in with his password): a code goes to HIS e-mail; typed right, the e-mail is his – only then can he
+   * sign in with a code. Nobody – not the Super Admin either – can mark an e-mail verified without the code. */
+  async verifySend(req) {
+    const u = (await ses.need(req, { ownPassword: true })).user;
+    if (!otp.on('OTP_LOGIN')) throw fail(403, 'Verifying the e-mail is not switched on yet.', 'off');
+    if (u.is_super) throw fail(400, 'The Super Admin signs in with his password and his recovery code – he needs no code.', 'super');
+    const e = await emailOf(u.email); if (!e) throw fail(500, otp.NOSTEP, 'nostep');
+    if (e.verified) return { body: { ok: true, verified: true } };
+    if (mail.missing()) throw fail(500, 'The e-mail service is not set up yet – tell the Super Admin.', 'nomail');
+    const r = await otp.send(req, u.email, 'verify');
+    if (!r.sent) {
+      if (r.why === 'cooldown') throw fail(429, 'A code was just sent to ' + u.email + '. Wait ' + r.wait + ' seconds before asking for another.', 'wait');
+      if (r.wait) throw fail(429, 'Too many codes were asked for. Try again later.', 'busy');
+      await audit(u.email, 'Verification code not sent', '', { why: r.why });
+      throw fail(502, 'The code could not be sent to ' + u.email + '. If this address is not right, tell the Super Admin; else try again in a while.', 'mail');
+    }
+    await audit(u.email, 'Verification code sent', '', null);
+    return { body: { ok: true, email: u.email, wait: r.wait, minutes: otp.MINUTES } };
+  },
+  async verifyCheck(req, x) {
+    const u = (await ses.need(req, { ownPassword: true })).user;
+    const e = await emailOf(u.email); if (!e) throw fail(500, otp.NOSTEP, 'nostep');
+    if (e.verified) return { body: { ok: true, verified: true } };
+    if (!await otp.check(u.email, 'verify', x.code)) throw fail(400, WRONG_CODE, 'code');
+    await db('PATCH', 'users?email=eq.' + enc(u.email), { email_verified_at: new Date().toISOString() }, 'return=minimal');
+    await audit(u.email, 'Email verified', '', null);
+    return { body: { ok: true, verified: true } };
+  },
+  /* THE REMINDER (his decision of 12-11-2026: "5 alert nantr access band nahi karaycha … alert det rahayche every 1 hour"): while
+   * his e-mail is not verified the page and the app show "verify your e-mail" – nothing is ever closed for him. Asked by the open
+   * page / app; the count is moved on at most once an hour, in the database (two phones in the same hour count once). */
+  async emailAlert(req) {
+    const s = await ses.read(req);
+    if (!s || s.user.is_super || !otp.on('EMAIL_ALERTS') || pw.mustChange(s.user.password_hash)) return { body: { show: false } };
+    const e = await emailOf(s.user.email); if (!e || e.verified) return { body: { show: false, verified: e ? true : undefined } };
+    const now = Date.now(), hour = new Date(now - 3600000).toISOString();
+    let n = e.alerts;
+    if (!e.at || Date.parse(e.at) <= now - 3600000) {
+      // counted only while the hour is over in the DATABASE (his two phones at the same moment: once); read again – ours when it carries this request's time
+      await db('PATCH', 'users?email=eq.' + enc(s.user.email) + '&email_verified_at=is.null&or=(email_alert_at.is.null,email_alert_at.lte.' + enc(hour) + ')', { email_alerts: e.alerts + 1, email_alert_at: new Date(now).toISOString() }, 'return=minimal');
+      const z = await emailOf(s.user.email); if (z) n = z.alerts;
+      if (z && z.at && Date.parse(z.at) === now) await audit(s.user.email, 'Reminder shown: verify e-mail', '', { n: n });
+    }
+    return { body: { show: true, verified: false, alerts: n, canVerify: otp.on('OTP_LOGIN') } };
+  },
   async login(req, x) {
     const email = lc(x.email).slice(0, 120), password = String(x.password || '');
     if (!EMAIL.test(email) || !password) throw fail(400, 'Enter your email and password.');
@@ -79,7 +170,9 @@ const ACTIONS = {
     const u = s.user, must = pw.mustChange(u.password_hash), items = must ? [] : await myItems(u.email, !!u.is_super);
     // his start (the module that opens straight after sign-in) – only while he still has it
     const st = items.length ? await startOf(u.email) : null, start = st === null ? '' : st;
+    const em = u.is_super ? null : await emailOf(u.email);      // (step 10) his e-mail: verified or not; null = not asked of him / step 10 not run
     return { body: { signedIn: true, preview: isPreview() || undefined, user: { email: u.email, name: u.name, super: !!u.is_super, tester: (await BETA.isTester(u.email)) || undefined }, mustChange: must, items: items,
+      email: em ? { verified: em.verified, canVerify: otp.on('OTP_LOGIN'), remind: otp.on('EMAIL_ALERTS') } : undefined,
       start: items.some(i => i.module + '|' + i.site === start) ? start : '', startReady: st !== null } };
   },
   // "My start": the module (on a site) that opens straight after his sign-in – one of his own; empty = the dashboard

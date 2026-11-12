@@ -570,3 +570,23 @@ test('HR once a site: "My HR" is left out of a person\'s list where he has the H
   const src = fs.readFileSync(path.join(__dirname, '..', 'api', 'auth.js'), 'utf8');
   assert.match(src, /return items\.filter\(x => !\(x\.module === 'hrme' && items\.some\(y => y\.site === x\.site && y\.module === 'hr'\)\)\);/);
 });
+
+// (12-11-2026) sign-in with a code by e-mail: the switches, the code, its hash, the letter
+test('e-mail code: the switches are ON only when said so; a code is 6 digits; kept only as a keyed hash; the letter never names the key', () => {
+  const otp = require('../lib/otp'), mail = require('../lib/mail'), keep = Object.assign({}, process.env);
+  try {
+    for (const v of ['false', 'off', '0', 'no', '', ' ', 'False']) { process.env.OTP_LOGIN = v; assert.strictEqual(otp.on('OTP_LOGIN'), false, 'off for "' + v + '"'); }
+    delete process.env.OTP_LOGIN; assert.strictEqual(otp.on('OTP_LOGIN'), false, 'not set: off');
+    for (const v of ['true', 'on', '1', 'yes', ' TRUE ']) { process.env.OTP_LOGIN = v; assert.strictEqual(otp.on('OTP_LOGIN'), true, 'on for "' + v + '"'); }
+    for (let i = 0; i < 300; i++) assert.match(otp.make(), /^\d{6}$/);
+    process.env.PORTAL_SECRET = 'unit-secret-0123456789abcdefghijklmnopqrstuv';
+    const h = otp.hash('a@x.test', 'login', '123456'); assert.match(h, /^[0-9a-f]{64}$/); assert.ok(!h.includes('123456'));
+    assert.notStrictEqual(h, otp.hash('b@x.test', 'login', '123456'), 'another person: another hash'); assert.notStrictEqual(h, otp.hash('a@x.test', 'verify', '123456'), 'a verify code is not a sign-in code');
+    process.env.PORTAL_SECRET = 'another-secret-0123456789abcdefghijklmnopqrs'; assert.notStrictEqual(h, otp.hash('a@x.test', 'login', '123456'), 'not to be worked out without the server\'s secret');
+    process.env.PORTAL_SECRET = 'short'; assert.throws(() => otp.hash('a@x.test', 'login', '123456'), /PORTAL_SECRET/);
+    assert.deepStrictEqual([otp.MINUTES, otp.COOL_S, otp.TRIES], [10, 60, 5]);
+    delete process.env.RESEND_API_KEY; delete process.env.OTP_FROM; assert.match(String(mail.missing()), /RESEND_API_KEY/);
+    process.env.RESEND_API_KEY = 're_unit_made_up'; process.env.OTP_FROM = 'no-reply@unit.test'; assert.ok(!mail.missing());
+    const l = mail.letter('654321', 'login', 10), all = JSON.stringify(l); assert.ok(all.includes('654321') && /10 minutes/.test(l.text)); assert.ok(!all.includes('re_unit_made_up'), 'the key is never in a letter');
+  } finally { for (const k of ['OTP_LOGIN', 'PORTAL_SECRET', 'RESEND_API_KEY', 'OTP_FROM']) { if (keep[k] === undefined) delete process.env[k]; else process.env[k] = keep[k]; } }
+});

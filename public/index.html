@@ -150,6 +150,7 @@
   .vph-w { flex: 1 1 180px; min-width: 0; } .vph-w b { font-size: 16px; overflow-wrap: anywhere; } .vph-w small { display: block; color: var(--muted); }
   .vph-acts { display: flex; gap: 8px; flex-wrap: wrap; }
   .vph-acts .del { color: var(--bad); }
+  .ver-strip { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 12px; padding: 8px 12px; border-radius: 10px; background: #FEF3C7; color: #713F12; font-size: 13px; }
   .vph-back { position: fixed; inset: 0; background: rgba(15,31,61,.45); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
   .vph-box { background: #fff; border-radius: 16px; width: min(480px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 18px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
   .vph-box h3 { margin: 0 0 10px; }
@@ -456,6 +457,7 @@
       <button type="button" class="eye" id="l_eye" aria-label="Show password"><svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg><svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><line x1="2" x2="22" y1="2" y2="22"/></svg></button></div></div>
     <p class="err" id="l_err" role="alert"></p>
     <button class="btn primary" style="width:100%" id="l_btn" type="submit">Sign in</button>
+    <button class="btn" style="width:100%;margin-top:8px" id="l_otp" type="button" hidden>Login with Email OTP</button>
     <button type="button" class="link forgot" id="l_forgot" aria-expanded="false" aria-controls="l_help">Forgot password?</button>
     <a class="link forgot" id="l_co" href="/company?change" style="text-align:center;text-decoration:none;margin-top:8px" hidden>Change company</a>
     <div id="l_help" hidden><p class="note" style="margin-top:10px">Forgot your password? Ask the Super Admin to give you a one-time password.<br>
@@ -499,6 +501,45 @@
   </form>
 </section>
 
+<!-- (12-11-2026) the second way in: a code by e-mail (shown only when it is switched on – OTP_LOGIN) -->
+<section id="v_otp" class="center" hidden>
+  <form class="card" id="f_otp" autocomplete="on">
+    <div class="oc"><img src="oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
+    <h1>Login with Email OTP</h1>
+    <p class="note">A 6-digit code comes to your registered e-mail. It is valid for 10 minutes and works once.</p>
+    <p class="mr">तुमच्या नोंदलेल्या email वर 6 अंकी code येईल – 10 मिनिटांसाठी, एकदाच वापरता येतो.</p>
+    <div class="field"><label class="sr" for="o_email">Email</label><input id="o_email" type="email" placeholder="Email" autocomplete="username" required></div>
+    <div id="o_two" hidden>
+      <p class="note" id="o_sent"></p>
+      <div class="field"><label class="sr" for="o_code">Code</label><input id="o_code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="6-digit code"></div>
+    </div>
+    <p class="err" id="o_err" role="alert"></p>
+    <button class="btn primary" style="width:100%" id="o_btn" type="submit">Send code</button>
+    <button class="btn" style="width:100%;margin-top:8px" id="o_again" type="button" hidden>Send again</button>
+    <p class="note" style="margin-top:12px;text-align:center"><button type="button" class="link" id="o_back">Continue with Password</button></p>
+  </form>
+</section>
+
+<!-- (12-11-2026) "verify my e-mail": a code to his own address; after it he can also sign in with a code -->
+<section id="v_ver" class="center" hidden>
+  <form class="card" id="f_ver">
+    <div class="oc"><img src="oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
+    <h1>Verify your e-mail</h1>
+    <p class="note" id="ve_who" style="text-align:center;font-weight:700"></p>
+    <p class="note">A 6-digit code is sent to this address. Type it here once – after that you can also sign in with a code by e-mail. Your password keeps working.</p>
+    <p class="mr">या email वर 6 अंकी code येईल. तो इथे एकदा टाका – त्यानंतर Email OTP ने पण login करता येईल. Password तसाच चालू राहतो.</p>
+    <p class="note">Not your own e-mail? Tell the Super Admin. · हा तुमचा email नसेल तर Super Admin ला सांगा.</p>
+    <div id="ve_two" hidden>
+      <p class="note" id="ve_sent"></p>
+      <div class="field"><label class="sr" for="ve_code">Code</label><input id="ve_code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="6-digit code"></div>
+    </div>
+    <p class="err" id="ve_err" role="alert"></p>
+    <button class="btn primary" style="width:100%" id="ve_btn" type="submit">Send code</button>
+    <button class="btn" style="width:100%;margin-top:8px" id="ve_again" type="button" hidden>Send again</button>
+    <p class="note" style="margin-top:12px;text-align:center"><button type="button" class="link" id="ve_later">Later</button></p>
+  </form>
+</section>
+
 <!-- own password -->
 <section id="v_pw" class="center" hidden>
   <form class="card" id="f_pw">
@@ -526,6 +567,7 @@
   </header>
   <main class="wrap">
     <p class="note" id="h_msg" hidden></p>
+    <div class="ver-strip" id="h_ver" hidden><span><b>Verify your e-mail.</b> तुमचा email verify करा – Email OTP ने login करण्यासाठी.</span><button class="btn small" id="h_ver_btn" type="button">Verify now</button></div>
     <div id="h_sites"></div>
     <!-- (14-10-2026) the mobile app: shown only when a version is in the Portal's app store -->
     <div class="panel" id="h_app" hidden><h2>Mobile app</h2><p class="note" id="h_app_txt"></p><p class="mr">Android फोनवर RCL ERP app – एकदा download करून install करा; पुढचे update app मध्येच येतील.</p>
@@ -577,6 +619,7 @@
           <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>User management</span><h1>Users &amp; Access</h1><p>Manage users and control their access to modules and sites. Access is separate on every site; switched off = cannot sign in.</p></div>
             <button class="sa-btn primary" id="u_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add User</button></div>
           <div class="sa-stats" id="u_stats"></div>
+          <p class="note" id="u_mail" style="margin:8px 0 0" hidden></p>
           <div class="sa-card">
             <div class="sa-filters">
               <div class="field"><label for="u_site">Site</label><select id="u_site"></select></div>
@@ -922,7 +965,8 @@
   const S = { me: null, data: null, site: '' };
   // Marathi lines for the answers people meet most
   const MR = { nostep: 'यासाठी Portal च्या Supabase मध्ये sql/portal_step2_start.sql एकदा चालवावा लागेल.', wrong: 'Email किंवा password चुकीचा आहे.', locked: 'खूप चुकीचे प्रयत्न झाले – 15 मिनिटांनी पुन्हा प्रयत्न करा.', busy: 'खूप जण एकदम sign in करत आहेत – एक मिनिट थांबा.',
-    policy: 'Password किमान 8 अक्षरांचा, अक्षरे आणि अंक दोन्ही असलेला हवा.', oldpw: 'सध्याचा password चुकीचा आहे.', recovery: 'Email किंवा recovery code चुकीचा आहे.', session: 'तुमचा login संपला आहे – पुन्हा sign in करा.' };
+    policy: 'Password किमान 8 अक्षरांचा, अक्षरे आणि अंक दोन्ही असलेला हवा.', oldpw: 'सध्याचा password चुकीचा आहे.', recovery: 'Email किंवा recovery code चुकीचा आहे.', session: 'तुमचा login संपला आहे – पुन्हा sign in करा.',
+    code: 'Code चुकीचा आहे किंवा त्याची वेळ संपली आहे.', wait: 'Code आत्ताच पाठवला आहे – 60 सेकंद थांबा.', mail: 'Code पाठवता आला नाही – थोड्या वेळाने पुन्हा प्रयत्न करा.' };
   function toast(t, bad) { const e = $('toast'); e.textContent = t; e.className = bad ? 'bad' : ''; e.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { e.hidden = true; }, bad ? 6000 : 3500); }
   /* ONE ADDRESS (13-10-2026): the Portal is also served under the main address (<main>/portal/), so every address of this
    * page is RELATIVE to where the page is */
@@ -936,7 +980,7 @@
     return j;
   }
   const msgOf = e => String(e.message) + (MR[e.code] ? ' · ' + MR[e.code] : '');
-  function show(v) { ['v_login', 'v_setup', 'v_rec', 'v_pw', 'v_home', 'v_sa'].forEach(id => { $(id).hidden = id !== v; }); window.scrollTo(0, 0); }
+  function show(v) { ['v_login', 'v_setup', 'v_rec', 'v_otp', 'v_ver', 'v_pw', 'v_home', 'v_sa'].forEach(id => { $(id).hidden = id !== v; }); window.scrollTo(0, 0); }
   async function busy(btn, label, fn) { const t = btn.innerHTML; btn.disabled = true; btn.textContent = label; try { await fn(); } finally { btn.disabled = false; btn.innerHTML = t; } }      // (its picture comes back too)
   const params = new URLSearchParams(location.search);
   const next = (() => { const n = params.get('next') || ''; return /^\/?api\/go\?/.test(n) ? BASE + n.replace(/^\//, '') : ''; })();
@@ -956,6 +1000,9 @@
       b.style.cssText = 'display:block;height:22px;line-height:22px;padding:0 8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;background:#F59E0B;color:#111;font:700 12px/22px system-ui,sans-serif;text-align:center'; document.body.insertBefore(b, document.body.firstChild); }      // (in the page's flow, above its top bar – it hides nothing)
     if (!me.signedIn) return loginView();
     if (me.mustChange) return pwView(true);
+    // (12-11-2026) a module's "Verify" on the reminder comes here with ?verify=1: his own "Verify your e-mail"
+    if (params.has('verify')) { params.delete('verify'); history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : ''));
+      if (me.email && !me.email.verified && me.email.canVerify && !me.user.super) return verView(); }
     if (next) { goOut(next); return; }      // (a module asked for the sign-in – the Super Admin too opens it now)
     if (me.user.super && !params.has('menu')) return saView();
     // "My start": the module he chose opens straight after sign-in (from a module's "Modules" button, ?menu=1: the dashboard)
@@ -987,7 +1034,46 @@
     const m = params.get('msg'); $('l_msg').hidden = !m;
     if (m === 'super') $('l_msg').textContent = 'The Super Admin opens no module – he only designs the system.';
     try { const st = await api('/api/setup', { action: 'status' }); $('l_setup').hidden = !st.needed; } catch (e) { /* the sign-in still works */ }
+    api('/api/auth', { action: 'options' }).then(o => { $('l_otp').hidden = !o.otp; }).catch(() => { /* the password sign-in as before */ });
     setTimeout(() => $('l_email').focus(), 30);
+  }
+  /* (12-11-2026) THE SECOND WAY IN – a code by e-mail – and "VERIFY MY E-MAIL". The same two steps for both: "Send code", then
+   * the code. "Send again" opens after the 60 seconds the server keeps between two codes. */
+  function codeCard(k, send, check) {
+    const el = n => $(k + '_' + n); let tick = 0;
+    const again = s => { clearInterval(tick); let n = s; const b = el('again'); b.hidden = false; b.disabled = true; b.textContent = 'Send again (' + n + ' s)';
+      tick = setInterval(() => { n--; if (n <= 0) { clearInterval(tick); b.disabled = false; b.textContent = 'Send again'; } else b.textContent = 'Send again (' + n + ' s)'; }, 1000); };
+    const one = () => { clearInterval(tick); el('two').hidden = true; el('again').hidden = true; el('btn').textContent = 'Send code'; el('code').value = ''; el('err').textContent = ''; };
+    const two = r => { el('two').hidden = false; el('btn').textContent = k === 'o' ? 'Sign in' : 'Verify'; again((r && r.wait) || 60); setTimeout(() => el('code').focus(), 30); };
+    // → true when a code is on its way (or one was sent a moment ago): the second step and the 60 seconds
+    const ask = async () => { el('err').textContent = ''; try { const r = await send(); if (r && r.verified && check.done) { await check.done(); return false; } two(r); return true; } catch (e) { el('err').textContent = msgOf(e); if (e.code === 'wait') { two({ wait: 60 }); return true; } if (e.code === 'session') loginView(); return false; } };
+    $('f_' + (k === 'o' ? 'otp' : 'ver')).addEventListener('submit', ev => { ev.preventDefault();
+      if (el('two').hidden) { const b = el('btn'); b.disabled = true; b.textContent = 'Sending…'; ask().then(ok => { b.disabled = false; if (!ok) b.textContent = 'Send code'; }); return; }
+      const code = el('code').value.replace(/\D/g, ''); if (code.length !== 6) { el('err').textContent = 'Type the 6-digit code from the e-mail.'; return; }
+      el('err').textContent = ''; busy(el('btn'), 'Checking…', async () => { try { await check(code); } catch (e) { el('err').textContent = msgOf(e); el('code').value = ''; if (e.code === 'session') loginView(); } }); });
+    el('again').addEventListener('click', async () => { const b = el('again'); b.disabled = true; b.textContent = 'Sending…'; if (!await ask()) { b.disabled = false; b.textContent = 'Send again'; } });
+    return { one };
+  }
+  const otpCard = codeCard('o', async () => { const r = await api('/api/auth', { action: 'otpSend', email: $('o_email').value.trim() });
+    $('o_sent').textContent = 'If this e-mail is registered and verified, a code is on its way to it. · Email नोंदलेला आणि verified असेल तर code पाठवला आहे.'; return r; },
+    async code => { await api('/api/auth', { action: 'otpLogin', email: $('o_email').value.trim(), code: code }); otpCard.one(); await start(); });
+  $('l_otp').addEventListener('click', () => { otpCard.one(); $('o_email').value = $('l_email').value.trim(); show('v_otp'); setTimeout(() => $('o_email').focus(), 30); });
+  $('o_back').addEventListener('click', () => { otpCard.one(); $('l_email').value = $('o_email').value.trim() || $('l_email').value; show('v_login'); });
+  $('o_email').addEventListener('input', () => { if (!$('o_two').hidden) otpCard.one(); });      // (another e-mail: from the first step again)
+  const verDone = async () => { verCard.one(); if (S.me && S.me.email) S.me.email.verified = true; $('h_ver').hidden = true; toast('E-mail verified. · Email verify झाला.'); await start(); };
+  const verCard = codeCard('ve', async () => { const r = await api('/api/auth', { action: 'verifySend' }); if (!r.verified) $('ve_sent').textContent = 'A code was sent to ' + r.email + '. · Code पाठवला आहे.'; return r; },
+    Object.assign(async code => { await api('/api/auth', { action: 'verifyCheck', code: code }); await verDone(); }, { done: verDone }));
+  function verView() { verCard.one(); $('ve_who').textContent = S.me && S.me.user ? S.me.user.email : ''; show('v_ver'); }
+  $('ve_later').addEventListener('click', () => { verCard.one(); start(); });
+  $('h_ver_btn').addEventListener('click', verView);
+  /* THE REMINDER (his decision of 12-11-2026: no access is ever closed – "alert det rahayche every 1 hour"): while his e-mail is
+   * not verified a small strip on top, which hides nothing; asked again every hour while this page stays open. */
+  let remT = 0;
+  function remind() {
+    clearInterval(remT); $('h_ver').hidden = true; const e = S.me && S.me.email;
+    if (!e || e.verified || !e.remind || S.me.user.super) return;
+    const ask = () => api('/api/auth', { action: 'emailAlert' }).then(r => { $('h_ver').hidden = !r.show; $('h_ver_btn').hidden = !r.canVerify; }).catch(() => { /* asked again in an hour */ });
+    ask(); remT = setInterval(ask, 3600000);
   }
   $('f_login').addEventListener('submit', ev => { ev.preventDefault(); $('l_err').textContent = '';
     busy($('l_btn'), 'Signing in…', async () => {
@@ -1071,7 +1157,7 @@
     catch (er) { toast(msgOf(er), true); }
   }));
   function homeView() {
-    show('v_home'); appPanel();
+    show('v_home'); appPanel(); remind();
     const me = S.me, items = me.items || [];
     $('h_name').textContent = me.user.name; $('h_email').textContent = me.user.email; $('h_sa').hidden = !me.user.super;
     const m = params.get('msg'); $('h_msg').hidden = m !== 'noaccess'; $('h_msg').textContent = 'You do not have that module on that site. Ask the Super Admin.';
@@ -1342,6 +1428,10 @@
     $('u_stats').innerHTML = stat(IC.users, 'blue', 'Total Users', people.length, signedMonth + ' signed in this month', 'up') + stat(IC.ucheck, 'green', 'Active Users', on, pct(on, people.length) + '% active', 'up') +
       stat(IC.ux, 'red', 'Inactive Users', people.length - on, pct(people.length - on, people.length) + '% inactive', 'down') + stat(IC.pin, 'purple', 'Sites', d.sites.length, 'Manage sites', '', 'sites') + stat(IC.grid, 'amber', 'Modules', d.modules.length, 'Manage modules', '', 'modules');
     $('u_rows').innerHTML = people.map((u, i) => row(u, false, i + 1)).join('');
+    // (12-11-2026) sign-in with a code by e-mail: how it stands, in one line (the switches are in Vercel → Environment Variables)
+    { const yes = t => '<b style="color:#15803D">' + t + '</b>', no = t => '<b style="color:#B45309">' + t + '</b>', ver = people.filter(u => u.emailVerified).length;
+      $('u_mail').hidden = false; $('u_mail').innerHTML = 'Email OTP – ' + (!d.step10 ? no('database step 10 not run yet') + ' (sql/portal_step10_email_otp.sql)' :
+        'e-mail service: ' + (d.mailMissing ? no(esc(d.mailMissing)) : yes('set')) + ' · OTP login: ' + (d.otpOn ? yes('ON') : no('OFF')) + ' · reminders: ' + (d.alertsOn ? yes('ON') : no('OFF')) + ' · e-mail verified: <b>' + ver + ' of ' + people.length + '</b>'); }
     S.uCount = people.length + ' users · ' + on + ' active';
     usersFilter();
   }
@@ -1360,7 +1450,7 @@
     return '<tr data-email="' + esc(u.email) + '"' + (isNew ? ' data-new="1"' : on ? '' : ' class="off"') + '>' +
       '<td class="num">' + (isNew ? '+' : n) + '</td>' +
       '<td class="w">' + (isNew ? '<input class="u-email" type="email" placeholder="email" aria-label="Email"><input class="u-name" placeholder="name" aria-label="Name" style="margin-top:4px">'
-        : '<div class="sa-user">' + av(u.name, u.email) + '<div><button type="button" class="u-pages" data-email="' + esc(u.email) + '" title="Module access of this user">' + esc(u.name) + '</button>' + (u.tester ? '<span class="sa-pill beta" title="Tester – opens the beta (new) versions">Beta</span>' : '') + '<small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + '</small></div></div>') + '</td>' +
+        : '<div class="sa-user">' + av(u.name, u.email) + '<div><button type="button" class="u-pages" data-email="' + esc(u.email) + '" title="Module access of this user">' + esc(u.name) + '</button>' + (u.tester ? '<span class="sa-pill beta" title="Tester – opens the beta (new) versions">Beta</span>' : '') + '<small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + (u.emailVerified === true ? ' · <span title="E-mail verified with a code">Email Verified ✓</span>' : u.emailVerified === false ? ' · <span title="E-mail not verified yet">Email Pending</span>' : '') + '</small></div></div>') + '</td>' +
       '<td>' + (isNew ? '' : '<a class="sa-mail" href="mailto:' + esc(u.email) + '" title="' + esc(u.email) + '" aria-label="Email ' + esc(u.email) + '">' + IC.mail + '</a>') + '</td>' +
       '<td><label class="sa-pill ' + (on ? 'on' : 'off') + '"><input type="checkbox" class="u-active"' + (on ? ' checked' : '') + ' aria-label="Active"><span>' + (on ? 'Active' : 'Inactive') + '</span></label></td>' +
       mods().map(m => '<td>' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + '</td>').join('') +
@@ -1430,6 +1520,7 @@
     const siteOf = c => ((d.sites.find(s => s.code === c)) || {}).name || c, modOf = k => ((d.modules.find(m => m.key === k)) || {}).name || k;
     $('pg_details').innerHTML = '<dl class="sa-dl"><dt>Name</dt><dd>' + esc(u.name) + '</dd><dt>Email</dt><dd>' + esc(u.email) + '</dd><dt>Status</dt><dd>' + (u.active !== false ? 'Active' : 'Switched off – cannot sign in') + '</dd>' +
       '<dt>Password</dt><dd>' + (u.noPassword ? 'No password yet' : u.mustChange ? 'One-time password – he sets his own at his next sign-in' : 'His own') + '</dd>' +
+      (u.emailVerified === undefined ? '' : '<dt>E-mail</dt><dd>' + (u.emailVerified ? 'Verified ✓ – he can sign in with a code by e-mail' : 'Pending – not verified yet · reminders shown: ' + esc(u.emailAlerts || 0)) + '</dd>') +
       '<dt>Last sign-in</dt><dd>' + (u.lastLogin ? esc(new Date(u.lastLogin).toLocaleString('en-IN')) : '–') + '</dd>' +
       '<dt>Access</dt><dd>' + (mine.length ? mine.map(a => esc(modOf(a.module)) + ' – ' + (a.role === 'admin' ? 'Admin' : 'User') + ' · ' + esc(siteOf(a.site)) + ' (' + esc(a.site) + ')').join('<br>') : 'No module on any site') + '</dd></dl>' +
       '<p class="note" style="margin-top:14px">The status, the access and a new one-time password are changed in the users list (Back to users).</p>' +
