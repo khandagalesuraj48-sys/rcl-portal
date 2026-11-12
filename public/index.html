@@ -525,10 +525,10 @@
   <form class="card" id="f_ver">
     <div class="oc"><img src="oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
     <h1>Verify your e-mail</h1>
-    <p class="note" id="ve_who" style="text-align:center;font-weight:700"></p>
-    <p class="note">A 6-digit code is sent to this address. Type it here once – after that you can also sign in with a code by e-mail. Your password keeps working.</p>
-    <p class="mr">या email वर 6 अंकी code येईल. तो इथे एकदा टाका – त्यानंतर Email OTP ने पण login करता येईल. Password तसाच चालू राहतो.</p>
-    <p class="note">Not your own e-mail? Tell the Super Admin. · हा तुमचा email नसेल तर Super Admin ला सांगा.</p>
+    <p class="note">Type your OWN e-mail – one you can open. A 6-digit code is sent to it; type the code here once.</p>
+    <p class="mr">तुमचा स्वतःचा, चालू असलेला email टाका. त्यावर 6 अंकी code येईल – तो इथे एकदा टाका.</p>
+    <div class="field"><label for="ve_email">My e-mail · माझा email</label><input id="ve_email" type="email" placeholder="Email" autocomplete="email" required></div>
+    <p class="note" id="ve_who"></p>
     <div id="ve_two" hidden>
       <p class="note" id="ve_sent"></p>
       <div class="field"><label class="sr" for="ve_code">Code</label><input id="ve_code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="6-digit code"></div>
@@ -966,7 +966,7 @@
   // Marathi lines for the answers people meet most
   const MR = { nostep: 'यासाठी Portal च्या Supabase मध्ये sql/portal_step2_start.sql एकदा चालवावा लागेल.', wrong: 'Email किंवा password चुकीचा आहे.', locked: 'खूप चुकीचे प्रयत्न झाले – 15 मिनिटांनी पुन्हा प्रयत्न करा.', busy: 'खूप जण एकदम sign in करत आहेत – एक मिनिट थांबा.',
     policy: 'Password किमान 8 अक्षरांचा, अक्षरे आणि अंक दोन्ही असलेला हवा.', oldpw: 'सध्याचा password चुकीचा आहे.', recovery: 'Email किंवा recovery code चुकीचा आहे.', session: 'तुमचा login संपला आहे – पुन्हा sign in करा.',
-    code: 'Code चुकीचा आहे किंवा त्याची वेळ संपली आहे.', wait: 'Code आत्ताच पाठवला आहे – 60 सेकंद थांबा.', mail: 'Code पाठवता आला नाही – थोड्या वेळाने पुन्हा प्रयत्न करा.' };
+    code: 'Code चुकीचा आहे किंवा त्याची वेळ संपली आहे.', taken: 'हा email दुसऱ्या user चा आहे – तुमचा स्वतःचा email टाका.', wait: 'Code आत्ताच पाठवला आहे – 60 सेकंद थांबा.', mail: 'Code पाठवता आला नाही – थोड्या वेळाने पुन्हा प्रयत्न करा.' };
   function toast(t, bad) { const e = $('toast'); e.textContent = t; e.className = bad ? 'bad' : ''; e.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { e.hidden = true; }, bad ? 6000 : 3500); }
   /* ONE ADDRESS (13-10-2026): the Portal is also served under the main address (<main>/portal/), so every address of this
    * page is RELATIVE to where the page is */
@@ -1060,10 +1060,14 @@
   $('l_otp').addEventListener('click', () => { otpCard.one(); $('o_email').value = $('l_email').value.trim(); show('v_otp'); setTimeout(() => $('o_email').focus(), 30); });
   $('o_back').addEventListener('click', () => { otpCard.one(); $('l_email').value = $('o_email').value.trim() || $('l_email').value; show('v_login'); });
   $('o_email').addEventListener('input', () => { if (!$('o_two').hidden) otpCard.one(); });      // (another e-mail: from the first step again)
-  const verDone = async () => { verCard.one(); if (S.me && S.me.email) S.me.email.verified = true; $('h_ver').hidden = true; toast('E-mail verified. · Email verify झाला.'); await start(); };
-  const verCard = codeCard('ve', async () => { const r = await api('/api/auth', { action: 'verifySend' }); if (!r.verified) $('ve_sent').textContent = 'A code was sent to ' + r.email + '. · Code पाठवला आहे.'; return r; },
-    Object.assign(async code => { await api('/api/auth', { action: 'verifyCheck', code: code }); await verDone(); }, { done: verDone }));
-  function verView() { verCard.one(); $('ve_who').textContent = S.me && S.me.user ? S.me.user.email : ''; show('v_ver'); }
+  // verified: from now on he signs in with THIS e-mail (his password or a code) – said once, in a box he closes himself
+  const verDone = async r => { verCard.one(); if (S.me && S.me.email) S.me.email.verified = true; $('h_ver').hidden = true; const m = (r && r.login) || $('ve_email').value.trim();
+    document.body.insertAdjacentHTML('beforeend', '<div class="vph-back" id="ve_ok"><div class="vph-box" role="dialog" aria-modal="true" aria-label="E-mail verified" style="max-width:420px"><h3>E-mail verified ✓</h3><p class="note" style="margin:8px 0">From now on sign in with <b>' + esc(m) + '</b> – with your password, or with a code by e-mail.</p><p class="mr">यापुढे login साठी <b>' + esc(m) + '</b> हाच email वापरा – password ने किंवा Email OTP ने.</p><p style="margin-top:12px"><button class="btn primary" type="button" id="ve_ok_btn" style="width:100%">OK</button></p></div></div>');
+    await new Promise(done => $('ve_ok_btn').addEventListener('click', () => { $('ve_ok').remove(); done(); })); await start(); };
+  const verCard = codeCard('ve', async () => { const r = await api('/api/auth', { action: 'verifySend', email: $('ve_email').value.trim() }); if (!r.verified) $('ve_sent').textContent = 'A code was sent to ' + r.email + '. · Code पाठवला आहे.'; return r; },
+    Object.assign(async code => { const r = await api('/api/auth', { action: 'verifyCheck', code: code }); await verDone(r); }, { done: verDone }));
+  function verView() { verCard.one(); const id = S.me && S.me.user ? S.me.user.email : ''; $('ve_email').value = id; $('ve_who').textContent = id ? 'Your user ID in the ERP stays ' + id + ' – nothing of your work changes.' : ''; show('v_ver'); setTimeout(() => $('ve_email').focus(), 30); }
+  $('ve_email').addEventListener('input', () => { if (!$('ve_two').hidden) verCard.one(); });      // (another address: from the first step again)
   $('ve_later').addEventListener('click', () => { verCard.one(); start(); });
   $('h_ver_btn').addEventListener('click', verView);
   /* THE REMINDER (his decision of 12-11-2026: no access is ever closed – "alert det rahayche every 1 hour"): while his e-mail is
@@ -1431,7 +1435,7 @@
     // (12-11-2026) sign-in with a code by e-mail: how it stands, in one line (the switches are in Vercel → Environment Variables)
     { const yes = t => '<b style="color:#15803D">' + t + '</b>', no = t => '<b style="color:#B45309">' + t + '</b>', ver = people.filter(u => u.emailVerified).length;
       $('u_mail').hidden = false; $('u_mail').innerHTML = 'Email OTP – ' + (!d.step10 ? no('database step 10 not run yet') + ' (sql/portal_step10_email_otp.sql)' :
-        'e-mail service: ' + (d.mailMissing ? no(esc(d.mailMissing)) : yes('set')) + ' · OTP login: ' + (d.otpOn ? yes('ON') : no('OFF')) + ' · reminders: ' + (d.alertsOn ? yes('ON') : no('OFF')) + ' · e-mail verified: <b>' + ver + ' of ' + people.length + '</b>'); }
+        'e-mail service: ' + (d.mailMissing ? no(esc(d.mailMissing)) : yes('set')) + ' · OTP login: ' + (d.otpOn ? yes('ON') : no('OFF')) + ' · reminders: ' + (d.alertsOn ? yes('ON') : no('OFF')) + ' · e-mail verified: <b>' + ver + ' of ' + people.length + '</b>' + (d.step11 ? '' : ' · ' + no('step 11 not run yet') + ' (sql/portal_step11_login_email.sql – a user\'s own e-mail beside his user ID)')); }
     S.uCount = people.length + ' users · ' + on + ' active';
     usersFilter();
   }
@@ -1450,7 +1454,7 @@
     return '<tr data-email="' + esc(u.email) + '"' + (isNew ? ' data-new="1"' : on ? '' : ' class="off"') + '>' +
       '<td class="num">' + (isNew ? '+' : n) + '</td>' +
       '<td class="w">' + (isNew ? '<input class="u-email" type="email" placeholder="email" aria-label="Email"><input class="u-name" placeholder="name" aria-label="Name" style="margin-top:4px">'
-        : '<div class="sa-user">' + av(u.name, u.email) + '<div><button type="button" class="u-pages" data-email="' + esc(u.email) + '" title="Module access of this user">' + esc(u.name) + '</button>' + (u.tester ? '<span class="sa-pill beta" title="Tester – opens the beta (new) versions">Beta</span>' : '') + '<small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + (u.emailVerified === true ? ' · <span title="E-mail verified with a code">Email Verified ✓</span>' : u.emailVerified === false ? ' · <span title="E-mail not verified yet">Email Pending</span>' : '') + '</small></div></div>') + '</td>' +
+        : '<div class="sa-user">' + av(u.name, u.email) + '<div><button type="button" class="u-pages" data-email="' + esc(u.email) + '" title="Module access of this user">' + esc(u.name) + '</button>' + (u.tester ? '<span class="sa-pill beta" title="Tester – opens the beta (new) versions">Beta</span>' : '') + '<small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + (u.emailVerified === true ? ' · <span title="E-mail verified with a code">Email Verified ✓</span>' : u.emailVerified === false ? ' · <span title="E-mail not verified yet">Email Pending</span>' : '') + (u.loginEmail ? '<br>Signs in with: ' + esc(u.loginEmail) : '') + '</small></div></div>') + '</td>' +
       '<td>' + (isNew ? '' : '<a class="sa-mail" href="mailto:' + esc(u.email) + '" title="' + esc(u.email) + '" aria-label="Email ' + esc(u.email) + '">' + IC.mail + '</a>') + '</td>' +
       '<td><label class="sa-pill ' + (on ? 'on' : 'off') + '"><input type="checkbox" class="u-active"' + (on ? ' checked' : '') + ' aria-label="Active"><span>' + (on ? 'Active' : 'Inactive') + '</span></label></td>' +
       mods().map(m => '<td>' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + '</td>').join('') +
@@ -1520,7 +1524,7 @@
     const siteOf = c => ((d.sites.find(s => s.code === c)) || {}).name || c, modOf = k => ((d.modules.find(m => m.key === k)) || {}).name || k;
     $('pg_details').innerHTML = '<dl class="sa-dl"><dt>Name</dt><dd>' + esc(u.name) + '</dd><dt>Email</dt><dd>' + esc(u.email) + '</dd><dt>Status</dt><dd>' + (u.active !== false ? 'Active' : 'Switched off – cannot sign in') + '</dd>' +
       '<dt>Password</dt><dd>' + (u.noPassword ? 'No password yet' : u.mustChange ? 'One-time password – he sets his own at his next sign-in' : 'His own') + '</dd>' +
-      (u.emailVerified === undefined ? '' : '<dt>E-mail</dt><dd>' + (u.emailVerified ? 'Verified ✓ – he can sign in with a code by e-mail' : 'Pending – not verified yet · reminders shown: ' + esc(u.emailAlerts || 0)) + '</dd>') +
+      (u.emailVerified === undefined ? '' : '<dt>E-mail</dt><dd>' + (u.emailVerified ? 'Verified ✓ – he signs in with ' + esc(u.loginEmail || u.email) + ' (password or a code by e-mail)' : 'Pending – not verified yet · reminders shown: ' + esc(u.emailAlerts || 0)) + '</dd>') +
       '<dt>Last sign-in</dt><dd>' + (u.lastLogin ? esc(new Date(u.lastLogin).toLocaleString('en-IN')) : '–') + '</dd>' +
       '<dt>Access</dt><dd>' + (mine.length ? mine.map(a => esc(modOf(a.module)) + ' – ' + (a.role === 'admin' ? 'Admin' : 'User') + ' · ' + esc(siteOf(a.site)) + ' (' + esc(a.site) + ')').join('<br>') : 'No module on any site') + '</dd></dl>' +
       '<p class="note" style="margin-top:14px">The status, the access and a new one-time password are changed in the users list (Back to users).</p>' +

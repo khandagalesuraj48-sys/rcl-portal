@@ -25,7 +25,8 @@ Read this first, then `README.md`. The same owner and rules as the Mechanical mo
 * **Two ways to sign in (12-11-2026):** the password – unchanged – or a code by e-mail (Resend; `RESEND_API_KEY`, `OTP_FROM` and the
   switches `OTP_LOGIN`, `EMAIL_ALERTS` are set by him in Vercel – the key is never asked for). A code only to an active user with a
   verified e-mail; never for the Super Admin; nobody marks an e-mail verified without the code. An unverified e-mail gets a reminder
-  every hour – **access is never closed for it**. Changing a user's e-mail is not built (it is his identity in every module).
+  every hour – **access is never closed for it**. The e-mail a user was made with is his **user ID** for ever (every module knows
+  him by it); the e-mail he himself verifies (`users.login_email`, step 11) is the one he signs in with – from then on only that one.
 * One module = one repository + one Vercel project + one Supabase project. The Portal has its own database.
 * Passwords use Mechanical's exact format (`scrypt$…`, the older `sha256$…`), so people keep their passwords.
 * A module trusts a Portal ticket only after checking its ES256 signature with `/api/jwks`, its `aud` (the module key), `exp`, and that its `jti` is used once.

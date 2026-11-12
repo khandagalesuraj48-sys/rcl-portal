@@ -293,6 +293,12 @@ His rules of 12-11-2026. **The password sign-in is unchanged.** Beside it, when 
 * The page: the sign-in card's second button, the cards `v_otp` and `v_ver` (`?verify=1` opens it – a module's strip sends him
   here), the strip on "My modules"; Users & Access shows "Email Verified ✓ / Email Pending", the reminders shown, and one line
   with how it stands (step 10, the e-mail service, the two switches).
-* Not built (his decision): changing a user's e-mail (it is his identity in every module), any block.
+* **His own e-mail beside his user ID (step 11 – `sql/portal_step11_login_email.sql`, `lib/who.js`; his decision of 12-11-2026:
+  "pk@gmail.com … he delet nahi honar … he user id banel … fix rahil"):** the e-mail a user was made with is his **user ID** – fixed
+  for ever, the name every module knows him by. On "Verify your e-mail" he types his OWN address; the code goes there; typed right,
+  it is kept in `users.login_email`. **From then on only that e-mail signs in** (password or code) – the user ID no longer does.
+  Never an address that is another user's (user ID or verified e-mail). A session, a ticket, the access – always the user ID.
+  A module's screen lock asks `checkPassword` by the user ID (no sign-in is made). Until step 11 is run: as after step 10.
+* Not built (his decision): changing the user ID itself, changing a verified e-mail again, any block.
 * Tests: `test/otp.rig.test.js` (its own two Portal servers and a stand-in for the mail service – no real e-mail), the unit test.
 

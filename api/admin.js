@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const keys = require('../lib/keys');
 const { db, enc, rpc } = require('../lib/db');
 const pw = require('../lib/pw');
+const W = require('../lib/who');
 const otp = require('../lib/otp');
 const mail = require('../lib/mail');
 const ses = require('../lib/session');
@@ -82,11 +83,14 @@ async function overview() {
   const testers = s7 ? ((await db('GET', 'users?select=email&tester=is.true')) || []).map(x => x.email) : [];
   // (step 10) whose e-mail is verified, how often he was reminded – null where the step-10 SQL is not run yet
   let em = null; try { em = {}; ((await db('GET', 'users?select=email,email_verified_at,email_alerts')) || []).forEach(x => { em[x.email] = x; }); } catch (e) { if (!otp.noStep(e)) throw e; em = null; }
+  // (step 11) the e-mail each one verified and signs in with – null where that SQL is not run yet
+  let li = null; if (em) { try { li = {}; ((await db('GET', 'users?select=email,login_email&login_email=not.is.null')) || []).forEach(x => { li[x.email] = x.login_email; }); } catch (e) { if (!W.noStep11(e)) throw e; li = null; } }
   return {
     users: (users || []).map(u => ({ email: u.email, name: u.name, active: !!u.active, super: !!u.is_super, mustChange: !u.is_super && pw.mustChange(u.password_hash), noPassword: !u.password_hash, lastLogin: u.last_login_at,
       tester: testers.indexOf(u.email) > -1,
-      emailVerified: em && !u.is_super ? !!(em[u.email] || {}).email_verified_at : undefined, emailAlerts: em && !u.is_super ? Number((em[u.email] || {}).email_alerts) || 0 : undefined })),
-    step10: !!em, otpOn: otp.on('OTP_LOGIN'), alertsOn: otp.on('EMAIL_ALERTS'), mailMissing: mail.missing(),
+      emailVerified: em && !u.is_super ? !!(em[u.email] || {}).email_verified_at : undefined, emailAlerts: em && !u.is_super ? Number((em[u.email] || {}).email_alerts) || 0 : undefined,
+      loginEmail: li && li[u.email] && li[u.email] !== u.email ? li[u.email] : undefined })),
+    step10: !!em, step11: !!li, otpOn: otp.on('OTP_LOGIN'), alertsOn: otp.on('EMAIL_ALERTS'), mailMissing: mail.missing(),
     step7: s7,
     sites: (sites || []).map(s => ({ code: s.code, name: s.name, company_id: s.company_id, status: s.status, sort: s.sort, address: s.address || '', contact_name: s.contact_name || '', contact_phone: s.contact_phone || '', step5: 'address' in s,
       ho: hoOf(s.rules), step6: 'rules' in s })), modules: mods || [], companies: comps || [], access: acc || [], storePages: STORE_PAGES };      // (29-10-2026) its workflow's Head Office choices (step 6)
@@ -317,6 +321,7 @@ const ACTIONS = {
     if (temp && temp.length < 6) throw fail(400, 'Give a one-time password of at least 6 characters – the user must change it at the first sign-in.');
     if (x.isNew) {
       if (cur) throw fail(409, email + ' is already a user.');
+      if (await W.taken(email, '')) throw fail(409, email + ' is already the verified sign-in e-mail of another user.');      // (step 11)
       if (!temp) throw fail(400, 'Give a one-time password of at least 6 characters – the user must change it at the first sign-in.');
       if (name.length < 2) throw fail(400, 'Enter the name of the user (2 to 80 letters).');
       await db('POST', 'users', [{ email: email, name: name, password_hash: 'tmp$' + await pw.make(temp), active: x.active !== false }], 'return=minimal');
