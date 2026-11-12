@@ -305,6 +305,46 @@
   /* filters */
   .sa-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; margin-bottom: 14px; }
   /* (12-11-2026) Users & Access: the site and the module as buttons with their counts, the three lists, access as small chips */
+  /* (12-11-2026, his word: "ALL APROVED") the other pages of the console in the same look: cards instead of rows of boxes */
+  .sa-card.flat { background: none; border: 0; box-shadow: none; padding: 0; }
+  .sa .tw.cg-tw { border: 0; background: none; overflow: visible; box-shadow: none; border-radius: 0; } .sa .tw.cg-tw table.cg-t { border: 0; background: none; display: block; } .sa .cg-t thead { display: none; }
+  .sa .cg-t tbody { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 14px; } .sa .cg-t.one tbody { grid-template-columns: 1fr; gap: 12px; }
+  .sa .cg-t tr { display: block; } .sa .cg-t td { display: block; border: 0; padding: 0; background: none; } .sa .cg-t tr[hidden] { display: none; }
+  .kc { background: #fff; border: 1px solid var(--s-line); border-radius: 16px; padding: 16px 18px; box-shadow: 0 8px 24px rgba(15,23,42,.04); height: 100%; }
+  .kc .hd { display: flex; align-items: center; gap: 12px; } .kc .hd h3 { margin: 0; font-size: 16.5px; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; } .kc .hd h3 small { display: block; font-weight: 500; color: var(--s-muted); font-size: 12.5px; }
+  .kc .kv { margin: 12px 0; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 5px 10px; font-size: 13.5px; } .kc .kv dt { color: var(--s-muted); font-weight: 600; } .kc .kv dd { margin: 0; overflow-wrap: anywhere; }
+  .kc .fx { margin: 10px 0 0; font-size: 13px; overflow-wrap: anywhere; } .kc .fx b { display: block; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; color: var(--s-muted); }
+  .kc .bts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+  .kc .bts .kb { border: 1px solid var(--s-line); border-radius: 9px; padding: 7px 13px; font: inherit; font-weight: 600; color: var(--s-ink); font-size: 13.5px; background: #fff; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .kc .bts .kb svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; } .kc .bts .kb:hover { border-color: var(--s-blue); color: var(--s-blue); } .kc .bts .kb.p { background: #0F1B3D; border-color: #0F1B3D; color: #fff; } .kc .bts .kb.del { color: #B42318; border-color: #F3C7C2; }
+  .kc .ic, .kc .sa-av.sq { flex: 0 0 auto; }
+  /* Modules: the form of a card opens with "Edit" */
+  .m-ed { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--s-line); gap: 8px; } #m_rows .m-ed label { display: block; font-size: 12px; font-weight: 700; color: var(--s-muted); margin: 0; } #m_rows .m-ed input, #m_rows .m-ed select { display: block; width: 100%; margin-top: 3px; }
+  #m_rows tr.edit .m-ed, #m_rows tr[data-new] .m-ed { display: grid; } #m_rows tr.edit .m-fx, #m_rows tr.edit .m-edit { display: none; } #m_rows .m-noedit { display: none; } #m_rows tr.edit .m-noedit { display: inline-flex; }
+  /* Workflow: a card a work */
+  .wf-c { display: grid; grid-template-columns: minmax(150px, 210px) minmax(0, 1fr) minmax(0, 1fr) minmax(200px, 260px); gap: 14px 18px; align-items: start; margin-bottom: 12px; height: auto; }
+  @media (max-width: 1000px) { .wf-c { grid-template-columns: 1fr 1fr; } }
+  .wf-c h3 { margin: 0; font-size: 16px; } .wf-c .l { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--s-muted); margin-bottom: 5px; } .wf-c .ua-chip { margin: 0 5px 5px 0; }
+  .wf-sw { display: inline-flex; background: #EEF2F8; border-radius: 9px; padding: 3px; } .wf-sw button { border: 0; background: none; font: inherit; font-weight: 600; font-size: 13px; color: var(--s-muted); padding: 5px 13px; border-radius: 7px; cursor: pointer; }
+  .wf-sw button.on { background: #0F1B3D; color: #fff; } .wf-sw button:disabled { cursor: default; opacity: .6; } .wf-say { display: block; margin-top: 6px; color: var(--s-muted); font-size: 12.5px; }
+  /* Versions: a line a version */
+  .vr-c { display: grid; grid-template-columns: minmax(120px, 160px) minmax(0, 1fr) minmax(170px, 230px); gap: 12px 18px; align-items: center; } .vr-c h3 { margin: 0; font-size: 19px; } .vr-c small { color: var(--s-muted); } .vr-c .new { margin: 0 0 6px; white-space: pre-line; font-size: 13.5px; } .vr-c .end { text-align: right; }
+  @media (max-width: 800px) { .vr-c { grid-template-columns: 1fr; } .vr-c .end { text-align: left; } }
+  /* Activity: day by day */
+  .al-t tbody { display: block; background: #fff; border: 1px solid var(--s-line); border-radius: 16px; padding: 4px 18px 8px; } .sa .cg-t.al-t tbody { display: block; }
+  .al-day { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--s-muted); padding: 14px 0 4px; }
+  .al-ev { display: flex; gap: 12px; align-items: center; padding: 9px 0; border-top: 1px solid var(--s-line); font-size: 14px; } .al-ev time { flex: 0 0 62px; color: var(--s-muted); font-size: 13px; } .al-ev .sa-av { width: 30px; height: 30px; font-size: 13px; flex: 0 0 auto; }
+  .al-ev p { margin: 0; flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; } .al-ev p small { color: var(--s-muted); }
+  /* Advertise: the posts as cards */
+  .ad-grid:has(#ad_form[hidden]) { grid-template-columns: 1fr; }
+  .sa .ad-list { padding: 0; background: none; border: 0; box-shadow: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+  .sa .ad-row { display: block; padding: 0; border: 2px solid transparent; border-radius: 16px; background: #fff; box-shadow: 0 8px 24px rgba(15,23,42,.05); overflow: hidden; position: relative; } .sa .ad-row.on { border-color: #2563EB; } .sa .ad-row.off { opacity: 1; } .sa .ad-row.off .ad-th { opacity: .55; }
+  .sa .ad-row .ad-th { display: block; width: 100%; height: 124px; border-radius: 0; } .sa .ad-row .mid { display: block; padding: 11px 13px 4px; } .sa .ad-row .ad-st { display: inline-block; margin: 4px 13px 12px; }
+  .sa .ad-row .ad-mv { position: absolute; right: 8px; top: 8px; flex-direction: row; background: rgba(255,255,255,.92); border-radius: 8px; z-index: 1; } .sa .ad-list.cut .ad-mv { display: none; }
+  .ad-bar { margin-bottom: 14px; }
+  /* My Account: his card; the password and the recovery on one page */
+  .sa-acc .sa-accnav { display: none; } .sa-acc .me { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; flex-direction: column; align-items: flex-start; } .sa-acc .me .sa-av { width: 68px; height: 68px; font-size: 28px; }
+  .me-two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; } @media (max-width: 800px) { .me-two { grid-template-columns: 1fr; } }
   /* (12-11-2026) the Super Admin's Dashboard */
   .da-stat { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 16px; }
   .da-stat div { background: #fff; border: 1px solid var(--s-line); border-radius: 16px; padding: 15px 18px; box-shadow: 0 8px 24px rgba(15,23,42,.04); }
@@ -740,10 +780,8 @@
       </section>
       <section id="t_wf" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3.5" width="6" height="5" rx="1.2"/><rect x="15" y="3.5" width="6" height="5" rx="1.2"/><path d="M9 6h6"/></svg>Workflow</span><h1>Workflow</h1><p>For each work of a site: who <b>verifies</b> it, who <b>approves</b> it, and whether – once approved – it goes to <b>Head Office</b>. The one who makes an entry never verifies or approves it himself. Nobody given for a step = that step is passed (as before).</p></div></div>
-        <div class="sa-card">
-          <div class="sa-filters"><div class="field"><label for="wf_site">Site</label><select id="wf_site"></select></div></div>
-          <div id="wf_box"></div>
-        </div>
+        <p class="ua-lab">Site</p><div class="ua-seg" id="wf_sitebar" role="group" aria-label="Site"></div><select id="wf_site" hidden aria-hidden="true" tabindex="-1"></select>
+        <div id="wf_box"></div>
       </section>
       <section id="t_companies" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="11" height="18" rx="1.5"/><path d="M15 9h4.5a.5.5 0 0 1 .5.5V21H15"/></svg>Companies</span><h1>Companies</h1><p>The companies a site belongs to.</p></div>
@@ -759,23 +797,25 @@
           </div>
           <div class="bar"><button class="sa-btn primary sm" id="co_save" type="button">Save company</button><button class="sa-btn sm" id="co_clear" type="button">Close</button></div>
         </div>
-        <div class="sa-card"><div class="tw"><table class="co-t"><thead><tr><th>Company</th><th>GSTIN</th><th>PAN</th><th>Address</th><th>Sites</th><th>Actions</th></tr></thead><tbody id="co_rows"></tbody></table></div></div>
+        <div class="sa-card flat"><div class="tw cg-tw"><table class="co-t cg-t"><tbody id="co_rows"></tbody></table></div></div>
       </section>
       <section id="t_modules" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Module management</span><h1>Modules</h1><p>A module shows on the dashboard only when it is <b>Live</b> and has its link. A module that is <b>Off</b> can be deleted (not Mechanical).</p></div>
           <button class="sa-btn primary" id="m_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add module</button></div>
-        <div class="sa-card"><div class="tw"><table><thead><tr><th>Module</th><th>Link</th><th>Beta link <small>(testers)</small></th><th>Status</th><th>Actions</th></tr></thead><tbody id="m_rows"></tbody></table></div></div>
+        <div class="sa-card flat"><div class="tw cg-tw"><table class="cg-t"><tbody id="m_rows"></tbody></table></div></div>
       </section>
       <section id="t_versions" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5-8 4.5-8-4.5z"/><path d="M4 12l8 4.5 8-4.5"/><path d="M4 16.5l8 4.5 8-4.5"/></svg>Beta → Stable</span><h1>Versions</h1><p>A new version goes first to the <b>testers</b> (Beta). When it is fine, <b>Give to everybody</b> makes it the stable one: the web of every module becomes that version and every phone gets the app update.</p></div>
           <div class="acts"><button class="sa-btn outline" id="v_reload" type="button">Refresh</button><button class="sa-btn primary" id="v_beta" type="button">New beta version</button></div></div>
-        <div class="sa-card"><p class="note" id="v_note" hidden></p><div class="tw"><table class="sa-ver"><thead><tr><th>Version</th><th>Date</th><th>What's new</th><th>Web</th><th>App</th><th>State</th></tr></thead><tbody id="v_rows"><tr><td colspan="6">Loading…</td></tr></tbody></table></div></div>
+        <div class="sa-card flat"><p class="note" id="v_note" hidden></p><div class="tw cg-tw"><table class="sa-ver cg-t one"><tbody id="v_rows"><tr><td>Loading…</td></tr></tbody></table></div></div>
       </section>
       <!-- (11-11-2026) THE ADVERTISE CORNER: the posts (images, videos) shown on the web's Dashboard and the app's Home – step 8 -->
       <section id="t_ads" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M10 9l5 2.5-5 2.5z"/></svg>Media &amp; Celebration</span><h1>Advertise Corner</h1><p>Festival wishes, achievements, notices – images and videos shown on the web's Dashboard and the app's Home.</p></div>
           <div class="acts"><button class="sa-btn outline" id="ad_reload" type="button">Refresh</button><label class="sa-btn primary" id="ad_add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add images / videos<input id="ad_files" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple hidden></label></div></div>
         <p class="note" id="ad_note" hidden></p>
+        <div class="sa-card ad-bar"><div class="sa-filters ua-bar" style="margin-bottom:0"><div class="ua-tabs" id="ad_view" role="group" aria-label="Which posts"></div>
+          <label class="sa-find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="ad_q" type="search" placeholder="Search a post…" aria-label="Search a post" autocomplete="off"></label></div></div>
         <div class="ad-grid">
           <div class="sa-card ad-list" id="ad_list"><p class="ad-empty">Loading…</p></div>
           <form class="sa-card ad-form" id="ad_form" hidden>
@@ -799,21 +839,21 @@
       <section id="t_audit" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Audit logs</span><h1>Activity</h1><p>Sign-ins, users, access, sites, companies, modules – the last 200.</p></div>
           <button class="sa-btn primary" id="a_user" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add User</button></div>
-        <div class="sa-card">
-          <div class="sa-filters">
-            <div class="field"><label for="a_act">What</label><select id="a_act"><option value="">All actions</option></select></div>
+        <div class="sa-card" style="margin-bottom:14px">
+          <div class="sa-filters ua-bar" style="margin-bottom:0">
+            <div class="ua-tabs" id="a_grp" role="group" aria-label="What"></div><select id="a_act" hidden aria-hidden="true" tabindex="-1"><option value="">All actions</option></select>
             <div class="field"><label for="a_from">From</label><input id="a_from" type="date"></div>
             <div class="field"><label for="a_to">To</label><input id="a_to" type="date"></div>
             <label class="sa-find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="a_q" type="search" placeholder="Search by user or detail…" aria-label="Search by user or detail" autocomplete="off"></label>
           </div>
-          <div class="tw"><table><thead><tr><th>When</th><th>Who</th><th>What</th><th>On</th><th>Detail</th></tr></thead><tbody id="a_rows"></tbody></table></div>
         </div>
+        <div class="tw cg-tw"><table class="cg-t al-t"><tbody id="a_rows"></tbody></table></div>
       </section>
       <section id="t_me" class="sa-page" hidden>
-        <div class="sa-head"><div><h1>My Account</h1><p>Manage your account and security settings.</p></div></div>
+        <div class="sa-head"><div><h1>My Account</h1><p>Your account and its security.</p></div></div>
         <div class="sa-acc">
           <div class="sa-card">
-            <div class="me"><span class="sa-av" id="me_av">S</span><div><b id="me_name"></b><small id="me_email"></small><span class="sa-tag">Super Admin</span></div></div>
+            <div class="me"><span class="sa-av" id="me_av">S</span><div><b id="me_name"></b><small id="me_email"></small><span class="sa-tag">Super Admin – the whole system</span></div></div>
             <div class="sa-accnav" role="tablist" aria-label="My account">
               <button type="button" role="tab" data-a="info" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 4-6.5 8-6.5s7.2 2.3 8 6.5"/></svg>Account Information</button>
               <button type="button" role="tab" data-a="pw" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Change Password</button>
@@ -826,12 +866,14 @@
               <h2>Change Password</h2>
               <p class="note" style="margin:0 0 14px">After this you stay signed in here; your other sign-ins end.</p>
               <div class="field"><label for="me_old">Current Password</label><div class="pass"><input id="me_old" type="password" autocomplete="current-password" placeholder="Enter current password"><button type="button" class="eye" data-eye="me_old" aria-label="Show password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
-              <div class="field"><label for="me_new">New Password – 8 or more, letters and numbers</label><div class="pass"><input id="me_new" type="password" autocomplete="new-password" placeholder="Enter new password"><button type="button" class="eye" data-eye="me_new" aria-label="Show password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+              <div class="me-two"><div class="field"><label for="me_new">New Password – 8 or more, letters and numbers</label><div class="pass"><input id="me_new" type="password" autocomplete="new-password" placeholder="Enter new password"><button type="button" class="eye" data-eye="me_new" aria-label="Show password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
               <div class="field"><label for="me_new2">Confirm New Password</label><div class="pass"><input id="me_new2" type="password" autocomplete="new-password" placeholder="Confirm new password"><button type="button" class="eye" data-eye="me_new2" aria-label="Show password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+</div>
               <p class="err" id="me_err" role="alert"></p>
-              <button class="sa-btn primary" id="me_pw" type="submit" style="width:100%">Update Password</button>
+              <button class="sa-btn primary" id="me_pw" type="submit">Update Password</button>
             </form>
-            <div id="me_rec" hidden><h2>Sign-in Recovery</h2><p class="note" style="margin-top:10px">Forgot your password? On the sign-in screen press <b>"Super Admin: set a new password with the recovery code"</b> and type the recovery code written down when the Super Admin was made. You then get a NEW recovery code – the old one stops working.</p></div>
+          </div>
+          <div class="sa-card" style="grid-column:2"><div id="me_rec"><h2>Sign-in Recovery</h2><p class="note" style="margin-top:10px">Forgot your password? On the sign-in screen press <b>"Super Admin: set a new password with the recovery code"</b> and type the recovery code written down when the Super Admin was made. You then get a NEW recovery code – the old one stops working.</p></div>
           </div>
         </div>
       </section>
@@ -1331,10 +1373,18 @@
     adNote(''); AD.posts = r.posts || []; AD.now = r.now || null; adList();
     if (AD.cur) { const p = AD.posts.find(x => x.id === AD.cur.id); if (p) adOpen(p); else adClose(); }
   }
+  /* (12-11-2026) the posts as cards; which ones show: all, live now, coming (scheduled), inactive (switched off or over) – and a
+   * search. The order (◀ ▶) is changed in "All" without a search, where every post is seen. */
   function adList() {
-    const L = AD.posts;
-    $('ad_list').innerHTML = L.length ? L.map((p, i) => { const st = adState(p); return '<div class="ad-row' + (AD.cur && AD.cur.id === p.id ? ' on' : '') + (p.active ? '' : ' off') + '" data-id="' + esc(p.id) + '"><span class="ad-mv"><button type="button" data-mv="-1" title="Earlier"' + (i ? '' : ' disabled') + '>▲</button><button type="button" data-mv="1" title="Later"' + (i < L.length - 1 ? '' : ' disabled') + '>▼</button></span><span class="ad-th">' + adMedia(p) + '</span><span class="mid"><b>' + esc(p.title) + '</b><small>' + esc('Strip · ' + [p.onApp ? 'App' : '', p.onWeb ? 'Web' : ''].filter(Boolean).join(' + ') + ' · ' + p.from.split('-').reverse().join('-') + ' → ' + p.to.split('-').reverse().join('-')) + '</small></span><span class="ad-st ' + st[0] + '">' + st[1] + '</span></div>'; }).join('') : '<p class="ad-empty">No post yet. Use "Add images / videos".</p>';
+    const L = AD.posts, grp = p => { const k = adState(p)[0]; return k === 'live' ? 'live' : k === 'wait' ? 'wait' : 'off'; }, view = S.adView || '', q = $('ad_q').value.trim().toLowerCase();
+    const n = { '': L.length, live: 0, wait: 0, off: 0 }; L.forEach(p => { n[grp(p)]++; });
+    $('ad_view').innerHTML = [['', 'All'], ['live', 'Live now'], ['wait', 'Coming'], ['off', 'Inactive']].map(t => '<button type="button" data-v="' + t[0] + '"' + (t[0] === view ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + t[1] + ' · ' + n[t[0]] + '</button>').join('');
+    const shown = L.map((p, i) => [p, i]).filter(x => (!view || grp(x[0]) === view) && (!q || String(x[0].title || '').toLowerCase().includes(q)));
+    $('ad_list').classList.toggle('cut', !!view || !!q);
+    $('ad_list').innerHTML = L.length ? (shown.map(x => { const p = x[0], i = x[1], st = adState(p); return '<div class="ad-row' + (AD.cur && AD.cur.id === p.id ? ' on' : '') + (p.active ? '' : ' off') + '" data-id="' + esc(p.id) + '"><span class="ad-mv"><button type="button" data-mv="-1" title="Earlier"' + (i ? '' : ' disabled') + '>◀</button><button type="button" data-mv="1" title="Later"' + (i < L.length - 1 ? '' : ' disabled') + '>▶</button></span><span class="ad-th">' + adMedia(p) + '</span><span class="mid"><b>' + esc(p.title) + '</b><small>' + esc('Strip · ' + [p.onApp ? 'App' : '', p.onWeb ? 'Web' : ''].filter(Boolean).join(' + ') + ' · ' + p.from.split('-').reverse().join('-') + ' → ' + p.to.split('-').reverse().join('-')) + '</small></span><span class="ad-st ' + st[0] + '">' + st[1] + '</span></div>'; }).join('') || '<p class="ad-empty">No post here.</p>') : '<p class="ad-empty">No post yet. Use "Add images / videos".</p>';
   }
+  $('ad_view').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return; S.adView = b.dataset.v; adList(); });
+  $('ad_q').addEventListener('input', () => adList());
   const adChips = (id, list, on, many) => { $(id).innerHTML = list.map(x => '<button type="button" data-v="' + esc(x[0]) + '" aria-pressed="' + (many ? on.indexOf(x[0]) > -1 : on === x[0]) + '">' + (x[2] ? '<i style="width:' + x[2] + 'px;height:' + x[3] + 'px"></i>' : '') + esc(x[1]) + '</button>').join(''); $(id).dataset.many = many ? '1' : ''; };
   const adPicked = id => Array.from($(id).querySelectorAll('button[aria-pressed=true]')).map(b => b.dataset.v);
   ['ad_kind', 'ad_where', 'ad_days', 'ad_sites'].forEach(id => $(id).addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return;
@@ -1739,22 +1789,27 @@
     const d = S.data; if (!d) return;
     const sites = d.sites; S.wfSite = sites.some(s => s.code === S.wfSite) ? S.wfSite : sites.some(s => s.code === S.site) ? S.site : (sites[0] || {}).code || '';
     $('wf_site').innerHTML = sites.map(s => '<option value="' + esc(s.code) + '"' + (s.code === S.wfSite ? ' selected' : '') + '>' + esc(s.name) + ' (' + esc(s.code) + ')' + (s.status === 'closed' ? ' – closed' : '') + '</option>').join('') || '<option value="">– no site yet –</option>';
+    $('wf_sitebar').innerHTML = sites.map(x => '<button type="button" data-v="' + esc(x.code) + '"' + (x.code === S.wfSite ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + esc(x.name) + (x.status === 'closed' ? ' – closed' : '') + '</button>').join('') || '<span class="note">– no site yet –</span>';
     const st = sites.find(s => s.code === S.wfSite) || {}, ho = st.ho || { req: true, grn: false, iss: false };
     if (!d.modules.some(m => m.key === 'store')) { $('wf_box').innerHTML = '<p class="note">No Store module yet (Modules).</p>'; return; }
     const on = e => (d.users.find(u => u.email === e) || {}).active !== false, nm = e => (d.users.find(u => u.email === e) || {}).name || e;
     const acc = d.access.filter(a => a.module === 'store' && a.site === S.wfSite && on(a.email));
     const who = k => acc.filter(a => a.pages && a.pages[k] === 'Yes').map(a => nm(a.email));
     const lv = [1, 2, 3, 4, 5].map(n => [n, acc.filter(a => a.pages && a.pages.approve === 'L' + n).map(a => nm(a.email))]).filter(x => x[1].length);
-    const list = (l, none) => l.length ? esc(l.join(', ')) : '<span class="note">' + esc(none) + '</span>';
-    const yn = (k, yes, no) => '<select class="wf-ho" data-k="' + k + '" aria-label="Head Office"' + (st.step6 ? '' : ' disabled') + '><option value="1"' + (ho[k] ? ' selected' : '') + '>Yes – ' + esc(yes) + '</option><option value="0"' + (!ho[k] ? ' selected' : '') + '>No – ' + esc(no) + '</option></select>';
-    $('wf_box').innerHTML = '<div class="tw"><table class="wf-t"><thead><tr><th>Work</th><th>Verifies</th><th>Approves</th><th>Once approved → Head Office</th></tr></thead><tbody>' +
-      WF_WORKS.map(w => '<tr data-w="' + w[0] + '"><td class="w"><b>' + esc(w[1]) + '</b></td><td>' + list(who(w[2]), 'nobody – no verification') + '</td><td>' +
-        (w[0] === 'req' ? (lv.length ? lv.map(x => 'Level ' + x[0] + ': ' + esc(x[1].join(', '))).join('<br>') : '<span class="note">nobody – approved when made</span>') : list(who(w[3]), w[0] === 'po' ? 'nobody – approved when made' : 'nobody – no approval')) + '</td><td>' +
-        (w[0] === 'po' ? '<span class="note">made by HO Purchase (a site that buys itself: by its Store Admin)</span>' : yn(w[0], w[4], w[5])) + '</td></tr>').join('') + '</tbody></table></div>' +
+    const list = (l, none, cls) => l.length ? l.map(n => '<span class="ua-chip ' + (cls || 'user') + '">' + esc(n) + '</span>').join('') : '<span class="ua-none">' + esc(none) + '</span>';
+    // Head Office: Yes / No pressed (the same choice as before is kept in its hidden box; "Save – Head Office" sends it)
+    const yn = (k, yes, no) => '<span class="wf-sw" data-k="' + k + '" data-yes="' + esc(yes) + '" data-no="' + esc(no) + '"><button type="button" data-v="1"' + (ho[k] ? ' class="on"' : '') + (st.step6 ? '' : ' disabled') + '>Yes</button><button type="button" data-v="0"' + (!ho[k] ? ' class="on"' : '') + (st.step6 ? '' : ' disabled') + '>No</button></span>' +
+      '<select class="wf-ho" data-k="' + k + '" aria-label="Head Office" hidden><option value="1"' + (ho[k] ? ' selected' : '') + '>Yes</option><option value="0"' + (!ho[k] ? ' selected' : '') + '>No</option></select><small class="wf-say">' + esc(ho[k] ? yes : no) + '</small>';
+    $('wf_box').innerHTML = '<p class="ua-lab">Store</p>' +
+      WF_WORKS.map(w => '<div class="kc wf-c" data-w="' + w[0] + '"><h3>' + esc(w[1]) + '</h3><div><span class="l">Verifies</span>' + list(who(w[2]), 'nobody – no verification') + '</div><div><span class="l">Approves</span>' +
+        (w[0] === 'req' ? (lv.length ? lv.map(x => '<span class="ua-chip admin">Level ' + x[0] + '<b>' + esc(x[1].join(', ')) + '</b></span>').join('') : '<span class="ua-none">nobody – approved when made</span>') : list(who(w[3]), w[0] === 'po' ? 'nobody – approved when made' : 'nobody – no approval', 'admin')) + '</div><div><span class="l">Once approved → Head Office</span>' +
+        (w[0] === 'po' ? '<span class="ua-none">made by HO Purchase (a site that buys itself: by its Store Admin)</span>' : yn(w[0], w[4], w[5])) + '</div></div>').join('') +
       '<p class="note" style="margin:10px 0 0">Who verifies and approves: <b>Users &amp; Access</b> → the person → <b>Module access</b> → Store ("Verifies …", "Approves …"). The verification of POs, GRNs and issues needs the Store\'s database step 9 at the site (sql/store_step9_workflow.sql – the Store\'s Admin runs it in that site\'s Supabase).</p>' +
       (st.step6 ? '<div class="bar" style="margin:10px 0 0"><button class="sa-btn primary" id="wf_save" type="button">Save – Head Office</button></div>' : '<p class="err" style="margin-top:10px">The Head Office choices need the Portal\'s database step 6 first: run sql/portal_step6_rules.sql once in the Portal\'s Supabase → SQL Editor.</p>');
   }
-  $('wf_site').addEventListener('change', () => { S.wfSite = $('wf_site').value; workflow(); });
+  $('wf_sitebar').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return; S.wfSite = b.dataset.v; workflow(); });
+  $('wf_box').addEventListener('click', e => { const b = e.target.closest('.wf-sw button'); if (!b || b.disabled) return; const sw = b.closest('.wf-sw'), sel = sw.parentNode.querySelector('.wf-ho');
+    sel.value = b.dataset.v; sw.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); sw.parentNode.querySelector('.wf-say').textContent = b.dataset.v === '1' ? sw.dataset.yes : sw.dataset.no; });
   $('wf_box').addEventListener('click', e => { const b = e.target.closest('#wf_save'); if (!b) return;
     const ho = {}; document.querySelectorAll('#wf_box .wf-ho').forEach(x => { ho[x.dataset.k] = x.value === '1'; });
     busy(b, 'Saving…', async () => { try { const r = await api('/api/admin', { action: 'rulesSave', site: S.wfSite, ho: ho }); toast(r.warn || 'Saved – the Store of ' + S.wfSite + ' is told.', !!r.warn); await load(); workflow(); } catch (er) { fail(er); } }); });
@@ -2123,8 +2178,9 @@
   function companies() {
     const d = S.data; if (!d) return;
     $('co_rows').innerHTML = d.companies.map(c => { const used = d.sites.filter(x => x.company_id === c.id).map(x => x.code);
-      return '<tr data-id="' + esc(c.id) + '"><td class="co-n"><div class="sa-co"><span class="sa-av sq" style="background:' + avBg(c.name) + '">' + esc(initial(c.name)) + '</span><div><b>' + esc(c.name) + '</b>' + (c.logo ? '<small>Logo: yes</small>' : '') + '</div></div></td><td>' + esc(c.gstin || '–') + '</td><td>' + esc(c.pan || '–') + '</td><td class="co-a">' + esc(c.address || '–') + '</td><td>' + (used.length ? used.map(x => '<span class="sa-code sm">' + esc(x) + '</span>').join(' ') : '–') + '</td>' +
-        '<td><div class="acts"><button class="sa-btn sm co-edit" type="button">' + IC.pen + 'Change</button>' + (used.length ? '' : '<button class="link del co-del" type="button">Delete</button>') + '</div></td></tr>'; }).join('') || '<tr><td colspan="6" class="note">No company yet – add Rachana and Sketchline (Add company).</td></tr>';
+      return '<tr data-id="' + esc(c.id) + '"><td class="co-n"><div class="kc"><div class="hd"><span class="sa-av sq" style="background:' + avBg(c.name) + '">' + esc(initial(c.name)) + '</span><h3>' + esc(c.name) + (c.logo ? '<small>Logo: yes</small>' : '') + '</h3></div>' +
+        '<dl class="kv"><dt>GSTIN</dt><dd>' + esc(c.gstin || '–') + '</dd><dt>PAN</dt><dd>' + esc(c.pan || '–') + '</dd><dt>Address</dt><dd class="co-a">' + esc(c.address || '–') + '</dd><dt>Sites</dt><dd>' + (used.length ? used.map(x => '<span class="sa-code sm">' + esc(x) + '</span>').join(' ') : '– none') + '</dd></dl>' +
+        '<div class="bts"><button class="kb p co-edit" type="button">' + IC.pen + 'Change</button>' + (used.length ? '' : '<button class="kb del co-del" type="button">Delete</button>') + '</div></div></td></tr>'; }).join('') || '<tr><td class="note">No company yet – add Rachana and Sketchline (Add company).</td></tr>';
     coForm(null, false);
   }
   function coForm(c, open) { S.coId = c ? c.id : ''; $('co_title').textContent = c ? 'Change: ' + c.name : 'Add a company'; ['name', 'gstin', 'pan', 'address', 'logo'].forEach(k => { $('co_' + k).value = c ? (c[k] || '') : ''; });
@@ -2140,15 +2196,26 @@
   // modules
   function modules() {
     const d = S.data; if (!d) return;
-    S.modRow = (m, isNew) => '<tr data-key="' + esc(m.key) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="m-key" placeholder="key, e.g. store" style="width:150px"><input class="m-name" placeholder="name, e.g. Store" style="width:150px;margin-top:4px">' : '<div class="sa-co">' + pgIcon(m.name) + '<div><input class="m-name" maxlength="40" value="' + esc(m.name) + '" aria-label="Name" style="width:160px"><small>' + esc(m.key) + '</small></div></div>') + '</td>' +
-      '<td class="w"><input class="m-url" placeholder="https://…" value="' + esc(m.url || '') + '" aria-label="Link"></td>' +
-      '<td class="w"><input class="m-beta" placeholder="' + (S.data.step7 ? 'none – everybody stable' : 'needs step 7') + '" value="' + esc(m.beta_url || '') + '" aria-label="Beta link"' + (S.data.step7 ? '' : ' disabled') + '></td><td><select class="m-status ' + (m.status === 'live' ? 'live' : 'off') + '" aria-label="Status"><option value="live"' + (m.status === 'live' ? ' selected' : '') + '>Live</option><option value="off"' + (m.status !== 'live' ? ' selected' : '') + '>Off</option></select></td>' +
-      '<td><div class="acts"><button class="sa-btn primary sm m-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (isNew ? '<button class="link m-cancel" type="button">Cancel</button>' : '') + (!isNew && m.key !== 'mechanical' && m.status !== 'live' ? '<button class="link del m-del" type="button">Delete</button>' : '') + '</div></td></tr>';
+    // a card a module: what it is, read at a glance; "Edit" opens its form in the card (the same fields and Save as before)
+    const actv = {}; d.users.forEach(u => { if (u.active && !u.super) actv[u.email] = 1; });
+    S.modRow = (m, isNew) => { const acc = isNew ? [] : d.access.filter(a => a.module === m.key && a.role && actv[a.email]), ppl = new Set(acc.map(a => a.email)).size, nSites = new Set(acc.map(a => a.site)).size, live = m.status === 'live';
+      return '<tr data-key="' + esc(m.key) + '"' + (isNew ? ' data-new="1"' : '') + '><td><div class="kc">' +
+        (isNew ? '<div class="hd"><h3>New module</h3></div>' : '<div class="hd">' + pgIcon(m.name) + '<h3>' + esc(m.name) + '<small>' + esc(m.key) + '</small></h3><span class="sa-pill ' + (live ? 'on' : 'off') + '">' + (live ? 'Live' : 'Off') + '</span></div>' +
+          '<div class="m-fx"><p class="fx"><b>Link</b>' + esc(m.url || '– not given yet') + '</p><p class="fx"><b>Beta link (testers)</b>' + esc(m.beta_url || (d.step7 ? '– none: everybody stable' : '– needs step 7')) + '</p><p class="fx"><b>People</b>' + (m.key === 'hrme' ? ppl + (ppl === 1 ? ' person' : ' people') + ' (attendance only)' : ppl + (ppl === 1 ? ' person' : ' people') + ' on ' + nSites + (nSites === 1 ? ' site' : ' sites')) + '</p></div>') +
+        '<div class="m-ed">' + (isNew ? '<label>Key<input class="m-key" placeholder="key, e.g. store"></label>' : '') + '<label>Name<input class="m-name" maxlength="40" value="' + esc(m.name) + '"' + (isNew ? ' placeholder="name, e.g. Store"' : '') + ' aria-label="Name"></label>' +
+          '<label>Link<input class="m-url" placeholder="https://…" value="' + esc(m.url || '') + '" aria-label="Link"></label><label>Beta link (testers)<input class="m-beta" placeholder="' + (d.step7 ? 'none – everybody stable' : 'needs step 7') + '" value="' + esc(m.beta_url || '') + '" aria-label="Beta link"' + (d.step7 ? '' : ' disabled') + '></label>' +
+          '<label>Status<select class="m-status ' + (live ? 'live' : 'off') + '" aria-label="Status"><option value="live"' + (live ? ' selected' : '') + '>Live</option><option value="off"' + (!live ? ' selected' : '') + '>Off</option></select></label></div>' +
+        '<div class="bts">' + (isNew ? '<button class="sa-btn primary sm m-save" type="button">Add</button><button class="kb m-cancel" type="button">Cancel</button>'
+          : '<button class="kb p m-edit" type="button">Edit</button><button class="sa-btn primary sm m-save m-noedit" type="button">Save</button><button class="kb m-noedit m-close" type="button">Cancel</button><button class="kb m-people" type="button">People</button>' + (m.key !== 'mechanical' && !live ? '<button class="kb del m-del" type="button">Delete</button>' : '')) + '</div></div></td></tr>'; };
     $('m_rows').innerHTML = d.modules.map(m => S.modRow(m, false)).join('');
   }
   $('m_new').addEventListener('click', () => { if (document.querySelector('#m_rows tr[data-new]')) return; $('m_rows').insertAdjacentHTML('afterbegin', S.modRow({ key: '', name: '', status: 'off' }, true)); document.querySelector('#m_rows .m-key').focus(); });
   $('m_rows').addEventListener('change', e => { if (e.target.classList.contains('m-status')) e.target.className = 'm-status ' + e.target.value; });
   $('m_rows').addEventListener('click', e => { if (e.target.closest('.m-cancel')) { e.target.closest('tr').remove(); return; }
+    const row = e.target.closest('tr'); if (!row) return;
+    if (e.target.closest('.m-edit')) { row.classList.add('edit'); row.querySelector('.m-name').focus(); return; }
+    if (e.target.closest('.m-close')) { modules(); return; }
+    if (e.target.closest('.m-people')) { S.mod = row.dataset.key; S.uView = 'with'; tab('users'); return; }
     const sv = e.target.closest('.m-save'); if (!sv) return; const tr = sv.closest('tr'), isNew = !!tr.dataset.new;
     busy(sv, 'Saving…', async () => { try { await api('/api/admin', Object.assign({ action: 'moduleSave', isNew: isNew, key: isNew ? tr.querySelector('.m-key').value.trim() : tr.dataset.key, name: tr.querySelector('.m-name').value, url: tr.querySelector('.m-url').value.trim(), status: tr.querySelector('.m-status').value },
         S.data.step7 ? { betaUrl: tr.querySelector('.m-beta').value.trim() } : {}));
@@ -2166,10 +2233,10 @@
     let v; try { v = await api('/api/admin', { action: 'versions' }); } catch (er) { rows.innerHTML = '<tr><td colspan="6">' + esc(msgOf(er)) + '</td></tr>'; return; }
     if (!v.token) { note.hidden = false; note.textContent = 'The Portal has no GitHub key yet (GITHUB_RELEASE_TOKEN in Vercel) – the versions show, but "Give to everybody" works only after the one-time set-up.'; }
     const day = t => t ? new Date(t).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '–';
-    rows.innerHTML = v.versions.map(r => '<tr data-tag="' + esc(r.tag) + '"><td><b>' + esc(r.version || r.name || r.tag) + '</b>' + (r.build ? '<br><small>build ' + esc(r.build) + '</small>' : '') + '</td>' +
-      '<td>' + esc(day(r.at)) + '</td><td class="new">' + esc(r.new || '–') + '</td><td>' + esc(r.web.join(', ') || '–') + '</td><td>' + (r.app ? 'Yes' : '–') + '</td>' +
-      '<td>' + (r.stable ? '<span class="sa-pill dot on">Stable – everybody</span>' : r.beta ? '<span class="sa-pill beta" style="margin:0">Beta – testers</span>' : '<span class="sa-pill off">Older</span>') +
-      (r.canMakeStable ? '<br><button class="sa-btn primary sm v-make" type="button" style="margin-top:8px"' + (v.token ? '' : ' disabled') + '>Give to everybody (Stable)</button>' : '') + '</td></tr>').join('') ||
+    rows.innerHTML = v.versions.map(r => '<tr data-tag="' + esc(r.tag) + '"><td><div class="kc vr-c"><div><h3>' + esc(r.version || r.name || r.tag) + '</h3><small>' + (r.build ? 'build ' + esc(r.build) + ' · ' : '') + esc(day(r.at)) + '</small></div>' +
+      '<div><p class="new">' + esc(r.new || '–') + '</p>' + r.web.map(w => '<span class="ua-chip">' + esc(w) + '</span> ').join('') + (r.app ? '<span class="ua-chip self">App</span>' : '') + '</div>' +
+      '<div class="end">' + (r.stable ? '<span class="sa-pill dot on">Stable – everybody</span>' : r.beta ? '<span class="sa-pill beta" style="margin:0">Beta – testers</span>' : '<span class="sa-pill off">Older</span>') +
+      (r.canMakeStable ? '<br><button class="sa-btn primary sm v-make" type="button" style="margin-top:8px"' + (v.token ? '' : ' disabled') + '>Give to everybody (Stable)</button>' : '') + '</div></div></td></tr>').join('') ||
       '<tr><td colspan="6">No version yet – the first one comes from the app\'s beta build.</td></tr>';
   }
   $('v_reload').addEventListener('click', () => versions());
@@ -2187,23 +2254,33 @@
   const day = at => { const d = new Date(at), p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); };
   const auditRow = x => '<tr><td>' + esc(new Date(x.at).toLocaleString('en-IN')) + '</td><td><div class="sa-co">' + av(x.actor, x.actor) + '<span>' + esc(x.actor) + '</span></div></td><td><span class="sa-pill act">' + esc(x.action) + '</span></td><td>' + esc(x.target) + '</td><td class="sa-detail-txt"><small>' + esc(x.detail ? JSON.stringify(x.detail) : '') + '</small></td></tr>';
   async function audit() {
-    $('a_rows').innerHTML = '<tr><td colspan="5" class="note">Loading…</td></tr>';
+    $('a_rows').innerHTML = '<tr><td class="note" style="padding:14px 0">Loading…</td></tr>';
     try { const r = await api('/api/admin', { action: 'audit' }); S.audit = r.rows || [];
       const was = $('a_act').value, acts = [...new Set(S.audit.map(x => x.action))].sort();
       $('a_act').innerHTML = '<option value="">All actions</option>' + acts.map(a => '<option' + (a === was ? ' selected' : '') + '>' + esc(a) + '</option>').join('');
       auditShow(); }
     catch (e) { fail(e); }
   }
+  /* (12-11-2026) the Activity day by day: who, what (a chip), on what, and the detail in words – not as the stored text. The
+   * groups: sign-ins · users and access · sites, companies, modules and the rest. */
+  const A_GRP = [['', 'Everything'], ['sign', 'Sign-ins'], ['user', 'Users & access'], ['site', 'Sites & modules']];
+  const aGrpOf = a => /log(in|out)|password|otp|code|recover|sign|opened module|e-?mail/i.test(a) ? 'sign' : /user|access|pages|import|tester/i.test(a) ? 'user' : 'site';
+  const aSay = v => v === null || v === undefined || v === '' ? '' : typeof v !== 'object' ? String(v) : Array.isArray(v) ? v.map(aSay).filter(Boolean).join(', ') : Object.keys(v).map(k => { const t = aSay(v[k]); return t ? k + ': ' + t : ''; }).filter(Boolean).join(' · ');
   function auditShow() {
-    const a = $('a_act').value, f = $('a_from').value, t = $('a_to').value, q = $('a_q').value.trim().toLowerCase(), all = S.audit || [];
-    const rows = all.filter(x => (!a || x.action === a) && (!f || day(x.at) >= f) && (!t || day(x.at) <= t) && (!q || [x.actor, x.action, x.target, x.detail ? JSON.stringify(x.detail) : ''].join(' ').toLowerCase().includes(q)));
-    $('a_rows').innerHTML = rows.map(auditRow).join('') || '<tr><td colspan="5" class="note">' + (all.length ? 'Nothing matches.' : 'Nothing yet.') + '</td></tr>';
+    const g = S.aGrp || '', f = $('a_from').value, t = $('a_to').value, q = $('a_q').value.trim().toLowerCase(), all = S.audit || [], me = S.me.user.email, name = {}; S.data.users.forEach(u => { name[u.email] = u.name; });
+    const rows = all.filter(x => (!g || aGrpOf(x.action) === g) && (!f || day(x.at) >= f) && (!t || day(x.at) <= t) && (!q || [x.actor, name[x.actor] || '', x.action, x.target, x.detail ? JSON.stringify(x.detail) : ''].join(' ').toLowerCase().includes(q)));
+    $('a_grp').innerHTML = A_GRP.map(x => '<button type="button" data-v="' + x[0] + '"' + (x[0] === g ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + x[1] + '</button>').join('');
+    const today = day(Date.now()), yest = day(Date.now() - 86400000); let last = '';
+    $('a_rows').innerHTML = rows.map(x => { const d = day(x.at), head = d !== last ? '<tr><td class="al-day">' + (d === today ? 'Today · ' : d === yest ? 'Yesterday · ' : '') + esc(new Date(x.at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })) + '</td></tr>' : ''; last = d;
+      const bad = /delete|removed|off|failed|refused/i.test(x.action), det = aSay(x.detail);
+      return head + '<tr><td><div class="al-ev"><time>' + esc(new Date(x.at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false })) + '</time>' + av(x.actor, x.actor) + '<p><b title="' + esc(x.actor) + '">' + esc(x.actor === me ? 'You' : name[x.actor] || x.actor) + '</b> <span class="sa-pill act"' + (bad ? ' style="background:#FDECEC;color:#B42318"' : '') + '>' + esc(x.action) + '</span> ' + esc(x.target || '') + (det ? ' <small>' + esc(det) + '</small>' : '') + '</p></div></td></tr>'; }).join('') || '<tr><td class="note" style="padding:14px 0">' + (all.length ? 'Nothing matches.' : 'Nothing yet.') + '</td></tr>';
   }
+  $('a_grp').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return; S.aGrp = b.dataset.v; auditShow(); });
   ['a_act', 'a_from', 'a_to'].forEach(id => $(id).addEventListener('change', auditShow)); $('a_q').addEventListener('input', auditShow);
   // my account: Account Information · Change Password (the same server step as "Change password") · Sign-in Recovery
   function meTab(w) {
     S.meTab = w; document.querySelectorAll('#t_me .sa-accnav button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.a === w)));
-    $('me_info').hidden = w !== 'info'; $('me_pwf').hidden = w !== 'pw'; $('me_rec').hidden = w !== 'rec';
+    $('me_info').hidden = true; $('me_pwf').hidden = false; $('me_rec').hidden = false;      // (12-11-2026) one page: his card, the password, the recovery
     if (w === 'pw') { ['me_old', 'me_new', 'me_new2'].forEach(id => { $(id).value = ''; $(id).type = 'password'; }); $('me_err').textContent = ''; }
   }
   $('t_me').addEventListener('click', e => { const b = e.target.closest('.sa-accnav button'); if (b) { meTab(b.dataset.a); return; }
