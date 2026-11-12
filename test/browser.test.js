@@ -156,8 +156,33 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     await pg.click('#sa_tabs button[data-t="companies"]'); await pg.waitForSelector('#t_companies:not([hidden])');
     const coFit = await pg.evaluate(() => { const w = document.querySelector('#t_companies .tw'), n = document.querySelector('#co_rows td.co-n'); if (!n) return { none: true }; const a = w.getBoundingClientRect(), b = n.getBoundingClientRect(); return { fits: w.scrollWidth <= w.clientWidth + 1, nameIn: b.left >= a.left - 1 && b.right <= a.right + 1 }; });
     ok('Companies: the name is in view and the table needs no sideways scrolling (the address wraps)', coFit.none || (coFit.fits && coFit.nameIn), coFit);
-    for (const t of ['sites', 'companies', 'modules', 'audit']) { await pg.click('#sa_tabs button[data-t="' + t + '"]'); await pg.waitForSelector('#t_' + t + ':not([hidden])'); await pg.screenshot({ path: path.join(SHOTS, '03-super-' + t + '.png'), fullPage: true }); }
+    for (const t of ['sites', 'wf', 'companies', 'modules', 'versions', 'ads', 'me', 'audit']) { await pg.click('#sa_tabs button[data-t="' + t + '"]'); await pg.waitForSelector('#t_' + t + ':not([hidden])'); await pg.screenshot({ path: path.join(SHOTS, '03-super-' + t + '.png'), fullPage: true }); }
     ok('   the Activity tab shows the import and the new user', /Import from Mechanical/.test(await pg.textContent('#a_rows')) && /ravi@rcl\.test/.test(await pg.textContent('#a_rows')));
+    // (12-11-2026) the other pages in the same look – the works are the same as before
+    const evTxt = await pg.textContent('#a_rows');
+    ok('   Activity: day by day, the detail in words (not the stored text); the groups filter', /Today · /.test(evTxt) && !/\{"/.test(evTxt) && (await pg.$$eval('#a_grp button', b => b.map(x => x.textContent))).join('|') === 'Everything|Sign-ins|Users & access|Sites & modules');
+    await pg.click('#a_grp button[data-v="sign"]');
+    const signActs = await pg.$$eval('#a_rows .al-ev .sa-pill', x => [...new Set(x.map(t => t.textContent))]);
+    ok('      "Sign-ins": only sign-ins, sign-outs, passwords, opened modules', signActs.length > 0 && signActs.every(t => /log(in|out)|password|opened module|code|recover/i.test(t)), signActs);
+    await pg.click('#a_grp button[data-v=""]');
+    await pg.click('#sa_tabs button[data-t="companies"]'); await pg.waitForSelector('#t_companies:not([hidden])');
+    ok('   Companies: a card a company, as many as the database has', (await pg.$$eval('#co_rows tr[data-id] .kc', x => x.length)) === +sql('rcl_portal', 'select count(*) from companies'));
+    if (await pg.$('#co_rows .co-edit')) { await pg.click('#co_rows .co-edit'); ok('      "Change" opens the company\'s form as before', await pg.isVisible('#co_panel') && (await pg.inputValue('#co_name')).length > 0); await pg.click('#co_clear'); }
+    await pg.click('#sa_tabs button[data-t="modules"]'); await pg.waitForSelector('#m_rows tr[data-key="mechanical"] .kc');
+    ok('   Modules: a card a module – its link and its people read; the form is closed', /LINK|Link/.test(await pg.textContent('#m_rows tr[data-key="mechanical"] .m-fx')) && /\d+ (person|people) on \d+ site/.test(await pg.textContent('#m_rows tr[data-key="mechanical"] .m-fx')) && !(await pg.isVisible('#m_rows tr[data-key="mechanical"] .m-url')));
+    const mUrl = sql('rcl_portal', "select url from modules where key = 'mechanical'");
+    await pg.click('#m_rows tr[data-key="mechanical"] .m-edit'); await pg.fill('#m_rows tr[data-key="mechanical"] .m-name', 'Mechanical X'); await pg.click('#m_rows tr[data-key="mechanical"] .m-save');
+    await pg.waitForFunction(() => /Module saved/.test(document.getElementById('toast').textContent));
+    ok('      "Edit" → the name changed → Save: kept (the link untouched), read on the card', sql('rcl_portal', "select name || '|' || url from modules where key = 'mechanical'") === 'Mechanical X|' + mUrl && /Mechanical X/.test(await pg.textContent('#m_rows tr[data-key="mechanical"] h3')));
+    sql('rcl_portal', "update modules set name = 'Mechanical' where key = 'mechanical'"); await pg.waitForSelector('#toast', { state: 'hidden' });
+    await pg.click('#m_rows tr[data-key="mechanical"] .m-people'); await pg.waitForSelector('#t_users:not([hidden])');
+    ok('      "People": Users & Access with that module pressed', (await pg.getAttribute('#u_modbar button.on', 'data-v')) === 'mechanical'); await pg.click('#u_modbar button[data-v=""]');
+    await pg.click('#sa_tabs button[data-t="wf"]'); await pg.waitForSelector('#t_wf:not([hidden])');
+    ok('   Workflow: the site is pressed (buttons)', (await pg.$$eval('#wf_sitebar button', x => x.length)) === +sql('rcl_portal', 'select count(*) from sites') && !!(await pg.$('#wf_sitebar button.on')));
+    await pg.click('#sa_tabs button[data-t="me"]'); await pg.waitForSelector('#t_me:not([hidden])');
+    ok('   My Account: the password and the recovery on one page', await pg.isVisible('#me_pwf') && await pg.isVisible('#me_rec') && await pg.isVisible('#me_old') && !(await pg.isVisible('.sa-accnav')));
+    await pg.click('#sa_tabs button[data-t="ads"]'); await pg.waitForSelector('#t_ads:not([hidden])'); await pg.waitForTimeout(1200);
+    ok('   Advertise: the lists All / Live now / Coming / Inactive', (await pg.$$eval('#ad_view button', b => b.map(x => x.textContent.split(' · ')[0]))).join('|') === 'All|Live now|Coming|Inactive' || !!(await pg.$('#ad_note:not([hidden])')));
     await pg.click('#sa_who'); await pg.click('#sa_out'); await pg.waitForSelector('#v_login:not([hidden])'); await settled(pg, 'l_email');      // (23-10-2026: Sign out is in his menu, top right)
     ok('   sign-out: back to the sign-in page', true);
     // the new user: one-time password → his own password → one module on one site → straight in
