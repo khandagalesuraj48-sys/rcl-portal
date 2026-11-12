@@ -304,6 +304,30 @@
   small.up { color: var(--s-green); } small.down { color: var(--s-red); }
   /* filters */
   .sa-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; margin-bottom: 14px; }
+  /* (12-11-2026) Users & Access: the site and the module as buttons with their counts, the three lists, access as small chips */
+  .ua-lab { margin: 0 0 7px; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--s-muted); }
+  .ua-seg { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .ua-seg button { border: 1px solid var(--s-line); background: #fff; border-radius: 999px; padding: 8px 15px; font: inherit; font-weight: 600; color: var(--s-ink); cursor: pointer; }
+  .ua-seg button small { margin-left: 7px; font-weight: 600; color: var(--s-muted); font-size: 12.5px; }
+  .ua-seg button.on { background: #0F1B3D; border-color: #0F1B3D; color: #fff; } .ua-seg button.on small { color: #AEBBE0; }
+  .ua-seg button:focus-visible, .ua-tabs button:focus-visible { outline: 3px solid rgba(37,99,235,.35); outline-offset: 2px; }
+  .ua-bar { align-items: center; }
+  .ua-tabs { display: inline-flex; flex-wrap: wrap; background: #EEF2F8; border-radius: 10px; padding: 3px; }
+  .ua-tabs button { border: 0; background: none; padding: 7px 14px; border-radius: 8px; font: inherit; font-weight: 600; color: var(--s-muted); cursor: pointer; }
+  .ua-tabs button.on { background: #fff; color: var(--s-ink); box-shadow: 0 1px 3px rgba(15,23,42,.14); }
+  .ua-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .ua-sum div { background: #fff; border: 1px solid var(--s-line); border-radius: 14px; padding: 12px 15px; }
+  .ua-sum span { display: block; font-size: 13px; color: var(--s-muted); font-weight: 600; } .ua-sum p { margin: 4px 0 0; font-size: 13.5px; } .ua-sum b { font-size: 18px; }
+  .ua-chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 150px; }
+  @media (max-width: 1500px) { .sa #u_head th:nth-child(3), .sa #u_rows td:nth-child(3) { display: none; } }      /* (a narrow screen: the mail sign gives its place – the e-mail is under the name) */
+  .ua-chip { display: inline-block; border-radius: 8px; padding: 4px 9px; font-size: 12.5px; font-weight: 600; white-space: nowrap; background: #EEF2F8; color: #33456B; }
+  .ua-chip b { margin-left: 5px; } .ua-chip.admin { background: #E7EEFF; color: #1D4ED8; } .ua-chip.user { background: #E6F6EC; color: #15803D; } .ua-chip.self { background: #FFF3D6; color: #8A5A00; }
+  .ua-none { color: var(--s-faint); font-size: 13px; }
+  .ua-edit { display: none; flex-wrap: wrap; gap: 10px 12px; align-items: flex-end; }
+  .ua-edit label.m { display: block; font-size: 11.5px; font-weight: 700; color: var(--s-muted); } .ua-edit label.m .sel-r { display: block; margin-top: 3px; min-width: 118px; }
+  .sa tr.edit .ua-edit, .sa tr[data-new] .ua-edit { display: flex; } .sa tr.edit .ua-chips, .sa tr[data-new] .ua-chips { display: none; }
+  .sa tr .u-save, .sa tr .u-noedit { display: none; } .sa tr.edit .u-save, .sa tr.edit .u-noedit, .sa tr[data-new] .u-save { display: inline-flex; } .sa tr.edit .u-edit { display: none; }
+  .ua-when { white-space: nowrap; color: var(--s-muted); font-size: 13px; }
   .sa-filters .field { margin: 0; flex: 0 1 220px; min-width: 160px; }
   .sa-filters label { font-size: 12.5px; color: var(--s-muted); }
   .sa select, .sa input { border-color: var(--s-line); border-radius: 10px; }
@@ -616,18 +640,22 @@
     <main class="sa-body">
       <section id="t_users" class="sa-page">
         <div id="u_top">
-          <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>User management</span><h1>Users &amp; Access</h1><p>Manage users and control their access to modules and sites. Access is separate on every site; switched off = cannot sign in.</p></div>
+          <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>User management</span><h1>Users &amp; Access</h1><p>Who can open what – one site at a time. Only the people who have access on the chosen site are listed; switched off = cannot sign in.</p></div>
             <button class="sa-btn primary" id="u_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add User</button></div>
           <div class="sa-stats" id="u_stats"></div>
           <p class="note" id="u_mail" style="margin:8px 0 0" hidden></p>
           <div class="sa-card">
-            <div class="sa-filters">
-              <div class="field"><label for="u_site">Site</label><select id="u_site"></select></div>
-              <div class="field"><label for="u_mod">Module</label><select id="u_mod"></select></div>
-              <div class="field"><label for="u_stat">Status</label><select id="u_stat"><option value="">All users</option><option value="on">Active</option><option value="off">Inactive</option></select></div>
+            <!-- (12-11-2026, his picture: "je site modual select aahe tech employee disayla hawet … konala kay permision aahet kay access aahe
+                 model wise mala samjat nahi") the site and the module are pressed, each with how many people; only who has access is listed -->
+            <p class="ua-lab">Site</p><div class="ua-seg" id="u_sitebar" role="group" aria-label="Site"></div>
+            <p class="ua-lab">Module</p><div class="ua-seg" id="u_modbar" role="group" aria-label="Module"></div>
+            <select id="u_site" hidden aria-hidden="true" tabindex="-1"></select><select id="u_mod" hidden aria-hidden="true" tabindex="-1"></select>
+            <div class="sa-filters ua-bar">
+              <div class="ua-tabs" id="u_view" role="group" aria-label="Which people"></div>
               <label class="sa-find"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="u_q" type="search" placeholder="Search by name or email…" aria-label="Search by name or email" autocomplete="off"></label>
             </div>
             <div class="tw"><table><thead id="u_head"></thead><tbody id="u_rows"></tbody></table></div>
+            <p class="note" id="u_none" hidden style="text-align:center;padding:18px 0 6px"></p>
             <p class="note sa-foot">A new user gets a <b>one-time password</b>: at his first sign-in he sets his own. A new one-time password ends his sign-ins. <span id="u_count"></span></p>
           </div>
         </div>
@@ -1424,13 +1452,17 @@
     $('u_site').innerHTML = sites.map(s => '<option value="' + esc(s.code) + '"' + (s.code === S.site ? ' selected' : '') + '>' + esc(s.name) + ' (' + esc(s.code) + ')' + (s.status === 'closed' ? ' – closed' : '') + '</option>').join('') || '<option value="">– no site yet –</option>';
     S.mod = d.modules.some(m => m.key === S.mod) ? S.mod : '';
     $('u_mod').innerHTML = '<option value="">All modules</option>' + d.modules.map(m => '<option value="' + esc(m.key) + '"' + (m.key === S.mod ? ' selected' : '') + '>' + esc(m.name) + (m.status !== 'live' ? ' – off' : '') + '</option>').join('');
-    $('u_head').innerHTML = '<tr><th>#</th><th>User</th><th>Email</th><th>Status</th>' + mods().map(m => '<th>' + esc(m.name) + '</th>').join('') + '<th>One-time password</th><th>Actions</th></tr>';
-    const people = d.users.filter(u => !u.super), on = people.filter(u => u.active).length, month = new Date().toISOString().slice(0, 7);
-    const signedMonth = people.filter(u => u.lastLogin && String(u.lastLogin).slice(0, 7) === month).length;
-    const stat = (ic, cls, label, n, sub, subCls, go) => '<div class="sa-stat"><span class="ic ' + cls + '">' + ic + '</span><div><span>' + label + '</span><b>' + n + '</b>' +
-      (go ? '<button type="button" class="lnk" data-go="' + go + '">' + sub + '</button>' : '<small class="' + (subCls || '') + '">' + sub + '</small>') + '</div></div>';
-    $('u_stats').innerHTML = stat(IC.users, 'blue', 'Total Users', people.length, signedMonth + ' signed in this month', 'up') + stat(IC.ucheck, 'green', 'Active Users', on, pct(on, people.length) + '% active', 'up') +
-      stat(IC.ux, 'red', 'Inactive Users', people.length - on, pct(people.length - on, people.length) + '% inactive', 'down') + stat(IC.pin, 'purple', 'Sites', d.sites.length, 'Manage sites', '', 'sites') + stat(IC.grid, 'amber', 'Modules', d.modules.length, 'Manage modules', '', 'modules');
+    const siteName = (sites.find(x => x.code === S.site) || {}).name || S.site;
+    $('u_head').innerHTML = '<tr><th>#</th><th>User</th><th>Email</th><th>Status</th><th>Access on ' + esc(siteName) + '</th><th>Last sign-in</th><th>Actions</th></tr>';
+    const people = d.users.filter(u => !u.super), on = people.filter(u => u.active).length;
+    // who has what, counted once: the active people of a site, of a module of the chosen site, and the Admins / Users of each module
+    const act = {}; people.forEach(u => { if (u.active) act[u.email] = 1; });
+    const onSite = c => new Set(d.access.filter(a => a.site === c && a.role && act[a.email]).map(a => a.email)).size;
+    const onMod = (k, role) => new Set(d.access.filter(a => a.site === S.site && a.module === k && a.role && (!role || a.role === role) && act[a.email]).map(a => a.email)).size;
+    $('u_sitebar').innerHTML = sites.map(x => '<button type="button" data-v="' + esc(x.code) + '"' + (x.code === S.site ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + esc(x.name) + (x.status === 'closed' ? ' – closed' : '') + '<small>' + onSite(x.code) + ' people</small></button>').join('') || '<span class="note">– no site yet –</span>';
+    $('u_modbar').innerHTML = '<button type="button" data-v=""' + (!S.mod ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>All modules<small>' + onSite(S.site) + '</small></button>' +
+      d.modules.map(m => '<button type="button" data-v="' + esc(m.key) + '"' + (m.key === S.mod ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + esc(m.name) + (m.status !== 'live' ? ' – off' : '') + '<small>' + onMod(m.key) + '</small></button>').join('');
+    $('u_stats').className = 'ua-sum'; $('u_stats').innerHTML = d.modules.filter(m => m.key !== 'hrme').map(m => '<div><span>' + esc(m.name) + '</span><p><b>' + onMod(m.key, 'admin') + '</b> Admin · <b>' + onMod(m.key, 'user') + '</b> User</p></div>').join('');
     $('u_rows').innerHTML = people.map((u, i) => row(u, false, i + 1)).join('');
     // (12-11-2026) sign-in with a code by e-mail: how it stands, in one line (the switches are in Vercel → Environment Variables)
     { const yes = t => '<b style="color:#15803D">' + t + '</b>', no = t => '<b style="color:#B45309">' + t + '</b>', ver = people.filter(u => u.emailVerified).length;
@@ -1439,13 +1471,20 @@
     S.uCount = people.length + ' users · ' + on + ' active';
     usersFilter();
   }
-  $('u_stats').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) tab(b.dataset.go); });
-  // Status and the search: only which rows show (nothing is sent)
-  function usersFilter() { const st = $('u_stat').value, q = $('u_q').value.trim().toLowerCase(); let n = 0;
+  $('u_sitebar').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return; $('u_site').value = b.dataset.v; S.site = b.dataset.v; userClose(); users(); });
+  $('u_modbar').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return; S.mod = b.dataset.v; userClose(); users(); });
+  $('u_view').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return; S.uView = b.dataset.v; usersFilter(); });
+  /* Which people show (nothing is sent): "With access" – active, with access on the chosen site (in the chosen module, when one is
+   * pressed); "No access on this site" – active, without it (a person is given the site from here); "Switched off". And the search. */
+  const hasAccess = email => S.data.access.some(a => a.email === email && a.site === S.site && a.role && (!S.mod || a.module === S.mod));
+  function usersFilter() { const q = $('u_q').value.trim().toLowerCase(), view = S.uView || 'with', cnt = { with: 0, none: 0, off: 0 }; let n = 0;
     [...$('u_rows').rows].forEach(tr => { if (tr.dataset.new) return; const u = S.data.users.find(x => x.email === tr.dataset.email) || {};
-      const hide = (st === 'on' && !u.active) || (st === 'off' && u.active) || (q && !((u.name || '') + ' ' + (u.email || '')).toLowerCase().includes(q)); tr.hidden = hide; if (!hide) n++; });
-    $('u_count').textContent = st || q ? n + ' shown' : S.uCount; }
-  $('u_stat').addEventListener('change', usersFilter); $('u_q').addEventListener('input', usersFilter);
+      const k = !u.active ? 'off' : hasAccess(u.email) ? 'with' : 'none'; cnt[k]++;
+      const hide = k !== view || (q && !((u.name || '') + ' ' + (u.email || '')).toLowerCase().includes(q)); tr.hidden = hide; if (!hide) n++; });
+    $('u_view').innerHTML = [['with', 'With access'], ['none', 'No access on this site'], ['off', 'Switched off']].map(t => '<button type="button" data-v="' + t[0] + '"' + (t[0] === view ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + t[1] + ' · ' + cnt[t[0]] + '</button>').join('');
+    $('u_none').hidden = n > 0; $('u_none').textContent = q ? 'Nobody here matches the search.' : view === 'with' ? 'Nobody has access here yet – open "No access on this site" and give it.' : view === 'none' ? 'Everybody active has access on this site.' : 'Nobody is switched off.';
+    $('u_count').textContent = q ? n + ' shown' : S.uCount; }
+  $('u_q').addEventListener('input', usersFilter);
   // the modules shown as columns: the one picked, or all of them
   const mods = () => S.data.modules.filter(m => !S.mod || m.key === S.mod);
   function row(u, isNew, n) {
@@ -1457,29 +1496,32 @@
         : '<div class="sa-user">' + av(u.name, u.email) + '<div><button type="button" class="u-pages" data-email="' + esc(u.email) + '" title="Module access of this user">' + esc(u.name) + '</button>' + (u.tester ? '<span class="sa-pill beta" title="Tester – opens the beta (new) versions">Beta</span>' : '') + '<small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + (u.emailVerified === true ? ' · <span title="E-mail verified with a code">Email Verified ✓</span>' : u.emailVerified === false ? ' · <span title="E-mail not verified yet">Email Pending</span>' : '') + (u.loginEmail ? '<br>Signs in with: ' + esc(u.loginEmail) : '') + '</small></div></div>') + '</td>' +
       '<td>' + (isNew ? '' : '<a class="sa-mail" href="mailto:' + esc(u.email) + '" title="' + esc(u.email) + '" aria-label="Email ' + esc(u.email) + '">' + IC.mail + '</a>') + '</td>' +
       '<td><label class="sa-pill ' + (on ? 'on' : 'off') + '"><input type="checkbox" class="u-active"' + (on ? ' checked' : '') + ' aria-label="Active"><span>' + (on ? 'Active' : 'Inactive') + '</span></label></td>' +
-      mods().map(m => '<td>' + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + '</td>').join('') +
-      '<td><label class="sa-pw">' + IC.key + '<input class="u-pw" placeholder="' + (isNew ? 'one-time password' : 'Set password') + '" autocomplete="new-password" aria-label="One-time password"></label></td>' +
+      // his access on the chosen site: read as chips; "Change access" turns the row into its form (the same choices and Save as before)
+      '<td><div class="ua-chips">' + (isNew ? '' : mods().filter(m => roleOf(m)).map(m => '<span class="ua-chip ' + (m.key === 'hrme' ? 'self' : roleOf(m)) + '">' + esc(m.name) + '<b>' + (m.key === 'hrme' ? 'Attendance only' : roleOf(m) === 'admin' ? 'Admin' : 'User') + '</b></span>').join('') || '<span class="ua-none">No access' + (S.mod ? ' to this module' : ' on this site') + '</span>') + '</div>' +
+        '<div class="ua-edit">' + mods().map(m => '<label class="m">' + esc(m.name) + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + '</label>').join('') +
+          '<label class="sa-pw">' + IC.key + '<input class="u-pw" placeholder="' + (isNew ? 'one-time password' : 'Set password') + '" autocomplete="new-password" aria-label="One-time password"></label></div></td>' +
+      '<td class="ua-when">' + (isNew ? '' : u.lastLogin ? esc(String(u.lastLogin).slice(0, 10).split('-').reverse().join('-')) : 'Never') + '</td>' +
       '<td><div class="sa-acts"><button class="sa-btn primary sm u-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' +
-        (isNew ? '<button class="sa-btn sm u-cancel" type="button">Cancel</button>' : '<button type="button" class="sa-dots" aria-label="More">' + IC.dots + '</button><div class="sa-pop" hidden>' +
+        (isNew ? '<button class="sa-btn sm u-cancel" type="button">Cancel</button>' : '<button class="sa-btn sm u-edit" type="button">Change access</button><button class="sa-btn sm u-noedit" type="button">Cancel</button><button type="button" class="sa-dots" aria-label="More">' + IC.dots + '</button><div class="sa-pop" hidden>' +
           '<button type="button" class="u-open" data-email="' + esc(u.email) + '">Module access</button><button type="button" class="u-det" data-email="' + esc(u.email) + '">User details</button>' +
           '<button type="button" class="u-act" data-email="' + esc(u.email) + '">Login activity</button><button type="button" class="u-setpw">Set a one-time password</button>' +
           '<button type="button" class="u-onoff' + (on ? ' del' : '') + '">' + (on ? 'Switch off' : 'Switch on') + '</button></div>') + '</div></td></tr>';
   }
-  $('u_site').addEventListener('change', () => { S.site = $('u_site').value; userClose(); users(); });
-  $('u_mod').addEventListener('change', () => { S.mod = $('u_mod').value; userClose(); users(); });
   const addUser = () => { if (S.tab !== 'users') tab('users'); userClose(); if (document.querySelector('#u_rows tr[data-new]')) return; $('u_rows').insertAdjacentHTML('afterbegin', row({ email: '', name: '', active: true }, true)); document.querySelector('#u_rows .u-email').focus(); };
   $('u_new').addEventListener('click', addUser); $('a_user').addEventListener('click', addUser);
-  $('u_rows').addEventListener('change', e => { const tr = e.target.closest('tr'); if (tr) tr.classList.add('dirty');
+  $('u_rows').addEventListener('change', e => { const tr = e.target.closest('tr'); if (tr) tr.classList.add('dirty', 'edit');      // (a change shows the row's Save)
     if (e.target.classList.contains('sel-r')) e.target.className = 'sel-r ' + (e.target.value || 'none');
     if (e.target.classList.contains('u-active')) { const l = e.target.closest('label'); l.className = 'sa-pill ' + (e.target.checked ? 'on' : 'off'); l.querySelector('span').textContent = e.target.checked ? 'Active' : 'Inactive'; } });
   $('u_rows').addEventListener('input', e => { if (e.target.classList.contains('u-pw')) { const tr = e.target.closest('tr'); if (tr) tr.classList.add('dirty'); } });
   $('u_rows').addEventListener('click', e => {
     const tr = e.target.closest('tr'); if (!tr) return;
     if (e.target.closest('.u-cancel')) { tr.remove(); return; }
+    if (e.target.closest('.u-edit')) { tr.classList.add('edit'); const f = tr.querySelector('.sel-r'); if (f) f.focus(); return; }
+    if (e.target.closest('.u-noedit')) { users(); return; }      // (drawn again as it is saved)
     const pg = e.target.closest('.u-pages, .u-open'); if (pg) { userOpen(pg.dataset.email, 'access'); return; }
     if (e.target.closest('.u-det')) { userOpen(e.target.closest('.u-det').dataset.email, 'details'); return; }
     if (e.target.closest('.u-act')) { userOpen(e.target.closest('.u-act').dataset.email, 'login'); return; }
-    if (e.target.closest('.u-setpw')) { const i = tr.querySelector('.u-pw'); i.focus(); return; }
+    if (e.target.closest('.u-setpw')) { tr.classList.add('edit'); const i = tr.querySelector('.u-pw'); i.focus(); return; }
     if (e.target.closest('.u-onoff')) { const c = tr.querySelector('.u-active'); c.checked = !c.checked; c.dispatchEvent(new Event('change', { bubbles: true })); return; }
     const sv = e.target.closest('.u-save'); if (!sv) return;
     const isNew = !!tr.dataset.new, email = isNew ? tr.querySelector('.u-email').value.trim().toLowerCase() : tr.dataset.email;
