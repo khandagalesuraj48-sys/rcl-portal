@@ -65,18 +65,31 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     await pg.selectOption('#u_rows tr[data-new] .sel-r[data-m="mechanical"]', 'user'); await pg.fill('#u_rows tr[data-new] .u-pw', 'Ravi#Temp2026');
     await pg.click('#u_rows tr[data-new] .u-save');
     await pg.waitForSelector('#u_rows tr[data-email="ravi@rcl.test"]');
-    const site1 = await pg.inputValue('#u_site');
+    const site1 = await pg.getAttribute('#u_sitebar button.on', 'data-v');
+    // (12-11-2026) only who has access on the chosen site is listed; access reads as chips; the three lists count everybody once
+    const listed = await pg.$$eval('#u_rows tr:not([hidden])', r => r.map(t => t.dataset.email)), all = await pg.$$eval('#u_rows tr', r => r.length);
+    const withDb = sql('rcl_portal', "select count(distinct a.email) from access a join users u on u.email = a.email where a.site = '" + site1 + "' and a.role <> '' and u.active and not u.is_super");
+    ok('Users & Access: only the people with access on the chosen site are listed', listed.length === +withDb && listed.includes('ravi@rcl.test') && listed.length <= all, listed.length + ' listed, ' + withDb + ' with access, ' + all + ' users');
+    ok('   his access reads as a chip (module + role); the choices are hidden until "Change access"', (await pg.textContent('#u_rows tr[data-email="ravi@rcl.test"] .ua-chips')) === 'MechanicalUser' && !(await pg.isVisible('#u_rows tr[data-email="ravi@rcl.test"] .sel-r')) && !(await pg.isVisible('#u_rows tr[data-email="ravi@rcl.test"] .u-save')));
+    const tabsTxt = await pg.$$eval('#u_view button', b => b.map(x => x.textContent)), sum = tabsTxt.reduce((n, t) => n + +t.split('· ')[1], 0);
+    ok('   three lists – With access / No access on this site / Switched off – together everybody', tabsTxt.length === 3 && /^With access · \d+$/.test(tabsTxt[0]) && sum === all, tabsTxt.join(' | ') + ' of ' + all);
+    ok('   the site and each module are buttons with their number of people', /\d+ people$/.test(await pg.textContent('#u_sitebar button.on')) && (await pg.$$eval('#u_modbar button', b => b.map(x => x.textContent))).some(t => /^Mechanical\d+$/.test(t)));
+    await pg.screenshot({ path: path.join(SHOTS, '02a-super-users-access.png'), fullPage: true });
     ok('   user added with Mechanical on ' + site1 + ' (saved in the Portal database)', sql('rcl_portal', "select role from access where email = 'ravi@rcl.test' and site = '" + site1 + "' and module = 'mechanical'") === 'user');
     // per-site access: give sujit Mechanical on another site as well
-    const other = await pg.$$eval('#u_site option', (o, s1) => o.map(x => x.value).filter(v => v && v !== s1)[0] || '', site1);
+    const other = await pg.$$eval('#u_sitebar button', (o, s1) => o.map(x => x.dataset.v).filter(v => v && v !== s1)[0] || '', site1);
     if (other) {
-      await pg.selectOption('#u_site', other); await pg.waitForSelector('#u_rows tr[data-email="sujit@rcl.test"]');
+      await pg.click('#u_sitebar button[data-v="' + other + '"]'); await pg.waitForSelector('#u_rows tr[data-email="sujit@rcl.test"]', { state: 'attached' });
+      ok('   a person without access on that site is not in "With access" – he is under "No access on this site"', !(await pg.isVisible('#u_rows tr[data-email="sujit@rcl.test"]')));
+      await pg.click('#u_view button[data-v="none"]'); await pg.waitForSelector('#u_rows tr[data-email="sujit@rcl.test"]');
+      await pg.click('#u_rows tr[data-email="sujit@rcl.test"] .u-edit');
       await pg.selectOption('#u_rows tr[data-email="sujit@rcl.test"] .sel-r[data-m="mechanical"]', 'user'); await pg.click('#u_rows tr[data-email="sujit@rcl.test"] .u-save');
       await pg.waitForFunction(() => /Saved: sujit/.test(document.getElementById('toast').textContent));
+      await pg.click('#u_view button[data-v="with"]'); await pg.waitForSelector('#u_rows tr[data-email="sujit@rcl.test"] .ua-chip');
       ok('   access is per site: sujit given Mechanical on ' + other + ' too', sql('rcl_portal', "select role from access where email = 'sujit@rcl.test' and site = '" + other + "' and module = 'mechanical'") === 'user');
     } else ok('   a second site on the rig to test per-site access', false, 'only one site');
     // the pages of Mechanical for one user, given here (Mechanical :3000 is linked to this Portal on the rig)
-    await pg.selectOption('#u_site', site1); await pg.waitForSelector('#u_rows tr[data-email="view@rcl.test"] .u-pages');
+    await pg.click('#u_sitebar button[data-v="' + site1 + '"]'); await pg.waitForSelector('#u_rows tr[data-email="view@rcl.test"] .u-pages');
     const keepPg = sql('rcl', "select perm_diesel_issue from app_users where email = 'view@rcl.test'");
     await pg.waitForSelector('#toast', { state: 'hidden' });      // (the note of the last save sits over the bottom rows for a few seconds)
     await pg.click('#u_rows tr[data-email="view@rcl.test"] .u-pages');
@@ -89,13 +102,13 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     ok('   saved: Mechanical now gives view@ Edit on Diesel Issue', sql('rcl', "select perm_diesel_issue from app_users where email = 'view@rcl.test'") === 'Edit');
     sql('rcl', "update app_users set perm_diesel_issue = '" + keepPg + "', updated_at = now() where email = 'view@rcl.test'");
     // (asked 13-10-2026) Users & Access: a Module picker next to the Site – "All modules" or one module
-    const modOpts = await pg.$$eval('#u_mod option', x => x.map(o => o.textContent));
-    ok('Users & Access: a Module picker – "All modules" and each module', modOpts[0] === 'All modules' && modOpts.some(t => /Mechanical/.test(t)), modOpts);
-    await pg.selectOption('#u_mod', 'mechanical');
-    const cols = await pg.$$eval('#u_head th', x => x.map(t => t.textContent));
-    ok('   one module picked: only its column', cols.join('|') === '#|User|Email|Status|Mechanical|One-time password|Actions', cols);
+    const modOpts = await pg.$$eval('#u_modbar button', x => x.map(o => o.textContent));
+    ok('Users & Access: a Module picker – "All modules" and each module', /^All modules\d+$/.test(modOpts[0]) && modOpts.some(t => /Mechanical/.test(t)), modOpts);
+    await pg.click('#u_modbar button[data-v="mechanical"]');
+    const chipMods = await pg.$$eval('#u_rows tr:not([hidden]) .ua-chip', x => [...new Set(x.map(t => t.firstChild.textContent))]), mechDb = sql('rcl_portal', "select count(distinct a.email) from access a join users u on u.email = a.email where a.site = '" + site1 + "' and a.module = 'mechanical' and a.role <> '' and u.active and not u.is_super");
+    ok('   one module picked: only the people who have it, only its chip', chipMods.join('|') === 'Mechanical' && (await pg.$$eval('#u_rows tr:not([hidden])', r => r.length)) === +mechDb, chipMods.join('|') + ' · ' + mechDb);
     await pg.screenshot({ path: path.join(SHOTS, '02c-super-users-module.png'), fullPage: true });
-    await pg.selectOption('#u_mod', '');
+    await pg.click('#u_modbar button[data-v=""]');
     // "New site": the form and its checklist (the whole way to Ready is tested in Mechanical's test/newsite95.js)
     await pg.click('#sa_tabs button[data-t="sites"]'); await pg.waitForSelector('#t_sites:not([hidden])');
     await pg.click('#st_new'); await pg.waitForSelector('#ns_panel:not([hidden])');

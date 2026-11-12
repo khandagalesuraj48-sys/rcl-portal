@@ -30,7 +30,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     const loc = r.headers().location || '', c = loc.includes('#sso=') ? JSON.parse(Buffer.from(loc.split('#sso=')[1].split('&')[0].split('.')[1], 'base64url').toString()) : {};
     ok('   a card opens the module with a ticket as its Admin', r.status() === 302 && c.role === 'admin' && c.sub === 'sa@rcl.test', loc);
     await pg.click('#h_sa'); await wait(1500);
-    await pg.selectOption('#u_site', 'S1'); await wait(500); await pg.selectOption('#u_mod', 'store'); await wait(500);
+    await pg.click('#u_sitebar button[data-v="S1"]'); await wait(500); await pg.click('#u_modbar button[data-v="store"]'); await wait(500);
     const pagesBtn = await pg.$('#u_rows tr[data-email="sujit@rcl.test"] .u-spages');
     ok('Users & Access → Store: a Store User has a "Pages" button', !!pagesBtn);
     await pagesBtn.click(); await wait(500);
