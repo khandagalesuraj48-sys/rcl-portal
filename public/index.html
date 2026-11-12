@@ -428,6 +428,19 @@
   #st_rows tr:has(+ tr.st-sub) td { border-bottom: 0; }
   #st_rows tr.st-sub td { padding-top: 0; }
   .st-more { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+  /* (12-11-2026, his yes to the picture) SITES: a card a site – what it is, read at a glance; its form opens with "Edit details" */
+  .sa .st-t, .sa .st-tw { border: 0; background: none; } .sa .st-t td { border: 0; padding: 0; background: none; }
+  .sa .st-t tr.st-card > td { padding: 0 0 14px; }
+  .st-c { border: 1px solid var(--s-line); border-radius: 16px; padding: 16px 18px; background: #fff; }
+  .st-c .hd { display: flex; align-items: center; gap: 12px; } .st-c .hd h3 { margin: 0; font-size: 17px; flex: 1 1 auto; min-width: 0; } .st-c .hd h3 small { font-weight: 500; color: var(--s-muted); font-size: 13.5px; margin-left: 8px; }
+  .st-c .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 16px; margin: 13px 0; padding: 12px 0; border-top: 1px solid var(--s-line); border-bottom: 1px solid var(--s-line); }
+  .st-c .facts span { display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--s-muted); } .st-c .facts b { font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; } .st-c .facts b.no { color: var(--s-faint); font-weight: 500; }
+  .st-c .bts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .st-c .bts .link { border: 1px solid var(--s-line); border-radius: 9px; padding: 7px 13px; font-weight: 600; color: var(--s-ink); font-size: 13.5px; background: #fff; text-decoration: none; }
+  .st-c .bts .link:hover { border-color: var(--s-blue); color: var(--s-blue); } .st-c .bts .link.del { color: #B42318; border-color: #F3C7C2; }
+  .st-c .bts .st-edit { background: #0F1B3D; border-color: #0F1B3D; color: #fff; } .st-c .bts .st-edit:hover { color: #fff; }
+  .sa .st-t tr.st-form > td, .sa .st-t tr.st-sub > td { padding: 6px 8px; } .sa .st-t tr.st-sub > td { padding-bottom: 18px; }
+  .sa .st-t tr.st-form, .sa .st-t tr.st-sub { background: #F7F9FD; }
   .st-more label { display: flex; flex: 1 1 170px; flex-direction: column; gap: 3px; margin: 0; font-size: 12px; font-weight: 700; color: var(--muted); }
   .st-more label:first-child { flex: 2 1 320px; }
   .st-more input { width: 100%; }
@@ -714,13 +727,14 @@
           <div class="bar" style="margin:4px 0 0"><button class="sa-btn primary sm" id="ns_check" type="button">Check &amp; set up</button><button class="sa-btn sm" id="ns_close" type="button">Close</button></div>
           <ol class="steps" id="ns_steps" hidden></ol>
         </div>
+        <div class="da-stat" id="st_stat"></div>
         <div class="panel pg" id="dp_panel" hidden></div>
         <div class="panel pg" id="sr_panel" hidden></div>
         <div class="panel pg" id="vp_panel" hidden></div>
         <div class="panel pg" id="bk_panel" hidden></div>
         <div class="panel pg" id="sto_panel" hidden></div>
         <div class="sa-card">
-          <div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>Company</th><th>State</th><th>Actions</th></tr></thead><tbody id="st_rows"></tbody></table></div>
+          <div class="tw st-tw"><table class="st-t"><tbody id="st_rows"></tbody></table></div>
           <div class="sa-scene-strip" aria-hidden="true"><svg viewBox="0 0 900 130" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg"><path d="M0 70h40V52h26v14h30V40h20v30h44V58h28v12h50V46h18v24h40V54h30v16h60V44h22v26h50V56h26v14h40V48h20v22h60V58h30v12h70V50h24v20h44v60H0z" fill="#D3DEEE"/><path d="M0 92l900-10v48H0z" fill="#B9C7DC"/><path d="M0 106l900-12" stroke="#F2B632" stroke-width="2.4" stroke-dasharray="22 16" opacity=".8"/><g fill="#8EA3C2"><path d="M80 88h70l12 14v10H72V96z"/><rect x="104" y="70" width="28" height="18" rx="3"/><path d="M132 74l38-26 7 7-30 24z"/><path d="M170 48l16 20-12 6-11-15z"/><circle cx="92" cy="114" r="9"/><circle cx="142" cy="114" r="9"/></g><g fill="#7D93B6"><rect x="300" y="82" width="86" height="26" rx="4"/><rect x="356" y="66" width="30" height="20" rx="3"/><circle cx="318" cy="114" r="11"/><circle cx="370" cy="114" r="11"/></g><g fill="#94A8C6"><rect x="520" y="76" width="110" height="30" rx="4"/><rect x="610" y="60" width="34" height="22" rx="3"/><circle cx="540" cy="113" r="10"/><circle cx="572" cy="113" r="10"/><circle cx="626" cy="113" r="10"/></g><g fill="#869BBC"><rect x="740" y="86" width="72" height="20" rx="4"/><rect x="752" y="70" width="30" height="16" rx="3"/><rect x="800" y="98" width="40" height="16" rx="8"/><circle cx="756" cy="114" r="8"/></g></svg></div>
         </div>
       </section>
@@ -1512,6 +1526,8 @@
     if (S.tab === 'audit') { $('a_q').value = q; auditShow(); return; }
     const tb = { sites: 'st_rows', companies: 'co_rows', modules: 'm_rows' }[S.tab]; if (!tb) return;
     const w = q.trim().toLowerCase(), hit = tr => !w || tr.textContent.toLowerCase().includes(w) || [...tr.querySelectorAll('input')].some(i => i.value.toLowerCase().includes(w));
+    if (S.tab === 'sites') { [...$(tb).rows].forEach(tr => { if (!tr.classList.contains('st-card')) return; const form = tr.nextElementSibling, sub = form && form.nextElementSibling;
+      const hide = !(hit(tr) || (form && hit(form)) || (sub && hit(sub))); tr.hidden = hide; if (hide) { if (form) form.hidden = true; if (sub) sub.hidden = true; } }); return; }
     [...$(tb).rows].forEach(tr => { if (tr.classList.contains('st-sub')) return; const sub = tr.nextElementSibling && tr.nextElementSibling.classList.contains('st-sub') ? tr.nextElementSibling : null;
       tr.hidden = !(hit(tr) || (sub && hit(sub))); if (sub) sub.hidden = tr.hidden; }); });      // (a site and its address / contact row together)
 
@@ -1747,12 +1763,29 @@
     const d = S.data; if (!d) return;
     const comp = c => '<select class="st-comp" aria-label="Company"><option value="">–</option>' + d.companies.map(x => '<option value="' + esc(x.id) + '"' + (x.id === c ? ' selected' : '') + '>' + esc(x.name) + '</option>').join('') + '</select>';
     const stat = v => '<select class="st-status ' + (v === 'closed' ? 'closed' : 'active') + '" aria-label="State"><option value="active"' + (v !== 'closed' ? ' selected' : '') + '>Active</option><option value="closed"' + (v === 'closed' ? ' selected' : '') + '>Closed</option></select>';
-    S.siteRow = (s, isNew) => '<tr data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : '') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<span class="sa-code">' + esc(s.code) + '</span>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '" aria-label="Site name"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="sa-btn primary sm st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button><button class="link st-rules" type="button" data-code="' + esc(s.code) + '">Day &amp; tank check</button><button class="link st-photos" type="button" data-code="' + esc(s.code) + '">Vehicle photos</button><button class="link st-backup" type="button" data-code="' + esc(s.code) + '">Backup</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></td></tr>' +
+    // the card of a site: read at a glance – people, modules in use, address, contact; its buttons (the same works as before)
+    const actv = {}; d.users.forEach(u => { if (u.active && !u.super) actv[u.email] = 1; });
+    const comps = {}; d.companies.forEach(c => { comps[c.id] = c.name; }); const mname = {}; d.modules.forEach(m => { mname[m.key] = m.name; });
+    S.siteCard = s => { const acc = d.access.filter(a => a.site === s.code && a.role && actv[a.email]), ppl = new Set(acc.map(a => a.email)).size, mods = [...new Set(acc.map(a => a.module))].filter(k => k !== 'hrme').map(k => mname[k] || k), closed = s.status === 'closed';
+      const contact = [s.contact_name, s.contact_phone].filter(Boolean).join(' · '), no = '<b class="no">– not filled yet</b>', isNew = false;
+      return '<tr class="st-card" data-code="' + esc(s.code) + '"><td colspan="5"><div class="st-c"><div class="hd"><span class="sa-code">' + esc(s.code) + '</span><h3>' + esc(s.name) + (comps[s.company_id] ? '<small>' + esc(comps[s.company_id]) + '</small>' : '') + '</h3><span class="sa-pill ' + (closed ? 'off' : 'on') + '">' + (closed ? 'Closed' : 'Open') + '</span></div>' +
+        '<div class="facts"><div><span>People</span><b>' + ppl + (ppl === 1 ? ' person' : ' people') + '</b></div><div><span>Modules in use</span>' + (mods.length ? '<b>' + esc(mods.join(' · ')) + '</b>' : '<b class="no">– none yet</b>') + '</div><div><span>Address</span>' + (s.address ? '<b>' + esc(s.address) + '</b>' : no) + '</div><div><span>Contact</span>' + (contact ? '<b>' + esc(contact) + '</b>' : no) + '</div></div>' +
+        '<div class="bts"><button class="link st-edit" type="button" data-code="' + esc(s.code) + '">Edit details</button><button class="link st-people" type="button" data-code="' + esc(s.code) + '">People</button>' + (!isNew && s.status !== 'closed' ? '<button class="link st-places" type="button" data-code="' + esc(s.code) + '">Diesel places</button><button class="link st-rules" type="button" data-code="' + esc(s.code) + '">Day &amp; tank check</button><button class="link st-photos" type="button" data-code="' + esc(s.code) + '">Vehicle photos</button><button class="link st-backup" type="button" data-code="' + esc(s.code) + '">Backup</button>' : '') + (!isNew && s.status === 'closed' ? '<button class="link st-setup" type="button" data-code="' + esc(s.code) + '">Set up</button><button class="link del st-del" type="button" data-code="' + esc(s.code) + '">Delete</button>' : '') + '</div></div></td></tr>'; };
+    S.siteRow = (s, isNew) => (isNew ? '' : S.siteCard(s)) + '<tr class="st-form" data-code="' + esc(s.code) + '"' + (isNew ? ' data-new="1"' : ' hidden') + '><td>' + (isNew ? '<input class="st-code" maxlength="12" placeholder="e.g. 18B" style="width:110px">' : '<span class="sa-code">' + esc(s.code) + '</span>') + '</td><td class="w"><input class="st-name" maxlength="80" value="' + esc(s.name) + '" aria-label="Site name"></td><td>' + comp(s.company_id) + '</td><td>' + stat(s.status) + '</td><td><div class="acts"><button class="sa-btn primary sm st-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' + (isNew ? '' : '<button class="sa-btn sm st-noedit" type="button">Cancel</button>') + '</div></td></tr>' +
       // (29-10-2026) under each site: its address and its contact – the Store's papers (PO: Shipping Address, Site Contact; the requirement's contact)
-      '<tr class="st-sub" data-for="' + esc(s.code || '') + '"><td></td><td colspan="4"><div class="st-more"><label>Site address<input class="st-addr" maxlength="300" value="' + esc(s.address || '') + '" placeholder="e.g. Site office, Valshind, NH 848"></label>' +
+      '<tr class="st-sub" data-for="' + esc(s.code || '') + '"' + (isNew ? '' : ' hidden') + '><td></td><td colspan="4"><div class="st-more"><label>Site address<input class="st-addr" maxlength="300" value="' + esc(s.address || '') + '" placeholder="e.g. Site office, Valshind, NH 848"></label>' +
       '<label>Contact name<input class="st-cname" maxlength="80" value="' + esc(s.contact_name || '') + '" placeholder="e.g. Ramesh Patil"></label><label>Contact number<input class="st-cphone" maxlength="40" inputmode="tel" value="' + esc(s.contact_phone || '') + '" placeholder="e.g. 98765 43210"></label></div></td></tr>';
     $('st_rows').innerHTML = d.sites.map(s => S.siteRow(s, false)).join('') || '<tr><td colspan="5" class="note">No site yet.</td></tr>';
+    const open = d.sites.filter(x => x.status !== 'closed').length, withAcc = new Set(d.access.filter(a => a.role && actv[a.email]).map(a => a.email)).size;
+    $('st_stat').innerHTML = [['Sites', d.sites.length, open + ' open · ' + (d.sites.length - open) + ' closed'], ['People with access', withAcc, 'on at least one site'], ['Companies', d.companies.length, '<button type="button" class="link" id="st_goco">Manage companies</button>']].map(x => '<div><span>' + x[0] + '</span><b>' + x[1] + '</b><small>' + x[2] + '</small></div>').join('');
   }
+  $('st_stat').addEventListener('click', e => { if (e.target.closest('#st_goco')) tab('companies'); });
+  // "Edit details" opens the site's form under its card (Cancel: drawn again as it is saved); "People": Users & Access on that site
+  $('st_rows').addEventListener('click', e => { const ed = e.target.closest('.st-edit'), no = e.target.closest('.st-noedit'), pe = e.target.closest('.st-people');
+    if (pe) { S.site = pe.dataset.code; S.mod = ''; S.uView = 'with'; tab('users'); return; }
+    if (no) { sites(); return; }
+    if (!ed) return; const card = ed.closest('tr'), form = card.nextElementSibling, sub = form && form.nextElementSibling; const show = form.hidden;
+    form.hidden = !show; if (sub && sub.classList.contains('st-sub')) sub.hidden = !show; ed.textContent = show ? 'Close the form' : 'Edit details'; if (show) form.querySelector('.st-name').focus(); });
   $('st_rows').addEventListener('change', e => { if (e.target.classList.contains('st-status')) e.target.className = 'st-status ' + e.target.value; });
   // ---- New site (with Mechanical): a checklist the system works through – pressed again, it goes on where it stopped ----
   const NS_STEP = { link: '1. The Supabase project link', key: '2. The secret key – in Vercel, never here', connect: '3. The database answers with that key', tables: '4. Mechanical\'s tables in the new database', company: '5. Company settings (as the first site; the new name)', places: '6. Diesel places (name and tank size)', ready: '7. Ready' };

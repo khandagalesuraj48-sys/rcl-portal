@@ -127,6 +127,17 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     await pg.click('#u_sitebar button[data-v="' + site1 + '"]');
     // "New site": the form and its checklist (the whole way to Ready is tested in Mechanical's test/newsite95.js)
     await pg.click('#sa_tabs button[data-t="sites"]'); await pg.waitForSelector('#t_sites:not([hidden])');
+    // (12-11-2026) a card a site: people, modules in use, address, contact; the form opens with "Edit details" and saves as before
+    const sCard = await pg.$eval('#st_rows tr.st-card[data-code="' + site1 + '"]', t => t.innerText.replace(/\s+/g, ' '));
+    const sPpl = sql('rcl_portal', "select count(distinct a.email) from access a join users u on u.email = a.email where a.site = '" + site1 + "' and a.role <> '' and u.active and not u.is_super");
+    ok('Sites: a card a site – its people, the modules in use, address and contact; the form is closed', new RegExp('PEOPLE ' + sPpl + ' (person|people) MODULES IN USE Mechanical', 'i').test(sCard) && /Open/.test(sCard) && !(await pg.isVisible('#st_rows tr.st-form[data-code="' + site1 + '"]')), sCard);
+    ok('   the numbers on top: sites, people with access, companies', (await pg.$$eval('#st_stat div span', x => x.map(t => t.textContent))).join('|') === 'Sites|People with access|Companies');
+    await pg.click('#st_rows tr.st-card[data-code="' + site1 + '"] .st-edit'); await pg.fill('#st_rows tr.st-form[data-code="' + site1 + '"] + tr.st-sub .st-addr', 'Rig office, km 12');
+    await pg.click('#st_rows tr.st-form[data-code="' + site1 + '"] .st-save'); await pg.waitForFunction(() => /Site saved|papers/i.test(document.getElementById('toast').textContent));
+    ok('   "Edit details" → the address typed → Save: kept, and read on the card', sql('rcl_portal', "select address from sites where code = '" + site1 + "'") === 'Rig office, km 12' && /Rig office, km 12/.test(await pg.textContent('#st_rows tr.st-card[data-code="' + site1 + '"]')));
+    await pg.screenshot({ path: path.join(SHOTS, '03a-sites-cards.png'), fullPage: true });
+    sql('rcl_portal', "update sites set address = '' where code = '" + site1 + "'");
+    await pg.waitForSelector('#toast', { state: 'hidden' });
     await pg.click('#st_new'); await pg.waitForSelector('#ns_panel:not([hidden])');
     await pg.fill('#ns_code', 'N4'); await pg.fill('#ns_name', 'Test Site N4'); await pg.fill('#ns_url', 'http://127.0.0.1:3104');
     await pg.click('#ns_check'); await pg.waitForSelector('#ns_steps li.bad, #toast.bad', { timeout: 40000 });
