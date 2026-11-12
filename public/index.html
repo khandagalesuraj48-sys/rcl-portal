@@ -305,6 +305,24 @@
   /* filters */
   .sa-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; margin-bottom: 14px; }
   /* (12-11-2026) Users & Access: the site and the module as buttons with their counts, the three lists, access as small chips */
+  /* (12-11-2026) the Super Admin's Dashboard */
+  .da-stat { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 16px; }
+  .da-stat div { background: #fff; border: 1px solid var(--s-line); border-radius: 16px; padding: 15px 18px; box-shadow: 0 8px 24px rgba(15,23,42,.04); }
+  .da-stat span { display: block; color: var(--s-muted); font-size: 13px; font-weight: 600; } .da-stat b { display: block; font-size: 30px; line-height: 1.15; } .da-stat small { color: var(--s-green); font-weight: 600; font-size: 12.5px; }
+  .da-g { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; align-items: start; } .da-g .sa-card { margin-bottom: 16px; }
+  @media (max-width: 1100px) { .da-g { grid-template-columns: 1fr; } }
+  .da-h { margin: 0 0 12px; font-size: 16px; }
+  .da-mods { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .da-mod { display: block; border: 1px solid var(--s-line); border-radius: 14px; padding: 14px; color: var(--s-ink); text-decoration: none; background: #fff; }
+  .da-mod:hover, .da-mod:focus-visible { border-color: var(--s-blue); box-shadow: 0 0 0 3px rgba(37,99,235,.14); outline: none; }
+  .da-mod i { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-style: normal; font-weight: 800; color: #fff; margin-bottom: 8px; }
+  .da-mod b { display: block; font-size: 15.5px; } .da-mod small { display: block; color: var(--s-muted); font-size: 12.5px; }
+  .da-mod em { display: inline-block; margin-top: 10px; background: #0F1B3D; color: #fff; border-radius: 9px; padding: 6px 14px; font-style: normal; font-weight: 700; font-size: 13.5px; }
+  .da-att { border-top: 1px solid var(--s-line); padding: 10px 0; } .da-att:first-child { border-top: 0; padding-top: 0; }
+  .da-att .r { display: flex; justify-content: space-between; align-items: center; gap: 10px; } .da-att .r b { font-size: 17px; margin-right: 8px; }
+  .da-att ul { margin: 8px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--s-muted); max-height: 220px; overflow: auto; } .da-att li { padding: 3px 0; } .da-att li b { color: var(--s-ink); font-weight: 600; }
+  .da-act { display: flex; gap: 10px; padding: 8px 0; border-top: 1px solid var(--s-line); font-size: 13.5px; } .da-act:first-child { border-top: 0; padding-top: 0; }
+  .da-act time { color: var(--s-muted); flex: 0 0 122px; font-size: 12.5px; white-space: nowrap; } .da-act div { min-width: 0; overflow-wrap: anywhere; }
   .ua-lab { margin: 0 0 7px; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--s-muted); }
   .ua-seg { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
   .ua-seg button { border: 1px solid var(--s-line); background: #fff; border-radius: 999px; padding: 8px 15px; font: inherit; font-weight: 600; color: var(--s-ink); cursor: pointer; }
@@ -606,7 +624,7 @@
     <div class="sa-logo"><span class="sa-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 7.2A7 7 0 1 0 18 16.4"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/></svg></span><div><b>RCL ERP</b><small>Fleet Management</small></div></div>
     <div class="sa-role"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5L3 7z"/><rect x="5" y="19" width="14" height="2" rx="1"/></svg>Super Admin</div>
     <nav class="sa-nav" id="sa_tabs" role="tablist" aria-label="Super Admin">
-      <button type="button" id="sa_mods" title="Open any module of any site (as its Admin)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>Dashboard</button>
+      <button type="button" role="tab" data-t="dash" aria-selected="false" id="sa_mods" title="The whole ERP at a glance; open any module of any site (as its Admin)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>Dashboard</button>
       <button type="button" role="tab" data-t="users" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.3c2.6.2 4.4 1.9 5 4.7"/></svg>Users &amp; Access</button>
       <button type="button" role="tab" data-t="sites" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Sites</button>
       <button type="button" role="tab" data-t="wf" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3.5" width="6" height="5" rx="1.2"/><rect x="15" y="3.5" width="6" height="5" rx="1.2"/><rect x="9" y="15.5" width="6" height="5" rx="1.2"/><path d="M9 6h6M18 8.5v3.5H12v3.5"/></svg>Workflow</button>
@@ -638,6 +656,24 @@
       </div>
     </header>
     <main class="sa-body">
+      <!-- (12-11-2026, asked: "poratl madhle pratek page redesign hawey" – his yes to the picture) THE SUPER ADMIN'S DASHBOARD: the
+           whole ERP at a glance – people, sites, modules, who signed in today; a module of a site opened from here; what needs him;
+           the latest activity. Everything is read from what the console has already (overview + the Activity) – nothing is changed here. -->
+      <section id="t_dash" class="sa-page" hidden>
+        <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Overview</span><h1>Dashboard</h1><p id="da_hi">The whole ERP at a glance.</p></div>
+          <button class="sa-btn primary" id="da_new" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add User</button></div>
+        <div class="da-stat" id="da_stat"></div>
+        <div class="da-g">
+          <div>
+            <div class="sa-card"><h2 class="da-h">Open a module</h2><div class="ua-seg" id="da_sites" role="group" aria-label="Site"></div><div class="da-mods" id="da_mods"></div></div>
+            <div class="sa-card"><h2 class="da-h">Sites</h2><div class="tw"><table><thead><tr><th>Site</th><th>People</th><th>Modules</th><th>State</th><th></th></tr></thead><tbody id="da_srows"></tbody></table></div></div>
+          </div>
+          <div>
+            <div class="sa-card"><h2 class="da-h">Needs your attention</h2><div id="da_att"></div></div>
+            <div class="sa-card"><h2 class="da-h">Latest activity</h2><div id="da_act"><p class="note">Loading…</p></div><p style="margin:10px 0 0"><button type="button" class="link" id="da_all">All activity</button></p></div>
+          </div>
+        </div>
+      </section>
       <section id="t_users" class="sa-page">
         <div id="u_top">
           <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>User management</span><h1>Users &amp; Access</h1><p>Who can open what – one site at a time. Only the people who have access on the chosen site are listed; switched off = cannot sign in.</p></div>
@@ -1256,9 +1292,9 @@
   function fail(e) { if (e.code === 'session' || e.status === 401) { toast(MR.session, true); return loginView(); } toast(msgOf(e), true); }
   function tab(t) {
     S.tab = t; document.querySelectorAll('#sa_tabs button[data-t]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === t)));
-    ['users', 'sites', 'wf', 'companies', 'modules', 'versions', 'ads', 'audit', 'me'].forEach(k => { $('t_' + k).hidden = k !== t; });
+    ['dash', 'users', 'sites', 'wf', 'companies', 'modules', 'versions', 'ads', 'audit', 'me'].forEach(k => { $('t_' + k).hidden = k !== t; });
     $('v_sa').classList.remove('nav-open'); menuClose(); $('sa_q').value = '';
-    if (t === 'users') { userClose(); users(); } else if (t === 'sites') sites(); else if (t === 'wf') workflow(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'versions') versions(); else if (t === 'ads') ads(); else if (t === 'audit') audit(); else if (t === 'me') meTab(S.meTab || 'pw');
+    if (t === 'dash') dash(); else if (t === 'users') { userClose(); users(); } else if (t === 'sites') sites(); else if (t === 'wf') workflow(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'versions') versions(); else if (t === 'ads') ads(); else if (t === 'audit') audit(); else if (t === 'me') meTab(S.meTab || 'pw');
     window.scrollTo(0, 0);
   }
   /* ---------------- (11-11-2026) THE ADVERTISE CORNER (/api/ads; the Portal's step 8) ----------------
@@ -1415,7 +1451,43 @@
   $('sa_out').addEventListener('click', signOut);
   // (14-10-2026) the Super Admin opens the modules too: every site, every live module, as its Admin – and back to the console
   const openMods = () => { params.set('menu', '1'); homeView(); };
-  $('sa_mods').addEventListener('click', openMods); $('sa_mods2').addEventListener('click', openMods);
+  $('sa_mods2').addEventListener('click', openMods);
+  /* ---------------- (12-11-2026) THE SUPER ADMIN'S DASHBOARD ----------------
+   * Read only: the counts come from the overview the console holds (users, sites, modules, access), the modules he can open from
+   * his own sign-in (S.me.items – the same links as "My modules"), the latest lines from the Activity. */
+  const DA_BG = ['#2563EB', '#0891B2', '#7C3AED', '#EA580C', '#16A34A', '#DB2777', '#64748B'];
+  function dash() {
+    const d = S.data; if (!d) return;
+    const people = d.users.filter(u => !u.super), act = people.filter(u => u.active), isAct = {}; act.forEach(u => { isAct[u.email] = 1; });
+    const ymd = t => { const x = new Date(t); return isNaN(x) ? '' : x.getFullYear() + '-' + (x.getMonth() + 1) + '-' + x.getDate(); }, today = ymd(Date.now()), month = today.split('-').slice(0, 2).join('-');
+    const inMonth = people.filter(u => u.lastLogin && ymd(u.lastLogin).split('-').slice(0, 2).join('-') === month).length, inDay = people.filter(u => u.lastLogin && ymd(u.lastLogin) === today);
+    const last = inDay.map(u => new Date(u.lastLogin)).sort((a, b) => b - a)[0], open = d.sites.filter(x => x.status !== 'closed').length, live = d.modules.filter(m => m.status === 'live').length;
+    const h = new Date().getHours(); $('da_hi').textContent = (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + ' – the whole ERP at a glance.';
+    $('da_stat').innerHTML = [['People', people.length, act.length + ' active · ' + inMonth + ' signed in this month'], ['Sites', d.sites.length, open === d.sites.length ? 'all open' : open + ' open · ' + (d.sites.length - open) + ' closed'],
+      ['Modules', d.modules.length, live + ' live'], ['Signed in today', inDay.length, last ? 'last: ' + last.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'nobody yet']].map(x => '<div><span>' + x[0] + '</span><b>' + x[1] + '</b><small>' + esc(x[2]) + '</small></div>').join('');
+    const onSite = (c, k) => new Set(d.access.filter(a => a.site === c && a.role && isAct[a.email] && (!k || a.module === k)).map(a => a.email)).size;
+    // open a module: the sites he can open something on (his own sign-in's list)
+    const items = (S.me && S.me.items) || [], sitesOf = [...new Set(items.map(i => i.site))]; S.daSite = sitesOf.indexOf(S.daSite) > -1 ? S.daSite : sitesOf[0] || '';
+    $('da_sites').innerHTML = sitesOf.map(c => '<button type="button" data-v="' + esc(c) + '"' + (c === S.daSite ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + esc((items.find(i => i.site === c) || {}).siteName || c) + '</button>').join('');
+    $('da_mods').innerHTML = items.filter(i => i.site === S.daSite).map((i, n) => '<a class="da-mod" href="' + esc(goLink(i)) + '"><i style="background:' + DA_BG[n % DA_BG.length] + '">' + esc(initial(i.moduleName)) + '</i><b>' + esc(i.moduleName) + '</b><small>' + onSite(i.site, i.module) + ' people · you: ' + (i.role === 'admin' ? 'Admin' : 'User') + '</small><em>Open</em></a>').join('') || '<p class="note">No module is live with its link yet (Modules).</p>';
+    $('da_srows').innerHTML = d.sites.map(x => '<tr><td><b>' + esc(x.name) + '</b> <small style="color:var(--s-muted)">' + esc(x.code) + '</small></td><td>' + onSite(x.code) + '</td><td>' + new Set(d.access.filter(a => a.site === x.code && a.role && isAct[a.email]).map(a => a.module)).size + '</td><td><span class="sa-pill ' + (x.status === 'closed' ? 'off' : 'on') + '">' + (x.status === 'closed' ? 'Closed' : 'Open') + '</span></td><td><button type="button" class="link da-people" data-v="' + esc(x.code) + '">People</button></td></tr>').join('') || '<tr><td colspan="5" class="note">No site yet.</td></tr>';
+    // what needs him: each line counts people; "See" lists them here
+    const any = {}; d.access.forEach(a => { if (a.role) any[a.email] = 1; });
+    const lists = [['E-mail not verified yet', act.filter(u => u.emailVerified === false)], ['Never signed in', act.filter(u => !u.lastLogin)], ['Must set a password', act.filter(u => u.mustChange || u.noPassword)], ['Active, with no access anywhere', act.filter(u => !any[u.email])]];
+    $('da_att').innerHTML = lists.map((l, i) => '<div class="da-att"><div class="r"><span>' + l[0] + '</span><span><b>' + l[1].length + '</b>' + (l[1].length ? '<button type="button" class="link da-see" data-i="' + i + '" aria-expanded="false">See</button>' : '') + '</span></div>' +
+      '<ul hidden>' + l[1].slice(0, 200).map(u => '<li><b>' + esc(u.name || u.email) + '</b> · ' + esc(u.email) + '</li>').join('') + '</ul></div>').join('') +
+      (d.step10 ? '<div class="da-att"><div class="r"><span>Sign-in with a code by e-mail</span><span class="sa-pill ' + (d.otpOn ? 'on' : 'off') + '">' + (d.otpOn ? 'ON' : 'OFF') + '</span></div></div>' : '');
+    dashActivity();
+  }
+  async function dashActivity() {
+    try { const r = await api('/api/admin', { action: 'audit' }); if (S.tab !== 'dash') return; const me = S.me.user.email, name = {}; S.data.users.forEach(u => { name[u.email] = u.name; });
+      $('da_act').innerHTML = (r.rows || []).slice(0, 8).map(x => '<div class="da-act"><time>' + esc(new Date(x.at).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })) + '</time><div><b>' + esc(x.actor === me ? 'You' : name[x.actor] || x.actor) + '</b> <span class="sa-pill act">' + esc(x.action) + '</span> ' + esc(x.target || '') + '</div></div>').join('') || '<p class="note">Nothing yet.</p>'; }
+    catch (e) { $('da_act').innerHTML = '<p class="note">' + esc(msgOf(e)) + '</p>'; }
+  }
+  $('da_sites').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return; S.daSite = b.dataset.v; dash(); });
+  $('da_att').addEventListener('click', e => { const b = e.target.closest('.da-see'); if (!b) return; const ul = b.closest('.da-att').querySelector('ul'); ul.hidden = !ul.hidden; b.textContent = ul.hidden ? 'See' : 'Hide'; b.setAttribute('aria-expanded', String(!ul.hidden)); });
+  $('da_srows').addEventListener('click', e => { const b = e.target.closest('.da-people'); if (!b) return; S.site = b.dataset.v; S.mod = ''; S.uView = 'with'; tab('users'); });
+  $('da_all').addEventListener('click', () => tab('audit')); $('da_new').addEventListener('click', () => addUser());
   $('h_sa').addEventListener('click', () => saView());
   $('sa_acc').addEventListener('click', () => tab('me'));
   $('sa_bell').addEventListener('click', () => tab('audit'));

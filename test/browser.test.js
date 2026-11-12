@@ -109,6 +109,22 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!';
     ok('   one module picked: only the people who have it, only its chip', chipMods.join('|') === 'Mechanical' && (await pg.$$eval('#u_rows tr:not([hidden])', r => r.length)) === +mechDb, chipMods.join('|') + ' · ' + mechDb);
     await pg.screenshot({ path: path.join(SHOTS, '02c-super-users-module.png'), fullPage: true });
     await pg.click('#u_modbar button[data-v=""]');
+    // (12-11-2026) the Super Admin's Dashboard: the counts, a module of a site opened from here, what needs him, the latest activity
+    await pg.click('#sa_tabs button[data-t="dash"]'); await pg.waitForSelector('#t_dash:not([hidden]) #da_mods a.da-mod'); await pg.waitForSelector('#da_act .da-act');
+    const dStat = await pg.$$eval('#da_stat div', x => x.map(t => t.querySelector('span').textContent + '=' + t.querySelector('b').textContent));
+    const dbPeople = sql('rcl_portal', "select count(*) from users where not is_super"), dbSites = sql('rcl_portal', "select count(*) from sites");
+    ok('Dashboard: people, sites, modules, signed in today – as the database has them', dStat[0] === 'People=' + dbPeople && dStat[1] === 'Sites=' + dbSites && /^Modules=\d+$/.test(dStat[2]) && /^Signed in today=\d+$/.test(dStat[3]), dStat);
+    const dMod = await pg.$eval('#da_mods a.da-mod', a => a.getAttribute('href') + ' ' + a.innerText.replace(/\s+/g, ' '));
+    ok('   "Open a module": the module of the chosen site with its people, opened by the same link as before', /api\/go\?module=mechanical&site=/.test(dMod) && /\d+ people · you: Admin/.test(dMod), dMod);
+    const never = sql('rcl_portal', "select count(*) from users where not is_super and active and last_login_at is null");
+    const att = await pg.$$eval('#da_att .da-att .r', x => x.map(t => t.textContent));
+    ok('   "Needs your attention": who never signed in is counted; "See" lists them', att.some(t => t.startsWith('Never signed in' + never)), att);
+    if (+never) { await pg.click('#da_att .da-att:nth-child(2) .da-see'); ok('      the list opens under the line', (await pg.$$eval('#da_att .da-att:nth-child(2) ul li', x => x.length)) === +never); }
+    ok('   the latest activity, the newest first; the site\'s "People" opens Users & Access on that site', (await pg.$$eval('#da_act .da-act', x => x.length)) >= 3);
+    await pg.screenshot({ path: path.join(SHOTS, '02d-super-dashboard.png'), fullPage: true });
+    await pg.click('#da_srows tr:last-child .da-people'); await pg.waitForSelector('#t_users:not([hidden])');
+    ok('      Users & Access is on that site', (await pg.getAttribute('#u_sitebar button.on', 'data-v')) === (await pg.$eval('#da_srows tr:last-child small', x => x.textContent)));
+    await pg.click('#u_sitebar button[data-v="' + site1 + '"]');
     // "New site": the form and its checklist (the whole way to Ready is tested in Mechanical's test/newsite95.js)
     await pg.click('#sa_tabs button[data-t="sites"]'); await pg.waitForSelector('#t_sites:not([hidden])');
     await pg.click('#st_new'); await pg.waitForSelector('#ns_panel:not([hidden])');
