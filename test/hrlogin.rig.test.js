@@ -78,3 +78,13 @@ test('the limit: a person with other work in the ERP, the Super Admin and a swit
   assert.strictEqual(sql(`select string_agg(email || password_hash, ',' order by email) from users where email in ('${m('store')}', '${m('hruser')}', '${m('off')}') or is_super`), before, 'no password was touched');
   assert.strictEqual(sql(`select count(*) from access where module = 'hrme' and email in ('${m('store')}', '${m('hruser')}', '${m('off')}')`), '0');
 });
+
+test('HR is listed once a site: whoever has the HR office\'s module does not get "My HR" beside it', async () => {
+  sql("insert into modules (key, name, url, status, sort) values ('hrme', 'My HR', 'http://127.0.0.1:3060', 'live', 91) on conflict (key) do nothing");
+  sql(`insert into access (email, site, module, role) values ('${m('hradmin')}', 'S1', 'hrme', 'user'), ('${m('hradmin')}', 'T2', 'hrme', 'user') on conflict do nothing`);
+  const A = await signIn(m('hradmin'), OWN); let r = await A.req('/api/auth', { action: 'me' });
+  assert.deepStrictEqual((r.j.items || []).map(i => i.site + ':' + i.module).sort(), ['S1:hr', 'T2:hrme'], 'the office\'s on S1 – once; only his own on T2');
+  r = await A.req('/api/go?module=hr&site=S1&json=1'); assert.strictEqual(r.status, 200); const t = JSON.parse(Buffer.from(r.j.ticket.split('.')[1], 'base64url').toString());
+  assert.deepStrictEqual(t.mods.map(x => x.key), ['hr'], 'the rail of the modules: HR once');
+  r = await A.req('/api/go?module=hrme&site=T2&json=1'); assert.strictEqual(r.status, 200, 'his own HR where he is not of the office');
+});

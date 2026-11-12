@@ -25,7 +25,10 @@ async function myItems(email, all) {
     if (a) items.push(Object.assign({ site: s.code, siteName: s.name, company: ((comps || []).find(c => c.id === s.company_id) || {}).name || '', module: m.key, moduleName: m.name, url: BETA.urlFor(m, tester), role: a.role, pages: a.pages || null },
       tester && m.beta_url ? { beta: true } : {}));
   }));
-  return items;
+  /* (12-11-2026, his picture: "ata he 2 disat ahet hr") ONE HR A SITE: "My HR" (hrme – an employee for himself) is the SAME module
+   * as "RCL HR" (hr – the HR office) seen with less. Whoever has the office's on a site (also the Super Admin, who has every
+   * module) has his own attendance in it already – his list, the modules' rail and the app show HR once, not twice. */
+  return items.filter(x => !(x.module === 'hrme' && items.some(y => y.site === x.site && y.module === 'hr')));
 }
 
 // access rows with their pages (step 3); without the step-3 SQL: the same rows without pages (every page, as before)
