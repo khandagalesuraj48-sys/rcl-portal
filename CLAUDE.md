@@ -19,6 +19,9 @@ Read this first, then `README.md`. The same owner and rules as the Mechanical mo
 
 ## Decisions that shape this repository (full list: `rclerp/architecture/RCL_ERP_Decisions.md`)
 * The Portal is the one sign-in and the one place access is given. Only the Super Admin manages it.
+  * One exception, his decision of 12-11-2026 ("ADMIN OR SUPER ADMIN BANWEL FKT"): the **HR Admin of a site** gives an EMPLOYEE his
+    sign-in from HR (`api/hrlogin.js`) – a one-time password and "My HR" (`hrme`) on that site, nothing else; and a new one-time
+    password when he forgot his. It never touches a person who has any other module, the Super Admin, or a switched-off user.
 * One module = one repository + one Vercel project + one Supabase project. The Portal has its own database.
 * Passwords use Mechanical's exact format (`scrypt$…`, the older `sha256$…`), so people keep their passwords.
 * A module trusts a Portal ticket only after checking its ES256 signature with `/api/jwks`, its `aud` (the module key), `exp`, and that its `jti` is used once.

@@ -553,3 +553,15 @@ test('company first (12-11-2026): under the one address a device that has not ch
   assert.match(page, /async function loginView\(\) \{\n    if \(coGate\(\)\) return;\n    show\('v_login'\);/);
   assert.match(page, /<a class="link forgot" id="l_co" href="\/company\?change" style="[^"]*" hidden>Change company<\/a>/);
 });
+
+test('an employee\'s sign-in from HR (api/hrlogin.js): who may, the limit, the one-time password', () => {
+  const src = fs.readFileSync(path.join(__dirname, '..', 'api', 'hrlogin.js'), 'utf8'), { oneTime } = require('../api/hrlogin');
+  assert.match(src, /sameSite\(req\);\n  const me = \(await ses\.need\(req, \{ ownPassword: true \}\)\)\.user/, 'the Portal page\'s own request, a person with his own password');
+  assert.match(src, /if \(!me\.is_super && !\(\(await db\('GET', 'access\?select=role&email=eq\.' \+ enc\(me\.email\) \+ '&site=eq\.' \+ enc\(site\) \+ '&module=eq\.' \+ HR \+ '&role=eq\.admin'\)\)/, 'the Super Admin or the HR ADMIN of that site – not an HR User');
+  assert.match(src, /const other = \(\(await db\('GET', 'access\?select=module&email=eq\.' \+ enc\(email\) \+ '&module=neq\.' \+ SELF \+ '&limit=1'\)\) \|\| \[\]\)\.length > 0;\n    if \(cur\.is_super \|\| other\) throw fail\(403/, 'never a person with other work, never the Super Admin');
+  assert.match(src, /if \(!cur\.active\) throw fail\(403/); assert.match(src, /hash = 'tmp\$' \+ await pw\.make\(temp\)/); assert.match(src, /await ses\.endAll\(email\);/);
+  assert.match(src, /\{ email: email, site: site, module: SELF, role: 'user', granted_by: me\.email \}/, 'only "My HR", as a user');
+  assert.ok(!/audit\([^\n]*temp/.test(src), 'the password is never written in the activity record');
+  const seen = new Set(); for (let i = 0; i < 200; i++) { const t = oneTime(); assert.match(t, /^[a-zA-Z2-9]{10}$/); assert.ok(/[A-Z]/.test(t) && /[a-z]/.test(t) && /\d/.test(t) && !/[0O1lI]/.test(t), t); seen.add(t); }
+  assert.strictEqual(seen.size, 200);
+});
