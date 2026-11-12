@@ -271,3 +271,28 @@ kraych aahe size swata tharau shakel … period wise day wise timing wise".
 * This Portal's part (`public/index.html`, `coGate`): under the one address (`/portal/…`) a device that has not chosen its
   company is sent to `/company` before the sign-in; the sign-in shows "Company: RCL · Change company". `/portal/#signin` opens the
   sign-in without it. Not on the Portal's own address or the rig. No SQL, no API change; the phone app is not changed.
+
+## Two ways to sign in: password, or a code by e-mail (12-11-2026 – the Portal's step 10)
+His rules of 12-11-2026. **The password sign-in is unchanged.** Beside it, when switched on, "Login with Email OTP".
+* `sql/portal_step10_email_otp.sql` (he runs it; only ADDS): `users.email_verified_at`, `email_alerts`, `email_alert_at`; the table
+  `otps` (a code is kept only as an HMAC-SHA256 of it with `PORTAL_SECRET` – never the code). Until it is run everything is as before.
+* Settings (Vercel, his own hands – the key is never asked for, never in a file, never sent to a browser): `RESEND_API_KEY`,
+  `OTP_FROM` (`no-reply@oneclicksolution.online`), and two switches – `OTP_LOGIN`, `EMAIL_ALERTS` (`true` / `on` = on; anything
+  else, `false` or not set = off). A changed setting counts from the next deploy.
+* **A code** (`lib/otp.js`): 6 digits (`crypto.randomInt`), 10 minutes, works once, 5 wrong tries end it, 60 seconds between two,
+  a new one ends the one before; at most 5 an hour for one e-mail and 20 an hour from one network address. The e-mail goes out by
+  Resend (`lib/mail.js`). Never in a log or in the activity record.
+* **Sign-in with a code** (`api/auth.js` – `options`, `otpSend`, `otpLogin`): a code goes ONLY to a user who is active, not the
+  Super Admin, and whose e-mail is verified – never to an address the Portal does not know. The answer of "send code" is the same
+  for everybody and takes the same time. The sign-in it makes is the very same session as with the password: the same access.
+  **The Super Admin has no code** – his password and his recovery code only.
+* **"Verify my e-mail"** (`verifySend`, `verifyCheck`): signed in with his own password, a code goes to HIS address; typed right,
+  the e-mail is verified. Nobody – the Super Admin neither – can mark it verified without the code.
+* **The reminder** (`emailAlert`, `EMAIL_ALERTS`; "5 alert nantr access band nahi karaycha … alert det rahayche every 1 hour"):
+  while the e-mail is not verified a small strip that hides nothing; counted at most once an hour. **Nothing is ever closed.**
+* The page: the sign-in card's second button, the cards `v_otp` and `v_ver` (`?verify=1` opens it – a module's strip sends him
+  here), the strip on "My modules"; Users & Access shows "Email Verified ✓ / Email Pending", the reminders shown, and one line
+  with how it stands (step 10, the e-mail service, the two switches).
+* Not built (his decision): changing a user's e-mail (it is his identity in every module), any block.
+* Tests: `test/otp.rig.test.js` (its own two Portal servers and a stand-in for the mail service – no real e-mail), the unit test.
+

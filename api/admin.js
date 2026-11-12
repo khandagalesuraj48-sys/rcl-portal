@@ -8,6 +8,8 @@ const crypto = require('crypto');
 const keys = require('../lib/keys');
 const { db, enc, rpc } = require('../lib/db');
 const pw = require('../lib/pw');
+const otp = require('../lib/otp');
+const mail = require('../lib/mail');
 const ses = require('../lib/session');
 const { audit } = require('../lib/audit');
 const { EMAIL, lc, clean, GSTIN, PAN, okUrl } = require('../lib/util');
@@ -78,9 +80,13 @@ async function overview() {
     db('GET', 'companies?select=id,name,address,gstin,pan,logo&order=name.asc'),
     accessRows(''), BETA.step7()]);
   const testers = s7 ? ((await db('GET', 'users?select=email&tester=is.true')) || []).map(x => x.email) : [];
+  // (step 10) whose e-mail is verified, how often he was reminded – null where the step-10 SQL is not run yet
+  let em = null; try { em = {}; ((await db('GET', 'users?select=email,email_verified_at,email_alerts')) || []).forEach(x => { em[x.email] = x; }); } catch (e) { if (!otp.noStep(e)) throw e; em = null; }
   return {
     users: (users || []).map(u => ({ email: u.email, name: u.name, active: !!u.active, super: !!u.is_super, mustChange: !u.is_super && pw.mustChange(u.password_hash), noPassword: !u.password_hash, lastLogin: u.last_login_at,
-      tester: testers.indexOf(u.email) > -1 })),
+      tester: testers.indexOf(u.email) > -1,
+      emailVerified: em && !u.is_super ? !!(em[u.email] || {}).email_verified_at : undefined, emailAlerts: em && !u.is_super ? Number((em[u.email] || {}).email_alerts) || 0 : undefined })),
+    step10: !!em, otpOn: otp.on('OTP_LOGIN'), alertsOn: otp.on('EMAIL_ALERTS'), mailMissing: mail.missing(),
     step7: s7,
     sites: (sites || []).map(s => ({ code: s.code, name: s.name, company_id: s.company_id, status: s.status, sort: s.sort, address: s.address || '', contact_name: s.contact_name || '', contact_phone: s.contact_phone || '', step5: 'address' in s,
       ho: hoOf(s.rules), step6: 'rules' in s })), modules: mods || [], companies: comps || [], access: acc || [], storePages: STORE_PAGES };      // (29-10-2026) its workflow's Head Office choices (step 6)
