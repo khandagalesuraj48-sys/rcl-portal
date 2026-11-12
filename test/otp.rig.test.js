@@ -71,7 +71,7 @@ test('"verify my e-mail": a code to HIS address only; wrong 5 times ends it; rig
   ago(m('ravi'), 61); r = await auth(A, 'verifySend'); assert.strictEqual(r.status, 200); const c2 = codeTo(m('ravi')); ago(m('ravi'), 61); r = await auth(A, 'verifySend'); const c3 = codeTo(m('ravi')); assert.strictEqual(r.status, 200);
   if (c2 !== c3) { r = await auth(A, 'verifyCheck', { code: c2 }); assert.strictEqual(r.status, 400, 'the code before the newest is ended'); }
   r = await auth(A, 'verifyCheck', { code: ' ' + c3.slice(0, 3) + ' ' + c3.slice(3) }); assert.deepStrictEqual([r.status, r.j.verified], [200, true]);
-  assert.deepStrictEqual((await auth(A, 'me')).j.email, { verified: true, canVerify: true, remind: true }); assert.strictEqual(sql(`select count(*) from audit where actor = '${m('ravi')}' and action = 'Email verified'`), '1');
+  assert.deepStrictEqual((await auth(A, 'me')).j.email, { verified: true, canVerify: true, remind: true, login: m('ravi') }); assert.strictEqual(sql(`select count(*) from audit where actor = '${m('ravi')}' and action = 'Email verified'`), '1');
   r = await auth(A, 'verifyCheck', { code: c3 }); assert.deepStrictEqual(r.j, { ok: true, verified: true }, 'already verified: nothing more');
   // the mail service refuses: said, nothing verified
   const B = await signIn(ON, m('asha')); mailFails = true; r = await auth(B, 'verifySend'); mailFails = false; assert.deepStrictEqual([r.status, r.j.code], [502, 'mail']); assert.strictEqual((await auth(B, 'me')).j.email.verified, false);
@@ -121,4 +121,42 @@ test('the reminder: shown while the e-mail is not verified, counted at most once
   r = await auth(B, 'me'); assert.deepStrictEqual([r.j.signedIn, r.j.email.verified], [true, false]); assert.strictEqual(sql(`select email_alerts from users where email = '${m('asha')}'`), '8', 'well past five: still signed in, nothing closed');
   assert.strictEqual(sql(`select count(*) from audit where actor = '${m('asha')}' and action = 'Reminder shown: verify e-mail'`), '8');
   const A = await signIn(ON, m('ravi')); r = await auth(A, 'emailAlert'); assert.deepStrictEqual(r.j, { show: false, verified: true });
+});
+
+/* STEP 11 (his decision of 12-11-2026): the e-mail a user was made with is his USER ID for ever; the e-mail he types and verifies
+ * is the one he signs in with – from then on ONLY that one (password or code). Needs sql/portal_step11_login_email.sql on the rig. */
+test('his own e-mail beside his user ID: typed, verified with a code sent THERE – then only it signs in; the user ID stays everywhere', async () => {
+  const has11 = sql("select count(*) from information_schema.columns where table_name = 'users' and column_name = 'login_email'") === '1';
+  if (!has11) return;      // (the rig without step 11: the tests above have shown that everything works as before)
+  const h = await pw.make(OWN), id = m('pk'), real = m('pk.real'), id2 = m('second');
+  sql(`insert into users (email, name, password_hash, active) values ('${id}', 'Rig Pk', '${h}', true), ('${id2}', 'Rig Second', '${h}', true)`);
+  const A = await signIn(ON, id, '10.9.80.1'); let r = await auth(A, 'verifySend', { email: 'not an address' }); assert.deepStrictEqual([r.status, r.j.code], [400, 'email']);
+  // never another user's address – his user ID or his verified e-mail
+  r = await auth(A, 'verifySend', { email: id2 }); assert.deepStrictEqual([r.status, r.j.code], [409, 'taken']); r = await auth(A, 'verifySend', { email: m('ravi') }); assert.deepStrictEqual([r.status, r.j.code], [409, 'taken']);
+  const n0 = mails.length; r = await auth(A, 'verifySend', { email: ' ' + real.toUpperCase() + ' ' }); assert.deepStrictEqual([r.status, r.j.email], [200, real]);
+  assert.strictEqual(mails.length, n0 + 1); assert.deepStrictEqual(mails[mails.length - 1].to, [real], 'the code goes to the address he typed – not to his user ID');
+  assert.strictEqual(sql(`select send_to from otps where email = '${id}' order by id desc limit 1`), real);
+  // before the code is typed nothing has changed: the user ID still signs in, the new address does not
+  r = await auth(browser(ON, '10.9.80.2'), 'login', { email: real, password: OWN }); assert.strictEqual(r.status, 401); r = await auth(browser(ON, '10.9.80.2'), 'login', { email: id, password: OWN }); assert.strictEqual(r.status, 200);
+  // he changes his mind: another address – only the address of the NEWEST code can become his
+  const real2 = m('pk.own'); ago(id, 61); r = await auth(A, 'verifySend', { email: real2 }); assert.strictEqual(r.status, 200); const c = codeTo(real2);
+  r = await auth(A, 'verifyCheck', { code: c }); assert.deepStrictEqual([r.status, r.j.verified, r.j.login], [200, true, real2]);
+  assert.strictEqual(sql(`select email || '|' || login_email || '|' || (email_verified_at is not null) from users where email = '${id}'`), id + '|' + real2 + '|true', 'the user ID is not touched');
+  r = await auth(A, 'me'); assert.deepStrictEqual([r.j.user.email, r.j.email.login, r.j.signedIn], [id, real2, true], 'he stays signed in; every module still knows him by his user ID');
+  // from now on: only the verified e-mail signs in – with the password …
+  r = await auth(browser(ON, '10.9.80.3'), 'login', { email: id, password: OWN }); assert.deepStrictEqual([r.status, r.j.error], [401, 'Wrong email or password.'], 'the user ID no longer signs in');
+  const B = browser(ON, '10.9.80.3'); r = await auth(B, 'login', { email: real2.toUpperCase(), password: OWN }); assert.deepStrictEqual([r.status, r.j.user.email], [200, id], 'the sign-in is HIS account – the user ID');
+  assert.strictEqual(sql(`select count(*) from sessions where email = '${real2}'`), '0', 'no sign-in is ever kept under the typed address');
+  // … or with a code, which goes to the verified e-mail
+  const C = browser(ON, '10.9.80.4'), n1 = mails.length; await auth(C, 'otpSend', { email: id }); assert.strictEqual(mails.length, n1, 'asked with the user ID: no code');
+  await auth(C, 'otpSend', { email: real2 }); assert.strictEqual(mails.length, n1 + 1); assert.deepStrictEqual(mails[mails.length - 1].to, [real2]);
+  r = await auth(C, 'otpLogin', { email: id, code: codeTo(real2) }); assert.strictEqual(r.status, 401); r = await auth(C, 'otpLogin', { email: real2, code: codeTo(real2) }); assert.deepStrictEqual([r.status, r.j.user.email], [200, id]);
+  // a module's screen lock asks by the user ID: answered, and no sign-in is made
+  const s0 = sql(`select count(*) from sessions where email = '${id}'`); r = await auth(browser(ON, '10.9.80.5'), 'checkPassword', { email: id, password: OWN }); assert.deepStrictEqual([r.status, r.j], [200, { ok: true, checked: true }]);
+  r = await auth(browser(ON, '10.9.80.5'), 'checkPassword', { email: id, password: OWN + 'x' }); assert.strictEqual(r.status, 401); assert.strictEqual(sql(`select count(*) from sessions where email = '${id}'`), s0);
+  // nobody else can take his verified e-mail, and no new user can be made with it
+  const D = await signIn(ON, id2, '10.9.80.6'); r = await auth(D, 'verifySend', { email: real2 }); assert.deepStrictEqual([r.status, r.j.code], [409, 'taken']);
+  // a user who verifies the address he already has: it is his sign-in e-mail, as before
+  ago(id2, 61); r = await auth(D, 'verifySend', {}); assert.deepStrictEqual([r.status, r.j.email], [200, id2]); r = await auth(D, 'verifyCheck', { code: codeTo(id2) }); assert.strictEqual(r.j.login, id2);
+  r = await auth(browser(ON, '10.9.80.7'), 'login', { email: id2, password: OWN }); assert.strictEqual(r.status, 200);
 });

@@ -40,6 +40,7 @@ module.exports = handler(async (req, res) => {
     if (cur.is_super || other) throw fail(403, 'This person has other work in the ERP: his password is given only by the Super Admin (Portal → Users & Access).', 'other');
     if (!cur.active) throw fail(403, 'This user was switched off by the Super Admin – only he switches him on again.', 'off');
   } else if (name.length < 2) throw fail(400, 'This employee has no name.', 'name');
+  else if (await require('../lib/who').taken(email, '')) throw fail(409, 'This e-mail is already the sign-in e-mail of another user – put the employee\'s own e-mail in his record.', 'taken');      // (step 11)
   const temp = oneTime(), hash = 'tmp$' + await pw.make(temp);
   if (cur) { await db('PATCH', 'users?email=eq.' + enc(email), { password_hash: hash }, 'return=minimal'); await ses.endAll(email); }      // a new password: his sign-ins end now
   else await db('POST', 'users', [{ email: email, name: name, password_hash: hash, active: true }], 'return=minimal');
