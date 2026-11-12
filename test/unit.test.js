@@ -565,3 +565,8 @@ test('an employee\'s sign-in from HR (api/hrlogin.js): who may, the limit, the o
   const seen = new Set(); for (let i = 0; i < 200; i++) { const t = oneTime(); assert.match(t, /^[a-zA-Z2-9]{10}$/); assert.ok(/[A-Z]/.test(t) && /[a-z]/.test(t) && /\d/.test(t) && !/[0O1lI]/.test(t), t); seen.add(t); }
   assert.strictEqual(seen.size, 200);
 });
+
+test('HR once a site: "My HR" is left out of a person\'s list where he has the HR office\'s module', () => {
+  const src = fs.readFileSync(path.join(__dirname, '..', 'api', 'auth.js'), 'utf8');
+  assert.match(src, /return items\.filter\(x => !\(x\.module === 'hrme' && items\.some\(y => y\.site === x\.site && y\.module === 'hr'\)\)\);/);
+});
