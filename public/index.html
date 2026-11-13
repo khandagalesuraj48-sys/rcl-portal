@@ -691,6 +691,7 @@
       <button type="button" role="tab" data-t="wf" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3.5" width="6" height="5" rx="1.2"/><rect x="15" y="3.5" width="6" height="5" rx="1.2"/><rect x="9" y="15.5" width="6" height="5" rx="1.2"/><path d="M9 6h6M18 8.5v3.5H12v3.5"/></svg>Workflow</button>
       <button type="button" role="tab" data-t="companies" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="11" height="18" rx="1.5"/><path d="M15 9h4.5a.5.5 0 0 1 .5.5V21H15"/><path d="M8 7h3M8 11h3M8 15h3"/></svg>Companies</button>
       <button type="button" role="tab" data-t="modules" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Modules</button>
+      <button type="button" id="sa_rule" title="The Rule Book of HR: attendance, late, weekly off, leave, comp-off and overtime policies – opens in HR"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.500A1.500 1.500 0 0 1 6.500 3H19v15H6.500A1.500 1.500 0 0 0 5 19.500z"/><path d="M5 19.500A1.500 1.500 0 0 0 6.500 21H19"/><path d="M9 8h6M9 12h4"/></svg>Rule Book</button>
       <button type="button" role="tab" data-t="versions" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5-8 4.5-8-4.5z"/><path d="M4 12l8 4.5 8-4.5"/><path d="M4 16.5l8 4.5 8-4.5"/></svg>Versions</button>
       <button type="button" role="tab" data-t="ads" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M10 9l5 2.5-5 2.5z"/><path d="M8 21h8"/></svg>Advertise</button>
       <button type="button" role="tab" data-t="audit" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Activity</button>
@@ -1520,6 +1521,11 @@
     try { await api('/api/ads', { action: 'order', ids: ids }); await ads(); } catch (er) { fail(er); }
   });
   $('sa_tabs').addEventListener('click', e => { const b = e.target.closest('button[data-t]'); if (b) tab(b.dataset.t); });
+  /* (13-11-2026, his answer: "Rule Book – a page in HR; only the Super Admin edits; a button in the Portal for the Super Admin")
+   * THE RULE BOOK opens in HR, already signed in, on its own page – on the site chosen on the Dashboard when HR is open there,
+   * else on the first site that has HR. The policies are the same from whichever site it is opened. */
+  $('sa_rule').addEventListener('click', () => { const hr = ((S.me && S.me.items) || []).filter(i => i.module === 'hr'), it = hr.filter(i => i.site === S.daSite)[0] || hr[0];
+    if (!it) return toast('HR is not open on any site yet – give HR to a site first (Modules).', true); goOut(goLink(it) + '&page=rulebook'); });
   $('sa_out').addEventListener('click', signOut);
   // (14-10-2026) the Super Admin opens the modules too: every site, every live module, as its Admin – and back to the console
   const openMods = () => { params.set('menu', '1'); homeView(); };
