@@ -134,3 +134,15 @@ test('(13-11-2026, step 12) a MOBILE NUMBER signs in with the password; an emplo
   assert.ok(!sql(`select coalesce(string_agg(detail::text, ' '), '') from audit where action like 'Employee sign-in%' and target like '%${n}%'`).includes('@1234'), 'no password in the activity record');
   sql(`update users set mobile = null where email = '${m('store')}'`);
 });
+
+test('(13-11-2026) who has a sign-in: it only reads – "has", "off" or "none" for each person; only the HR Admin of the site or the Super Admin', async () => {
+  const A = await signIn(m('hradmin'), OWN), n = String(Date.now()).slice(-8), mob = '94' + n, before = sql('select count(*) from users') + '/' + sql('select count(*) from access') + '/' + sql('select count(*) from audit');
+  let r = await A.req('/api/hrlogin', { site: 'S1', email: '', mobile: mob, name: 'Chek ' + tag }); assert.strictEqual(r.status, 200, JSON.stringify(r.j));
+  const made = sql('select count(*) from users') + '/' + sql('select count(*) from access') + '/' + sql('select count(*) from audit'); assert.notStrictEqual(made, before);
+  r = await A.req('/api/hrlogin', { site: 'S1', check: [{ email: m('store') }, { mobile: '+91 ' + mob }, { email: m('off') }, { email: m('nobody'), mobile: '93' + n }, { known: mob + '@mobile.id', mobile: '92' + n }, {}, { email: 'not an e-mail' }] });
+  assert.deepStrictEqual([r.status, r.j.signins], [200, ['has', 'has', 'off', 'none', 'has', 'none', 'none']], JSON.stringify(r.j));
+  assert.strictEqual(sql('select count(*) from users') + '/' + sql('select count(*) from access') + '/' + sql('select count(*) from audit'), made, 'nothing is made, changed or written down');
+  r = await A.req('/api/hrlogin', { site: 'S1', check: [] }); assert.deepStrictEqual([r.status, r.j.code], [400, 'people']);
+  r = await A.req('/api/hrlogin', { site: 'S1', check: new Array(501).fill({}) }); assert.deepStrictEqual([r.status, r.j.code], [400, 'people']);
+  const U = await signIn(m('hruser'), OWN); r = await U.req('/api/hrlogin', { site: 'S1', check: [{ email: m('store') }] }); assert.deepStrictEqual([r.status, r.j.code], [403, 'role'], 'an HR User is not told');
+});

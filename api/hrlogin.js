@@ -89,6 +89,20 @@ module.exports = handler(async (req, res) => {
   if (!me.is_super && !((await db('GET', 'access?select=role&email=eq.' + enc(me.email) + '&site=eq.' + enc(site) + '&module=eq.' + HR + '&role=eq.admin')) || []).length) throw fail(403, 'Only the HR Admin of this site or the Super Admin gives an employee his sign-in.', 'role');
   if (!((await db('GET', 'modules?select=key&key=eq.' + SELF + '&status=eq.live')) || []).length) throw fail(400, 'The module "My HR" (key hrme) is not in the Portal yet – the Super Admin adds it under Modules (Live).', 'nomodule');
   const s12 = await W.step12();
+  /* (13-11-2026, the picture he approved: the column "Sign-in" in HR's list of employees) WHO HAS A SIGN-IN: it only READS – for each
+   * person of the list (his e-mail, his mobile number, the user ID kept from before): "has" (an active user), "off" (switched off by
+   * the Super Admin) or "none". Asked by the same people who may give a sign-in; nothing is made, changed or written down. */
+  if (Array.isArray(x.check)) {
+    if (!x.check.length || x.check.length > 500) throw fail(400, 'One to 500 people a call.', 'people');
+    const ids = new Set(), mobs = new Set(), rows = x.check.map(p => {
+      p = p || {}; const e = lc(p.email), email = e && EMAIL.test(e) && e.length <= 120 && !W.isMobileId(e) ? e : '', mobile = W.mobileOf(p.mobile), kid = W.isMobileId(lc(p.known)) ? lc(p.known) : '';
+      if (email) ids.add(email); if (kid) ids.add(kid); if (mobile) { ids.add(W.idFor(mobile)); mobs.add(mobile); } return { email: email, mobile: mobile, kid: kid };
+    });
+    const byId = {}, byMob = {}, list = v => 'in.(' + enc(v.map(t => '"' + t + '"').join(',')) + ')', parts = (set, n) => { const a = [...set], o = []; for (let i = 0; i < a.length; i += n) o.push(a.slice(i, i + n)); return o; };
+    for (const c of parts(ids, 40)) ((await db('GET', 'users?select=email,active&email=' + list(c))) || []).forEach(u => { byId[u.email] = u; });
+    if (s12) for (const c of parts(mobs, 80)) ((await db('GET', 'users?select=email,active,mobile&mobile=' + list(c))) || []).forEach(u => { byMob[u.mobile] = u; });
+    return send(res, 200, { ok: true, signins: rows.map(r => { const u = byId[r.email] || byMob[r.mobile] || byId[r.kid] || (r.mobile ? byId[W.idFor(r.mobile)] : null); return u ? (u.active ? 'has' : 'off') : 'none'; }) });
+  }
   if (Array.isArray(x.people)) {      // many at once: only new users are made
     if (!x.people.length || x.people.length > 25) throw fail(400, 'One to 25 people a call.', 'people');
     const out = [];
