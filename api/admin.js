@@ -354,6 +354,17 @@ const ACTIONS = {
     const warn = mod === 'store' && req ? await storeTell(req, me, site) : '';
     return Object.assign({ ok: true }, warn === 'NOTE9' ? { warn: note9(site) } : warn ? { warn: 'Saved. But the Store was not told who approves the requirements (' + warn + ').' } : {});
   },
+  /* (13-11-2026, asked: "HO ADMIN LA ALL SITE ACCESS KASA DEU … he banaw fkt portal sathi") ONE press: the role of a module on EVERY
+   * active site of today. It only GIVES (Admin / User) – it never takes an access away; a site made later gets its line as before. */
+  async accessSetAll(me, x, req) {
+    const role = String(x.role || '');
+    if (ROLES.indexOf(role) === -1) throw fail(400, 'All sites: choose Admin or User – an access is taken away site by site.');
+    const sites = ((await db('GET', 'sites?select=code&status=eq.active&order=sort')) || []).map(s => s.code);
+    if (!sites.length) throw fail(404, 'There is no active site.');
+    const done = [], warns = [];
+    for (const site of sites) { const r = await ACTIONS.accessSet(me, { email: x.email, site: site, module: x.module, role: role }, req); done.push(site); if (r && r.warn) warns.push(r.warn); }
+    return Object.assign({ ok: true, sites: done }, warns.length ? { warn: warns[0] } : {});
+  },
   async siteSave(me, x, req) {
     const code = String(x.code || '').trim().toUpperCase(), name = clean(x.name, 80), comp = clean(x.company, 40), status = String(x.status || 'active');
     // (29-10-2026) the site's address and its contact – the Store's papers (the PO's Shipping Address and Site Contact, the requirement's

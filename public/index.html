@@ -383,6 +383,7 @@
   .ua-none { color: var(--s-faint); font-size: 13px; }
   .ua-edit { display: none; flex-wrap: wrap; gap: 10px 12px; align-items: flex-end; }
   .ua-edit label.m { display: block; font-size: 11.5px; font-weight: 700; color: var(--s-muted); } .ua-edit label.m .sel-r { display: block; margin-top: 3px; min-width: 118px; }
+  .ua-edit label.ua-all { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--s-ink, #0F1F3D); padding-bottom: 8px; cursor: pointer; }
   .sa tr.edit .ua-edit, .sa tr[data-new] .ua-edit { display: flex; } .sa tr.edit .ua-chips, .sa tr[data-new] .ua-chips { display: none; }
   .sa tr .u-save, .sa tr .u-noedit { display: none; } .sa tr.edit .u-save, .sa tr.edit .u-noedit, .sa tr[data-new] .u-save { display: inline-flex; } .sa tr.edit .u-edit { display: none; }
   .ua-when { white-space: nowrap; color: var(--s-muted); font-size: 13px; }
@@ -1637,6 +1638,8 @@
       // his access on the chosen site: read as chips; "Change access" turns the row into its form (the same choices and Save as before)
       '<td><div class="ua-chips">' + (isNew ? '' : mods().filter(m => roleOf(m)).map(m => '<span class="ua-chip ' + (m.key === 'hrme' ? 'self' : roleOf(m)) + '">' + esc(m.name) + '<b>' + (m.key === 'hrme' ? 'Attendance only' : roleOf(m) === 'admin' ? 'Admin' : 'User') + '</b></span>').join('') || '<span class="ua-none">No access' + (S.mod ? ' to this module' : ' on this site') + '</span>') + '</div>' +
         '<div class="ua-edit">' + mods().map(m => '<label class="m">' + esc(m.name) + ROLE(isNew ? '' : roleOf(m), m.key, !S.site) + '</label>').join('') +
+          // (13-11-2026, asked: "HO ADMIN LA ALL SITE ACCESS KASA DEU") one tick: what is chosen here (Admin / User) is given on every active site
+          (S.site ? '<label class="ua-all" title="What is chosen here as Admin or User is given on every active site. It never takes an access away."><input type="checkbox" class="u-all"> All sites</label>' : '') +
           '<label class="sa-pw">' + IC.key + '<input class="u-pw" placeholder="' + (isNew ? 'one-time password' : 'Set password') + '" autocomplete="new-password" aria-label="One-time password"></label></div></td>' +
       '<td class="ua-when">' + (isNew ? '' : u.lastLogin ? esc(String(u.lastLogin).slice(0, 10).split('-').reverse().join('-')) : 'Never') + '</td>' +
       '<td><div class="sa-acts"><button class="sa-btn primary sm u-save" type="button">' + (isNew ? 'Add' : 'Save') + '</button>' +
@@ -1668,12 +1671,13 @@
       try {
         const pw1 = tr.querySelector('.u-pw').value, active = tr.querySelector('.u-active').checked;
         await api('/api/admin', { action: 'userSave', isNew: isNew, email: email, name: isNew ? tr.querySelector('.u-name').value : cur.name, active: active, newPassword: pw1 });
-        let warn = '';
+        let warn = '', allN = 0; const allBox = tr.querySelector('.u-all'), all = !!(allBox && allBox.checked);
         for (const sel of tr.querySelectorAll('.sel-r')) {
           const was = ((S.data.access.find(a => a.email === email && a.site === S.site && a.module === sel.dataset.m)) || {}).role || '';
-          if (S.site && sel.value !== was) { const r = await api('/api/admin', { action: 'accessSet', email: email, site: S.site, module: sel.dataset.m, role: sel.value }); if (r && r.warn) warn = r.warn; }
+          if (S.site && all && sel.value) { const r = await api('/api/admin', { action: 'accessSetAll', email: email, module: sel.dataset.m, role: sel.value }); if (r && r.warn) warn = r.warn; if (r && r.sites) allN = r.sites.length; }
+          else if (S.site && sel.value !== was) { const r = await api('/api/admin', { action: 'accessSet', email: email, site: S.site, module: sel.dataset.m, role: sel.value }); if (r && r.warn) warn = r.warn; }
         }
-        toast((isNew ? 'User added: ' : 'Saved: ') + email + (pw1 ? ' – tell him the one-time password.' : '') + (warn ? ' ' + warn : ''), !!warn);
+        toast((isNew ? 'User added: ' : 'Saved: ') + email + (allN ? ' – given on all ' + allN + ' sites.' : '') + (pw1 ? ' – tell him the one-time password.' : '') + (warn ? ' ' + warn : ''), !!warn);
         await load(); users();
       } catch (er) { fail(er); }
     });
