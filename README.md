@@ -162,6 +162,24 @@ typed, when it is in use, shows a 🎙 at its right end; the browser's own speec
 box the digits. Never in a password box. `vercel.json`: `microphone=(self)` (the camera and the place stay off). Tests: unit (the
 number cases, the block in the page, the rule); `test/voice.browser.test.js` 21/21; the rig's `test/browser.test.js` 34/34.
 
+## Sign-in with the mobile number; the first password by the name (13-11-2026; the Portal's step 12)
+Asked 13-11-2026: "login email plus mobile number – email war gela user tr otp jail … mobile number gela tr password ni login";
+"email mobile asel tr 2 type ni sign in hoil, 2 ni paiki ek asel tr ekach padhtine"; "system madhe … nasel tr login nahi";
+"employee name first letter capital baki small @ 1234 … first time"; "visrla tyala new temp pass … tewa wegla asel".
+* `sql/portal_step12_mobile.sql` – **run once by the owner in the Portal's Supabase**: one new column `users.mobile` (10 digits,
+  one number one user). Only adds. Until it is run everything is exactly as before; a mobile number is simply not known.
+* `api/auth.js` `login` – what is typed is the e-mail (as before: the verified one, else the user ID) **or the mobile number**
+  kept on the sign-in ("+91", a leading 0, spaces are not minded). With a number only the password opens – a code goes to an
+  e-mail. A number the Portal does not know opens nothing; the same answer and the same limits as a wrong password.
+* `api/hrlogin.js` – an employee gets his sign-in with his e-mail, his mobile number, or both. With an e-mail his user ID is
+  that e-mail; with a number only, his user ID is `<number>@mobile.invalid` (never a real address – no letter is ever sent to
+  it, no reminder to verify it; he may verify a real e-mail of his own later). **First password** = his first name, first letter
+  capital, + `@1234` (one-time: he sets his own at once); asked again for him (forgotten) = one made by chance, as before.
+  **Many at once** `{ site, rows }` (25 a request): a person without a sign-in gets one; a person who has one keeps his
+  password – only his number is brought up to date; no password comes back. The limits stay: never a person with other work
+  in the ERP, the Super Admin or a switched-off user.
+* The sign-in page: one box "Email or mobile number".
+
 ## Parts
 | Part | File |
 |---|---|
