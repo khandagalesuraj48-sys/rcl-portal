@@ -411,9 +411,9 @@ test('(11-11-2026, his pick "orbit 1 number mast aahe … screen white aswi" + t
   // sign-in works as before: the same form, boxes, button and helps
   const login = html.slice(html.indexOf('<section id="v_login"'), html.indexOf('</section>', html.indexOf('<section id="v_login"')));
   for (const id of ['f_login', 'l_msg', 'l_email', 'l_pass', 'l_eye', 'l_err', 'l_btn', 'l_rec', 'l_setup', 'l_setup_btn']) assert.match(login, new RegExp('id="' + id + '"'), id);
-  assert.match(login, /<input id="l_email" type="email" placeholder="Email" autocomplete="username" required>/);
+  assert.match(login, /<input id="l_email" type="text" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="Email or mobile number" autocomplete="username" required>/, '(step 12) an e-mail or a mobile number is typed here');
   assert.match(login, /<input id="l_pass" type="password" placeholder="Password" autocomplete="current-password" required>/);
-  assert.match(login, /<label class="sr" for="l_email">Email<\/label>/, 'the boxes keep their names for a screen reader');
+  assert.match(login, /<label class="sr" for="l_email">Email or mobile number<\/label>/, 'the boxes keep their names for a screen reader');
   assert.match(html, /await api\('\/api\/auth', \{ action: 'login', email: \$\('l_email'\)\.value\.trim\(\), password: \$\('l_pass'\)\.value \}\)/, 'the sign-in call unchanged');
   // the character: not in the way, not read aloud, told only a count of letters and whether the password is shown
   assert.match(login, /<div class="masc" id="l_masc" data-mood="idle" aria-hidden="true">/);
@@ -558,9 +558,19 @@ test('an employee\'s sign-in from HR (api/hrlogin.js): who may, the limit, the o
   const src = fs.readFileSync(path.join(__dirname, '..', 'api', 'hrlogin.js'), 'utf8'), { oneTime } = require('../api/hrlogin');
   assert.match(src, /sameSite\(req\);\n  const me = \(await ses\.need\(req, \{ ownPassword: true \}\)\)\.user/, 'the Portal page\'s own request, a person with his own password');
   assert.match(src, /if \(!me\.is_super && !\(\(await db\('GET', 'access\?select=role&email=eq\.' \+ enc\(me\.email\) \+ '&site=eq\.' \+ enc\(site\) \+ '&module=eq\.' \+ HR \+ '&role=eq\.admin'\)\)/, 'the Super Admin or the HR ADMIN of that site – not an HR User');
-  assert.match(src, /const other = \(\(await db\('GET', 'access\?select=module&email=eq\.' \+ enc\(email\) \+ '&module=neq\.' \+ SELF \+ '&limit=1'\)\) \|\| \[\]\)\.length > 0;\n    if \(cur\.is_super \|\| other\) throw fail\(403/, 'never a person with other work, never the Super Admin');
-  assert.match(src, /if \(!cur\.active\) throw fail\(403/); assert.match(src, /hash = 'tmp\$' \+ await pw\.make\(temp\)/); assert.match(src, /await ses\.endAll\(email\);/);
-  assert.match(src, /\{ email: email, site: site, module: SELF, role: 'user', granted_by: me\.email \}/, 'only "My HR", as a user');
+  assert.match(src, /const other = \(\(await db\('GET', 'access\?select=module&email=eq\.' \+ enc\(cur\.email\) \+ '&module=neq\.' \+ SELF \+ '&limit=1'\)\) \|\| \[\]\)\.length > 0;\n    if \(cur\.is_super \|\| other\) throw fail\(403/, 'never a person with other work, never the Super Admin');
+  assert.match(src, /if \(!cur\.active\) throw fail\(403/); assert.match(src, /password_hash: 'tmp\$' \+ await pw\.make\(temp\)/); assert.match(src, /await ses\.endAll\(id\);/);
+  assert.match(src, /\{ email: id, site: site, module: SELF, role: 'user', granted_by: me\.email \}/, 'only "My HR", as a user');
+  // (13-11-2026, step 12) the first password by the rule; many at once never change a password; a number is one user's
+  const { firstPassword } = require('../api/hrlogin'), W = require('../lib/who');
+  assert.deepStrictEqual(['ramesh suresh patil', 'SUNITA', 'a b', ''].map(firstPassword), ['Ramesh@1234', 'Sunita@1234', null, null]);
+  assert.match(src, /if \(!bulk\) \{ temp = oneTime\(\); await db\('PATCH', 'users\?email=eq\.' \+ enc\(id\), \{ password_hash: 'tmp\$' \+ await pw\.make\(temp\) \}/, 'only one person at a time gets a new one-time password');
+  assert.match(src, /if \(!x\.people\.length \|\| x\.people\.length > 25\) throw fail\(400/); assert.match(src, /out\.push\(\{ state: r\.state, id: r\.id, first: r\.first, mobile: r\.mobile \}\);/, 'no password in the answer for many');
+  assert.deepStrictEqual([W.mobileOf('+91 98765-43210'), W.mobileOf('5876543210'), W.mobileOf('x@y.co'), W.idFor('9876543210'), W.isMobileId('9876543210@mobile.id'), W.isMobileId('a@mobile.id')], ['9876543210', '', '', '9876543210@mobile.id', true, false]);
+  const auth = fs.readFileSync(path.join(__dirname, '..', 'api', 'auth.js'), 'utf8');
+  assert.match(auth, /const u = mob \? await W\.byMobile\(mob, 'email,name,password_hash,active,is_super'\) : await W\.who\(email, 'email,name,password_hash,active,is_super'\)/, 'a number opens the account it was put on – with the same password check');
+  const sql12 = fs.readFileSync(path.join(__dirname, '..', 'sql', 'portal_step12_mobile.sql'), 'utf8').replace(/^--.*$/gm, '');
+  assert.ok(!/\b(drop|delete|truncate|update)\b/i.test(sql12), 'step 12 only adds'); assert.match(sql12, /add column if not exists mobile text;/); assert.match(sql12, /create unique index if not exists users_mobile on public\.users \(mobile\) where mobile is not null;/);
   assert.ok(!/audit\([^\n]*temp/.test(src), 'the password is never written in the activity record');
   const seen = new Set(); for (let i = 0; i < 200; i++) { const t = oneTime(); assert.match(t, /^[a-zA-Z2-9]{10}$/); assert.ok(/[A-Z]/.test(t) && /[a-z]/.test(t) && /\d/.test(t) && !/[0O1lI]/.test(t), t); seen.add(t); }
   assert.strictEqual(seen.size, 200);

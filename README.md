@@ -302,3 +302,23 @@ His rules of 12-11-2026. **The password sign-in is unchanged.** Beside it, when 
 * Not built (his decision): changing the user ID itself, changing a verified e-mail again, any block.
 * Tests: `test/otp.rig.test.js` (its own two Portal servers and a stand-in for the mail service – no real e-mail), the unit test.
 
+
+## A mobile number signs in too (13-11-2026 – the Portal's step 12)
+Asked 13-11-2026: "login email plus mobile number … email war gela user tr otp jail … mobile number gela tr password ni login … 2 ni
+paiki ek asel tr ekach padhtine hoil … system madhe email n mobile nasel tr login nahi ha strict rule"; the first password
+"employee name first letter capital baki name small @ 1234"; a forgotten one "tewa wegla asel".
+* `sql/portal_step12_mobile.sql` – **run once by the owner in the Portal's Supabase** (after step 11): ONE new column,
+  `users.mobile` (ten digits beginning 6–9; one number = one user). Only adds. Until it is run everything is as before: nobody
+  signs in with a number, and HR gives a sign-in only to an employee with an e-mail.
+* `api/auth.js` `login` – what is typed is an e-mail or a mobile number (spaces, dashes, +91 / 0 in front are taken off). A
+  number opens the account of the user it was put on, with his **password** – the same check, the same limits. A code
+  (`otpSend` / `otpLogin`) goes only to an e-mail. An unknown number or e-mail: the same "wrong" answer – no sign-in.
+* `api/hrlogin.js` – an employee has an e-mail, a mobile number, or both (at least one). His number is put on his user; with
+  no e-mail his user ID is made of his number (`<number>@mobile.id` – a name for the modules, never an address: no mail goes
+  to it and he is not reminded every hour to verify it). The **first** password of a new user is his first name, a capital
+  first, then `@1234` – a one-time password (his own at the first sign-in); a forgotten one is a one-time password by chance,
+  as before. `{ site, people: […] }` (25 a call) makes the users of many at once – **only new users**, nobody's password is
+  changed, no password in the answer. The limit stays: never a person with other work in the ERP, the Super Admin or a
+  switched-off user.
+* The sign-in page: one box "Email or mobile number". The phone app's sign-in box: with its next release.
+* Tests: `test/hrlogin.rig.test.js` (the local rig), the unit test.
