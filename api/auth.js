@@ -106,7 +106,7 @@ const ACTIONS = {
     /* (step 11; "user tyacha email change kru shakel … verify dabel otp yel") the address he types – his own, real one; his user
      * ID stays as it is. Never an address that is another user's (his user ID or his verified e-mail). */
     const to = lc(x && x.email).slice(0, 120) || u.email;
-    if (!EMAIL.test(to)) throw fail(400, 'Type your own e-mail address.', 'email');
+    if (!EMAIL.test(to) || W.noMail(to)) throw fail(400, 'Type your own e-mail address.', 'email');
     if (to !== u.email) {
       if (!e.step11) throw fail(500, 'Another e-mail than your user ID needs the Portal\'s database step 11 first: sql/portal_step11_login_email.sql – tell the Super Admin.', 'nostep');
       if (await W.taken(to, u.email)) throw fail(409, 'This e-mail is already another user\'s. Type your own.', 'taken');
@@ -139,7 +139,7 @@ const ACTIONS = {
    * page / app; the count is moved on at most once an hour, in the database (two phones in the same hour count once). */
   async emailAlert(req) {
     const s = await ses.read(req);
-    if (!s || s.user.is_super || !otp.on('EMAIL_ALERTS') || pw.mustChange(s.user.password_hash)) return { body: { show: false } };
+    if (!s || s.user.is_super || !otp.on('EMAIL_ALERTS') || pw.mustChange(s.user.password_hash) || W.noMail(s.user.email)) return { body: { show: false } };      // (step 12) a person who signs in with his mobile number has no e-mail to be reminded of
     const e = await emailOf(s.user.email); if (!e || e.verified) return { body: { show: false, verified: e ? true : undefined } };
     const now = Date.now(), hour = new Date(now - 3600000).toISOString();
     let n = e.alerts;
@@ -152,16 +152,19 @@ const ACTIONS = {
     return { body: { show: true, verified: false, alerts: n, canVerify: otp.on('OTP_LOGIN') } };
   },
   async login(req, x) {
-    const email = lc(x.email).slice(0, 120), password = String(x.password || '');
-    if (!EMAIL.test(email) || !password) throw fail(400, 'Enter your email and password.');
+    /* (step 12, asked 13-11-2026) what is typed is his e-mail OR his mobile number – with a mobile number only the password opens
+     * (a code goes to an e-mail). The number must be the one kept on his sign-in; the same limits, the same answer for a wrong
+     * number as for a wrong password. */
+    const mob = W.mobile(x.email), email = mob || lc(x.email).slice(0, 120), password = String(x.password || '');
+    if ((!mob && !EMAIL.test(email)) || !password) throw fail(400, 'Enter your email or mobile number, and your password.');
     const lim = await ses.limit(email);
     // (step 11) the e-mail he signs in with: the one he verified – else, while nothing is verified, his user ID
-    const u = await W.who(email, 'email,name,password_hash,active,is_super'), id = u ? u.email : email;
+    const cols = 'email,name,password_hash,active,is_super', u = mob ? await W.byMobile(mob, cols) : await W.who(email, cols), id = u ? u.email : email;
     const good = !!u && u.active && !!u.password_hash && await pw.check(password, u.password_hash);
     if (!good) {
       if (!u) await pw.dummy(password);
-      await audit(email, 'Login failed', '', { why: !u ? 'unknown email' : !u.active ? 'not active' : 'wrong password' });
-      throw fail(401, 'Wrong email or password.', 'wrong');
+      await audit(email, 'Login failed', '', { why: !u ? (mob ? 'unknown mobile number' : 'unknown email') : !u.active ? 'not active' : 'wrong password' });
+      throw fail(401, mob ? 'Wrong mobile number or password.' : 'Wrong email or password.', 'wrong');
     }
     await lim.right();
     // kept afresh with today's settings (the person notices nothing; a plain password written by hand becomes a one-time one)
@@ -173,7 +176,7 @@ const ACTIONS = {
     }
     const cookie = await ses.create(req, id);
     await db('PATCH', 'users?email=eq.' + enc(id), { last_login_at: new Date().toISOString() }, 'return=minimal');
-    await audit(id, 'Login', '', null);
+    await audit(id, 'Login', '', mob ? { how: 'mobile number' } : null);
     return { body: { user: { email: u.email, name: u.name, super: !!u.is_super }, mustChange: pw.mustChange(stored) }, headers: { 'Set-Cookie': cookie } };
   },
   /* A MODULE ASKS "IS THIS HIS PASSWORD?" (step 11 – Mechanical's screen lock, server/portal.js): asked by his USER ID, which a
@@ -203,7 +206,7 @@ const ACTIONS = {
     const st = items.length ? await startOf(u.email) : null, start = st === null ? '' : st;
     const em = u.is_super ? null : await emailOf(u.email);      // (step 10) his e-mail: verified or not; null = not asked of him / step 10 not run
     return { body: { signedIn: true, preview: isPreview() || undefined, user: { email: u.email, name: u.name, super: !!u.is_super, tester: (await BETA.isTester(u.email)) || undefined }, mustChange: must, items: items,
-      email: em ? { verified: em.verified, canVerify: otp.on('OTP_LOGIN'), remind: otp.on('EMAIL_ALERTS'), login: em.verified ? em.login || u.email : undefined } : undefined,
+      email: em ? { verified: em.verified, canVerify: otp.on('OTP_LOGIN'), remind: otp.on('EMAIL_ALERTS') && !W.noMail(u.email), login: em.verified ? em.login || u.email : undefined } : undefined,
       start: items.some(i => i.module + '|' + i.site === start) ? start : '', startReady: st !== null } };
   },
   // "My start": the module (on a site) that opens straight after his sign-in – one of his own; empty = the dashboard
