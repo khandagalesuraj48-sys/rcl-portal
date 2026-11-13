@@ -106,7 +106,7 @@ const ACTIONS = {
     /* (step 11; "user tyacha email change kru shakel … verify dabel otp yel") the address he types – his own, real one; his user
      * ID stays as it is. Never an address that is another user's (his user ID or his verified e-mail). */
     const to = lc(x && x.email).slice(0, 120) || u.email;
-    if (!EMAIL.test(to)) throw fail(400, 'Type your own e-mail address.', 'email');
+    if (!EMAIL.test(to) || W.isMobileId(to)) throw fail(400, 'Type your own e-mail address.', 'email');      // (step 12: a user ID made of a mobile number is not an address)
     if (to !== u.email) {
       if (!e.step11) throw fail(500, 'Another e-mail than your user ID needs the Portal\'s database step 11 first: sql/portal_step11_login_email.sql – tell the Super Admin.', 'nostep');
       if (await W.taken(to, u.email)) throw fail(409, 'This e-mail is already another user\'s. Type your own.', 'taken');
@@ -141,6 +141,7 @@ const ACTIONS = {
     const s = await ses.read(req);
     if (!s || s.user.is_super || !otp.on('EMAIL_ALERTS') || pw.mustChange(s.user.password_hash)) return { body: { show: false } };
     const e = await emailOf(s.user.email); if (!e || e.verified) return { body: { show: false, verified: e ? true : undefined } };
+    if (W.isMobileId(s.user.email)) return { body: { show: false } };      // (step 12) he signs in with his mobile number – he is not asked every hour for an e-mail he may not have
     const now = Date.now(), hour = new Date(now - 3600000).toISOString();
     let n = e.alerts;
     if (!e.at || Date.parse(e.at) <= now - 3600000) {
@@ -152,16 +153,18 @@ const ACTIONS = {
     return { body: { show: true, verified: false, alerts: n, canVerify: otp.on('OTP_LOGIN') } };
   },
   async login(req, x) {
-    const email = lc(x.email).slice(0, 120), password = String(x.password || '');
-    if (!EMAIL.test(email) || !password) throw fail(400, 'Enter your email and password.');
+    /* (step 12, 13-11-2026) what is typed is an E-MAIL or a MOBILE NUMBER: a number opens the account of the user it was put on
+     * (by HR) – with his password; an e-mail exactly as before. Neither known to the Portal: no sign-in ("ha strict rule"). */
+    const mob = W.mobileOf(x.email), email = mob || lc(x.email).slice(0, 120), password = String(x.password || '');
+    if ((!mob && !EMAIL.test(email)) || !password) throw fail(400, 'Enter your email or mobile number, and your password.');
     const lim = await ses.limit(email);
     // (step 11) the e-mail he signs in with: the one he verified – else, while nothing is verified, his user ID
-    const u = await W.who(email, 'email,name,password_hash,active,is_super'), id = u ? u.email : email;
+    const u = mob ? await W.byMobile(mob, 'email,name,password_hash,active,is_super') : await W.who(email, 'email,name,password_hash,active,is_super'), id = u ? u.email : email;
     const good = !!u && u.active && !!u.password_hash && await pw.check(password, u.password_hash);
     if (!good) {
       if (!u) await pw.dummy(password);
-      await audit(email, 'Login failed', '', { why: !u ? 'unknown email' : !u.active ? 'not active' : 'wrong password' });
-      throw fail(401, 'Wrong email or password.', 'wrong');
+      await audit(email, 'Login failed', '', { why: !u ? (mob ? 'unknown mobile number' : 'unknown email') : !u.active ? 'not active' : 'wrong password' });
+      throw fail(401, mob ? 'Wrong mobile number or password.' : 'Wrong email or password.', 'wrong');
     }
     await lim.right();
     // kept afresh with today's settings (the person notices nothing; a plain password written by hand becomes a one-time one)
@@ -173,7 +176,7 @@ const ACTIONS = {
     }
     const cookie = await ses.create(req, id);
     await db('PATCH', 'users?email=eq.' + enc(id), { last_login_at: new Date().toISOString() }, 'return=minimal');
-    await audit(id, 'Login', '', null);
+    await audit(id, 'Login', '', mob ? { how: 'mobile number' } : null);
     return { body: { user: { email: u.email, name: u.name, super: !!u.is_super }, mustChange: pw.mustChange(stored) }, headers: { 'Set-Cookie': cookie } };
   },
   /* A MODULE ASKS "IS THIS HIS PASSWORD?" (step 11 – Mechanical's screen lock, server/portal.js): asked by his USER ID, which a
