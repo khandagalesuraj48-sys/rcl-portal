@@ -143,6 +143,19 @@ const SAPW = 'Super#Admin2040', PW = 'Nashik#Road848!', VPW = 'Audit#PassView9!x
   ok('   Ravi gets Mechanical on 18B as User', r.status === 200, r.j);
   r = await S.req('/api/admin', { action: 'accessSet', email: 'sa@rcl.test', site: 'S1', module: 'mechanical', role: 'user' });
   ok('   the Super Admin cannot be given a module', r.status === 400, r.j);
+  // (13-11-2026) "All sites": the role on every ACTIVE site of today – it only gives
+  { const act = Number(sql('rcl_portal', "select count(*) from sites where status = 'active'")), before = sql('rcl_portal', "select count(*) from access where email <> 'ravi@portal.test'");
+    r = await S.req('/api/admin', { action: 'accessSetAll', email: 'ravi@portal.test', module: 'mechanical', role: '' });
+    ok('   All sites: "No access" is refused (it never takes away)', r.status === 400 && /All sites/.test(r.j.error), r.j);
+    r = await S.req('/api/admin', { action: 'accessSetAll', email: 'sa@rcl.test', module: 'mechanical', role: 'admin' });
+    ok('   All sites: not for the Super Admin', r.status === 400, r.j);
+    r = await S.req('/api/admin', { action: 'accessSetAll', email: 'ravi@portal.test', module: 'mechanical', role: 'user' });
+    ok('   All sites: Ravi is User of Mechanical on every active site (' + act + ')', r.status === 200 && r.j.sites.length === act && act > 1 &&
+      Number(sql('rcl_portal', "select count(*) from access a join sites s on s.code = a.site where a.email = 'ravi@portal.test' and a.module = 'mechanical' and a.role = 'user' and s.status = 'active'")) === act, r.j);
+    ok('   All sites: nobody else\'s access and no closed site is touched', sql('rcl_portal', "select count(*) from access where email <> 'ravi@portal.test'") === before &&
+      sql('rcl_portal', "select count(*) from access a join sites s on s.code = a.site where a.email = 'ravi@portal.test' and s.status <> 'active'") === '0');
+    for (const st of r.j.sites) if (st !== '18B') await S.req('/api/admin', { action: 'accessSet', email: 'ravi@portal.test', site: st, module: 'mechanical', role: '' });      // (as it was for the tests below: taken away site by site)
+    ok('   …and taken away again site by site: only 18B is left', sql('rcl_portal', "select string_agg(site, ',') from access where email = 'ravi@portal.test'") === '18B'); }
   r = await S.req('/api/admin', { action: 'userSave', email: 'sa@rcl.test', name: 'X', active: false });
   ok('   nor be switched off from the users list', r.status === 400, r.j);
 
