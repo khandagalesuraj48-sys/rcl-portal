@@ -304,6 +304,13 @@
   small.up { color: var(--s-green); } small.down { color: var(--s-red); }
   /* filters */
   .sa-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; margin-bottom: 14px; }
+  .sa tr[data-new] > td { background: #F6F9FF; padding: 16px 18px; white-space: normal; }
+  .nu h3 { margin: 0 0 12px; font-size: 16px; } .nu-g { display: grid; grid-template-columns: 1.3fr 1fr 1fr auto; gap: 12px 16px; align-items: start; }
+  .nu label, .nu-st > span, .nu-h { display: block; font-size: 12px; font-weight: 700; color: var(--s-muted); } .nu-g input:not([type=checkbox]) { display: block; width: 100%; height: 42px; margin-top: 5px; border: 1px solid #D7E0EF; border-radius: 10px; padding: 0 12px; background: #fff; font-size: 14.5px; font-weight: 500; color: inherit; }
+  .nu-g input:focus { outline: 2px solid #1D4ED8; outline-offset: 1px; } .nu small { display: block; margin-top: 4px; font-weight: 500; font-size: 11.5px; } .nu-st .sa-pill { display: inline-flex; margin-top: 12px; }
+  .nu-acc { margin-top: 14px; padding-top: 12px; border-top: 1px solid #E3EAF6; } .nu-mods { display: flex; flex-wrap: wrap; gap: 10px 14px; margin: 8px 0 4px; } .nu-mods label.m .sel-r { display: block; margin-top: 4px; min-width: 132px; height: 38px; }
+  .nu .ua-all { display: inline-flex; align-items: center; gap: 8px; padding: 8px 0 0; white-space: nowrap; font-size: 13px; color: inherit; } .nu .ua-all input { width: 18px; height: 18px; flex: none; margin: 0; } .nu-acts { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+  @media (max-width: 900px) { .nu-g { grid-template-columns: 1fr; } }
   /* (12-11-2026) Users & Access: the site and the module as buttons with their counts, the three lists, access as small chips */
   /* (12-11-2026, his word: "ALL APROVED") the other pages of the console in the same look: cards instead of rows of boxes */
   .sa-card.flat { background: none; border: 0; box-shadow: none; padding: 0; }
@@ -1588,6 +1595,7 @@
   function users() {
     const d = S.data; if (!d) return;
     const sites = d.sites; S.site = sites.some(s => s.code === S.site) ? S.site : (sites[0] || {}).code || '';
+    if (S.site && d.access.some(x => x.site === S.site && x.module === 'mechanical' && x.role === 'user')) mechPagesOf(S.site).catch(() => { /* said when a user is opened */ });      // asked ahead
     $('u_site').innerHTML = sites.map(s => '<option value="' + esc(s.code) + '"' + (s.code === S.site ? ' selected' : '') + '>' + esc(s.name) + ' (' + esc(s.code) + ')' + (s.status === 'closed' ? ' – closed' : '') + '</option>').join('') || '<option value="">– no site yet –</option>';
     S.mod = d.modules.some(m => m.key === S.mod) ? S.mod : '';
     $('u_mod').innerHTML = '<option value="">All modules</option>' + d.modules.map(m => '<option value="' + esc(m.key) + '"' + (m.key === S.mod ? ' selected' : '') + '>' + esc(m.name) + (m.status !== 'live' ? ' – off' : '') + '</option>').join('');
@@ -1629,7 +1637,19 @@
   function row(u, isNew, n) {
     const d = S.data, roleOf = m => ((d.access.find(a => a.email === u.email && a.site === S.site && a.module === m.key)) || {}).role || '';
     const on = u.active !== false;
-    return '<tr data-email="' + esc(u.email) + '"' + (isNew ? ' data-new="1"' : on ? '' : ' class="off"') + '>' +
+    /* (13-11-2026, his picture: "new user banwatana kiti adchan aahe") A NEW USER is its own form across the table – every box with
+     * its name and its room – instead of boxes squeezed into the columns of the list. The same boxes and the same Add as before. */
+    if (isNew) return '<tr data-email="" data-new="1"><td colspan="7"><div class="nu"><h3>New user</h3>' +
+      '<div class="nu-g"><label>Email *<input class="u-email" type="email" placeholder="name@example.com" autocomplete="off" spellcheck="false"></label>' +
+        '<label>Name *<input class="u-name" placeholder="Full name" maxlength="80" autocomplete="off"></label>' +
+        '<label>One-time password *<input class="u-pw" placeholder="At least 6 characters" autocomplete="new-password"><small>He must set his own password at the first sign-in.</small></label>' +
+        '<div class="nu-st"><span>Status</span><label class="sa-pill on"><input type="checkbox" class="u-active" checked aria-label="Active"><span>Active</span></label></div></div>' +
+      '<div class="nu-acc"><span class="nu-h">Access' + (S.site ? ' on ' + esc(((d.sites || []).find(x => x.code === S.site) || {}).name || S.site) : '') + '</span>' +
+        (S.site ? '<div class="nu-mods">' + mods().map(m => '<label class="m">' + esc(m.name) + ROLE('', m.key, false) + '</label>').join('') + '</div>' +
+          '<label class="ua-all" title="What is chosen here as Admin or User is given on every active site. It never takes an access away."><input type="checkbox" class="u-all"> All sites</label>'
+          : '<p class="note">Choose a site above to give access now – or add the user first and give access later.</p>') + '</div>' +
+      '<div class="nu-acts"><button class="sa-btn u-cancel" type="button">Cancel</button><button class="sa-btn primary u-save" type="button">Add user</button></div></div></td></tr>';
+    return '<tr data-email="' + esc(u.email) + '"' + (on ? '' : ' class="off"') + '>' +
       '<td class="num">' + (isNew ? '+' : n) + '</td>' +
       '<td class="w">' + (isNew ? '<input class="u-email" type="email" placeholder="email" aria-label="Email"><input class="u-name" placeholder="name" aria-label="Name" style="margin-top:4px">'
         : '<div class="sa-user">' + av(u.name, u.email) + '<div><button type="button" class="u-pages" data-email="' + esc(u.email) + '" title="Module access of this user">' + esc(u.name) + '</button>' + (u.tester ? '<span class="sa-pill beta" title="Tester – opens the beta (new) versions">Beta</span>' : '') + '<small>' + esc(u.email) + (u.mustChange ? ' · must set password' : '') + (u.noPassword ? ' · no password yet' : '') + (u.emailVerified === true ? ' · <span title="E-mail verified with a code">Email Verified ✓</span>' : u.emailVerified === false ? ' · <span title="E-mail not verified yet">Email Pending</span>' : '') + (u.loginEmail ? '<br>Signs in with: ' + esc(u.loginEmail) : '') + '</small></div></div>') + '</td>' +
@@ -1738,6 +1758,14 @@
       '<div class="sa-dsg">' + DS_PAGES.map(([pg, label]) => { const l = dsrc && Array.isArray(dsrc[pg]) ? dsrc[pg] : null;
         return '<div class="sa-pgc"><span class="t">' + pgIcon(pg) + esc(label) + '</span><div class="sa-dsl">' + places.map(n => '<label class="sa-chk"><input type="checkbox" class="ds-chk" data-pg="' + esc(pg) + '" value="' + esc(n) + '"' + (!l || l.indexOf(n) > -1 ? ' checked' : '') + '>' + esc(n) + '</label>').join('') + '</div></div>'; }).join('') + '</div>';
   }
+  /* (13-11-2026, his picture "Loading the pages…": "acess deyla gelo tr pages pn lawakar load hot nahit") THE PAGES OF MECHANICAL ARE ASKED
+   * AHEAD: the moment the users of a site are on the screen (Mechanical is asked once for the site – it answers for all its users),
+   * so a user's "Module Access" opens with them there. Kept one minute in the page's memory only; a save throws it away. */
+  function mechPagesOf(site) {
+    const c = S.mp && S.mp[site]; if (c && Date.now() - c.at < 60000) return c.p;
+    const p = api('/api/admin', { action: 'mechPages', site: site }); (S.mp || (S.mp = {}))[site] = { at: Date.now(), p: p };
+    p.catch(() => { if (S.mp[site] && S.mp[site].p === p) delete S.mp[site]; }); return p;
+  }
   async function userPages(email, site, siteName) {
     const box = $('pg_access'), roleOf = m => ((S.data.access.find(a => a.email === email && a.site === site && a.module === m)) || {}).role || '';
     const mRole = roleOf('mechanical'), sRole = roleOf('store'), parts = [];
@@ -1745,7 +1773,7 @@
     if (!mRole) mech = '<p class="note">No Mechanical on ' + esc(siteName) + ' – give him <b>User</b> (or Admin) in the users list first.</p>';
     else if (mRole === 'admin') mech = '<p class="note"><b>Admin</b> has Edit on every page. To give single pages, make him <b>User</b> in the users list and save, then open this again.</p>';
     else {
-      let d; try { d = await api('/api/admin', { action: 'mechPages', site: site }); } catch (er) { mech = '<p class="err">' + esc(msgOf(er)) + '</p>'; }
+      let d; try { d = await mechPagesOf(site); } catch (er) { mech = '<p class="err">' + esc(msgOf(er)) + '</p>'; }
       if (S.uOpen !== email || S.site !== site) return;
       if (d) { const mu = (d.users || []).find(x => x.email === email);
         mech = (mu ? '' : '<p class="note">He has not opened Mechanical on this site yet – the pages saved here are ready for his first sign-in.</p>') +
@@ -1777,7 +1805,7 @@
     const perms = {}, pages = {}; document.querySelectorAll('#pg_panel .pg-sel[data-g="mech"]').forEach(x => { perms[x.dataset.k] = x.value; }); document.querySelectorAll('#pg_panel .pg-sel[data-g="store"]').forEach(x => { pages[x.dataset.k] = x.value; });
     busy(b, 'Saving…', async () => { try { const said = [];
       const sources = {}; if (S.dsShown) DS_PAGES.forEach(([pg]) => { sources[pg] = [...document.querySelectorAll('#pg_panel .ds-chk')].filter(x => x.dataset.pg === pg && x.checked).map(x => x.value); });
-      if (Object.keys(perms).length) { const r = await api('/api/admin', Object.assign({ action: 'mechPagesSave', site: b.dataset.site, email: b.dataset.email, perms: perms }, S.dsShown ? { sources: sources } : {})); said.push(r.changes ? 'Pages saved in Mechanical.' : Object.keys(pages).length ? '' : 'Saved – nothing had changed.'); }
+      if (Object.keys(perms).length) { const r = await api('/api/admin', Object.assign({ action: 'mechPagesSave', site: b.dataset.site, email: b.dataset.email, perms: perms }, S.dsShown ? { sources: sources } : {})); if (S.mp) delete S.mp[b.dataset.site]; said.push(r.changes ? 'Pages saved in Mechanical.' : Object.keys(pages).length ? '' : 'Saved – nothing had changed.'); }
       let warn = '';
       if (Object.keys(pages).length) { const r = await api('/api/admin', { action: 'storePagesSave', site: b.dataset.site, email: b.dataset.email, pages: pages }); said.push('Store pages saved.'); if (r && r.warn) warn = r.warn; await load(); }
       toast(warn || said.filter(Boolean).join(' ') || 'Nothing to save.', !!warn); userClose(); users(); } catch (er) { fail(er); } });
