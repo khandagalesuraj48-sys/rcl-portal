@@ -322,3 +322,26 @@ paiki ek asel tr ekach padhtine hoil … system madhe email n mobile nasel tr lo
   switched-off user.
 * The sign-in page: one box "Email or mobile number". The phone app's sign-in box: with its next release.
 * Tests: `test/hrlogin.rig.test.js` (the local rig), the unit test.
+
+
+## The brand – "Sketchline Lion", changed by the Super Admin (14-11-2026 – the Portal's step 13)
+Asked 14-11-2026: "aple app ch name change kraych aahe ani logo pn – Sketchline Lion … app aso web aso … ata super admin multiple
+changes kru shakel, pratek weli code change krne garjech nahi … RCL ha Sketchline cha client aasel, login zale nantr Sketchline Lion
+ha logo pn asel ani client cha logo pn"; and his standing word of that day: whatever is built is, where possible, changed from the
+Portal – not in the code.
+* `sql/portal_step13_brand.sql` – **run once by the owner in the Portal's Supabase** (after step 12): TWO new tables, `brand` (one
+  row: the product's name in two parts and the line under it) and `brand_files` (the logo, the app's opening photo, one logo for each
+  company – small pictures kept as text). Only adds. Until it is run the built-in "Sketchline Lion" and its lion are shown and the
+  tab says the file must be run.
+* No list of the companies is given without a sign-in: a client's logo is asked for by the company's id, which a person gets only
+  with his own sites (`api/auth.js` `me` → `companyId`).
+* `api/brand.js` (rules: `lib/brand.js`) – `GET /api/brand`: the name, the line and which pictures there are, for everybody (the
+  sign-in page and the app's opening screen show them before a sign-in); `GET /api/brand?img=logo|photo|co-<company>`: the picture;
+  `POST` (Super Admin, from the Portal's own page): `get`, `save`, `file`, `fileRemove`. A picture's kind is looked at, not believed;
+  a logo at most 400 KB, the photo 1 MB (the page makes them smaller before sending). Every change is in Activity.
+* The page: the tab **Branding** (the name, the pictures, each client company's logo); the product's name and logo on the sign-in
+  pages, the home and the console come from `/api/brand` (`brandShow`), the built-in lion (`public/brand-lion.png`) first.
+* Not changed: the papers (a bill, a report, a PO) – headed from "Companies" as before; sign-in, access, sessions.
+* Tests: the unit test "the brand (step 13)". Seen in a browser with stand-in answers (the sign-in page; the Branding tab) – **not**
+  against a database: saving a name or a picture was not run.
+

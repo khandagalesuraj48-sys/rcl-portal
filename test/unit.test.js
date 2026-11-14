@@ -497,7 +497,7 @@ test('ads: the console has the Advertise page – several files at once, each ke
   assert.match(page, /data-t="ads"/); assert.match(page, /<section id="t_ads" class="sa-page" hidden>/);
   assert.match(page, /id="ad_files" type="file"[^>]*multiple/);
   assert.match(page, /action: 'save', title: f\.name[^\n]*active: false/, 'a new file is kept Inactive until he sets it');
-  assert.match(page, /'versions', 'ads', 'audit'/, 'the page is one of the console\'s pages');
+  assert.match(page, /'versions', 'ads', 'brand', 'audit'/, 'the page is one of the console\'s pages (14-11-2026: Branding after it)');
   assert.match(v, /media-src 'self' https: blob:; connect-src 'self' https:\/\/\*\.supabase\.co;/);
 });
 
@@ -608,4 +608,43 @@ test('(with Mechanical update-243) Sites → HR backup: its own button and panel
   assert.match(html, /who\.target === 'hr' \? 'HR backup' :/); assert.match(html, /who\.target === 'hr' \? \{ name: 'HR' \}/);
   assert.match(adm, /if \(x\.target === 'hr'\) return \{ target: 'hr', site: 'PORTAL' \};/);
   assert.match(adm, /t\.target === 'purchase' \? 'Purchase' : t\.target === 'hr' \? 'HR' : t\.site/);
+});
+
+test('the brand (step 13): the product\'s name, line and logo and each client\'s logo are kept in the Portal – the Super Admin changes them, no code', () => {
+  const B = require('../lib/brand'), api = fs.readFileSync(path.join(__dirname, '..', 'api', 'brand.js'), 'utf8'), page = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const sql = fs.readFileSync(path.join(__dirname, '..', 'sql', 'portal_step13_brand.sql'), 'utf8').replace(/^--.*$/gm, '');
+  // the built-in one, until the Portal's own is saved (and while step 13 is not run)
+  assert.deepStrictEqual(B.view(null, []), { name: 'Sketchline Lion', first: 'Sketchline', second: 'Lion', line: 'Integrated Construction Management', logo: '', photo: '', companies: {} });
+  const v = B.view({ first: 'Acme', second: '', line: 'Roads' }, [{ name: 'logo', updated_at: '2026-11-14T10:00:00Z' }, { name: 'co-RCL', updated_at: '2026-11-14T11:00:00Z' }, { name: 'x', updated_at: '' }]);
+  assert.deepStrictEqual([v.name, v.line, v.logo, v.photo, v.companies], ['Acme', 'Roads', String(Date.parse('2026-11-14T10:00:00Z')), '', { RCL: String(Date.parse('2026-11-14T11:00:00Z')) }]);
+  // what is typed
+  assert.deepStrictEqual(B.clean({ first: '  Sketch<b>line ', second: 'Lion', line: ' A\n B ' }), { first: 'Sketch b line', second: 'Lion', line: 'A B' });
+  assert.throws(() => B.clean({ first: ' ' }), /Type the name of the product/);
+  // a picture: its place, its kind (looked at, not believed), its size
+  const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(40)]).toString('base64'), jpg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(40)]).toString('base64');
+  assert.strictEqual(B.file({ name: 'logo', mime: 'image/png', data: png }).name, 'logo');
+  assert.strictEqual(B.file({ name: 'co-RCL2', mime: 'image/jpeg', data: jpg }).mime, 'image/jpeg');
+  assert.throws(() => B.file({ name: 'logo', mime: 'image/png', data: jpg }), /not the kind of picture/);
+  assert.throws(() => B.file({ name: '../x', mime: 'image/png', data: png }), /no place in the brand/);
+  assert.throws(() => B.file({ name: 'co-rcl', mime: 'image/png', data: png }), /no place in the brand/);
+  assert.throws(() => B.file({ name: 'logo', mime: 'image/svg+xml', data: png }), /PNG, JPG or WebP/);
+  assert.throws(() => B.file({ name: 'logo', mime: 'image/png', data: '<script>' }), /could not be read/);
+  assert.throws(() => B.file({ name: 'logo', mime: 'image/png', data: Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47]), Buffer.alloc(500 * 1024)]).toString('base64') }), /at most 400 KB/);
+  // the endpoint: the name and the pictures for everybody; a change only by the Super Admin, from the Portal's own page
+  assert.match(api, /if \(req\.method === 'GET'\) \{/); assert.match(api, /sameSite\(req\);\n  const me = await ses\.need\(req, \{ super: true \}\);/);
+  assert.ok(api.indexOf("sameSite(req);") > api.indexOf("if (req.method !== 'POST')"), 'every change is after the checks');
+  assert.match(api, /catch \(e\) \{ v = B\.view\(null, \[\]\); \}/, 'the database not answering: the built-in name, never a broken sign-in page');
+  assert.match(api, /return send\(res, 200, \{ name: v\.name, first: v\.first, second: v\.second, line: v\.line, logo: v\.logo, photo: v\.photo \}, \{ 'Cache-Control': 'public, max-age=60' \}\);/, 'without a sign-in: no list of the companies');
+  assert.match(fs.readFileSync(path.join(__dirname, '..', 'api', 'auth.js'), 'utf8'), /companyId: s\.company_id \|\| '', module:/, 'a person\'s own sites carry their company\'s id – its logo is asked for with it');
+  assert.match(api, /if \(missing\(e\)\) throw fail\(409, STEP13, 'step13'\)/);
+  // the database step only adds
+  assert.match(sql, /create table if not exists public\.brand \(/); assert.match(sql, /create table if not exists public\.brand_files \(/);
+  assert.ok(!/drop |delete from|truncate|alter table public\.(users|companies|sites)/i.test(sql), 'nothing existing is touched');
+  assert.match(sql, /revoke all on public\.brand, public\.brand_files from public, anon, authenticated;/);
+  // the page: the product's name and logo from the Portal, the built-in lion first; the tab
+  assert.match(page, /<title>Sketchline Lion<\/title>/); assert.ok(!/oc-logo\.webp/.test(page) && !/<b>RCL ERP<\/b>/.test(page));
+  assert.strictEqual((page.match(/<img class="br-logo" src="brand-lion\.png"/g) || []).length, 8);
+  assert.ok(fs.existsSync(path.join(__dirname, '..', 'public', 'brand-lion.png')));
+  assert.match(page, /data-t="brand"/); assert.match(page, /<section id="t_brand" class="sa-page" hidden>/);
+  assert.match(page, /fetch\(BASE \+ 'api\/brand', \{ credentials: 'omit' \}\)/);
 });
