@@ -944,7 +944,8 @@
       return null;
     }
     function toNumber(text, mode) {
-      const toks = norm(text).replace(/(\d)\s*\.\s*(\d)/g, '$1.$2').split(/[\s\-–,;:/]+|(?<=[^\d.])(?=\d)|(?<=\d)(?=[^\d.])/).map(x => x.trim()).filter(Boolean);
+      // (14-11-2026) what is heard often ends as a sentence – "1934." – or with ? ! । : that sign is not part of the number
+      const toks = norm(text).replace(/(\d)\s*\.\s*(\d)/g, '$1.$2').replace(/(\S)\.(?=\s|$)/g, '$1 ').replace(/[।?!…]+/g, ' ').split(/[\s\-–,;:/]+|(?<=[^\d.])(?=\d)|(?<=\d)(?=[^\d.])/).map(x => x.trim()).filter(Boolean);
       if (mode === 'digits') { let out = ''; for (const t of toks) { const w = word(t); if (w && w.d !== undefined && w.d !== null) out += w.d; } return out; }
       let total = 0, cur = 0, seen = false, pre = 0, frac = null, done = false, last = null;      // (last: the value just before – "twenty five" goes on; "बारा पंधरा" is two numbers: the first)
       for (const t of toks) {
