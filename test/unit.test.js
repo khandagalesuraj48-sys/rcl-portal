@@ -333,7 +333,7 @@ test('(with Mechanical update-195) Sites → Purchase backup: its own button and
   assert.match(html, /\$\('st_purbk'\)\.addEventListener\('click', \(\) => bkOpen\(\{ target: 'purchase' \}\)\);/);
   assert.match(html, /who\.target === 'purchase' \? 'Purchase backup' :/);
   assert.match(adm, /if \(x\.target === 'purchase'\) return \{ target: 'purchase', site: 'PORTAL' \};/);
-  assert.match(adm, /t\.target === 'portal' \? 'Portal' : t\.target === 'purchase' \? 'Purchase' : t\.site/);
+  assert.match(adm, /t\.target === 'portal' \? 'Portal' : t\.target === 'purchase' \? 'Purchase' : t\.target === 'hr' \? 'HR' : t\.site/);
   // any other target is a site of the list (nothing else reaches Mechanical)
   assert.match(adm, /const site = String\(x\.site \|\| ''\)\.toUpperCase\(\);\n  if \(!\/\^\[A-Z0-9\]\{1,12\}\$\/\.test\(site\) \|\| !await siteOk\(site\)\) throw fail\(400, 'Pick a site\.'\);\n  return \{ target: '', site: site \};/);
 });
@@ -599,4 +599,13 @@ test('e-mail code: the switches are ON only when said so; a code is 6 digits; ke
     process.env.RESEND_API_KEY = 're_unit_made_up'; process.env.OTP_FROM = 'no-reply@unit.test'; assert.ok(!mail.missing());
     const l = mail.letter('654321', 'login', 10), all = JSON.stringify(l); assert.ok(all.includes('654321') && /10 minutes/.test(l.text)); assert.ok(!all.includes('re_unit_made_up'), 'the key is never in a letter');
   } finally { for (const k of ['OTP_LOGIN', 'PORTAL_SECRET', 'RESEND_API_KEY', 'OTP_FROM']) { if (keep[k] === undefined) delete process.env[k]; else process.env[k] = keep[k]; } }
+});
+
+test('(with Mechanical update-243) Sites → HR backup: its own button and panel; the ticket asks Mechanical for target "hr" (kept at the first site); the record says HR', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8'), adm = fs.readFileSync(path.join(__dirname, '..', 'api', 'admin.js'), 'utf8');
+  assert.match(html, /id="st_purbk"[^>]*>Purchase backup<\/button><button class="sa-btn" id="st_hrbk" type="button"[^>]*>HR backup<\/button>/);
+  assert.match(html, /\$\('st_hrbk'\)\.addEventListener\('click', \(\) => bkOpen\(\{ target: 'hr' \}\)\);/);
+  assert.match(html, /who\.target === 'hr' \? 'HR backup' :/); assert.match(html, /who\.target === 'hr' \? \{ name: 'HR' \}/);
+  assert.match(adm, /if \(x\.target === 'hr'\) return \{ target: 'hr', site: 'PORTAL' \};/);
+  assert.match(adm, /t\.target === 'purchase' \? 'Purchase' : t\.target === 'hr' \? 'HR' : t\.site/);
 });
