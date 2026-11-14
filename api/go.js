@@ -61,7 +61,9 @@ module.exports = handler(async (req, res) => {
     // the person's other modules on this site and his other sites of this module – for the module's own "Modules" switch
     // (with each one's address: a module's menu lists the pages of the others and opens them in the same window)
     mods: items.filter(x => x.site === site).map(x => ({ key: x.module, name: x.moduleName, url: x.url })),
-    sites: items.filter(x => x.module === mod).map(x => ({ code: x.site, name: x.siteName })),
+    // (14-11-2026, HR's "All sites") with WHO HE IS on each of them (Admin / User) – a module that shows several of his sites at once
+    // does on each one only what he may do there; a module that does not read it is not touched by it
+    sites: items.filter(x => x.module === mod).map(x => ({ code: x.site, name: x.siteName, role: x.role })),
     // (14-10-2026) the pages the Super Admin gave him in this module on this site (Users & Access → Pages); none = every page
     // (with the Store's step 2) a Store Admin's "Store Purchase" (HO Purchase – every site) goes too; the Super Admin has it
     pages: mod === 'store' && it.role === 'admin' ? (u.is_super || (it.pages && it.pages.purchase === 'Edit') ? { purchase: 'Edit' } : undefined) : it.role === 'admin' ? undefined : (it.pages || undefined),
