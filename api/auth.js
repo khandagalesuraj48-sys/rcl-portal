@@ -26,7 +26,7 @@ async function myItems(email, all) {
   (sites || []).filter(s => s.status === 'active').forEach(s => (mods || []).filter(m => m.status === 'live' && m.url).forEach(m => {
     const a = all ? { role: 'admin' } : (acc || []).find(x => x.site === s.code && x.module === m.key);
     // (02-11-2026) a TESTER opens the module's beta copy (when it has one) – here for the app's links and for /api/go alike
-    if (a) items.push(Object.assign({ site: s.code, siteName: s.name, company: ((comps || []).find(c => c.id === s.company_id) || {}).name || '', module: m.key, moduleName: m.name, url: BETA.urlFor(m, tester), role: a.role, pages: a.pages || null },
+    if (a) items.push(Object.assign({ site: s.code, siteName: s.name, company: ((comps || []).find(c => c.id === s.company_id) || {}).name || '', companyId: s.company_id || '', module: m.key, moduleName: m.name, url: BETA.urlFor(m, tester), role: a.role, pages: a.pages || null },
       tester && m.beta_url ? { beta: true } : {}));
   }));
   /* (12-11-2026, his picture: "ata he 2 disat ahet hr") ONE HR A SITE: "My HR" (hrme – an employee for himself) is the SAME module

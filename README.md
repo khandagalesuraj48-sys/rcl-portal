@@ -333,6 +333,8 @@ Portal – not in the code.
   row: the product's name in two parts and the line under it) and `brand_files` (the logo, the app's opening photo, one logo for each
   company – small pictures kept as text). Only adds. Until it is run the built-in "Sketchline Lion" and its lion are shown and the
   tab says the file must be run.
+* No list of the companies is given without a sign-in: a client's logo is asked for by the company's id, which a person gets only
+  with his own sites (`api/auth.js` `me` → `companyId`).
 * `api/brand.js` (rules: `lib/brand.js`) – `GET /api/brand`: the name, the line and which pictures there are, for everybody (the
   sign-in page and the app's opening screen show them before a sign-in); `GET /api/brand?img=logo|photo|co-<company>`: the picture;
   `POST` (Super Admin, from the Portal's own page): `get`, `save`, `file`, `fileRemove`. A picture's kind is looked at, not believed;

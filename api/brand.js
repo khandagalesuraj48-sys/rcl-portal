@@ -1,5 +1,5 @@
 /* THE BRAND (14-11-2026; sql/portal_step13_brand.sql; the rules: lib/brand.js).
- *   GET  /api/brand                      → { name, first, second, line, logo, photo, companies } – for everybody, also before the
+ *   GET  /api/brand                      → { name, first, second, line, logo, photo } – for everybody, also before the
  *                                          sign-in (the name and logo are on the sign-in page and the app's opening screen)
  *   GET  /api/brand?img=logo|photo|co-ID → the picture itself (404 when there is none: the built-in one is shown)
  *   POST /api/brand { action }           → the Super Admin: get · save { first, second, line } · file { name, mime, data } ·
@@ -33,7 +33,8 @@ module.exports = handler(async (req, res) => {
     const img = String((req.query && req.query.img) || new URL(req.url, 'http://x').searchParams.get('img') || '');
     if (!img) {
       let v; try { v = await told(); } catch (e) { v = B.view(null, []); }      // the database not answering: the built-in name, never a broken page
-      return send(res, 200, v, { 'Cache-Control': 'public, max-age=60' });
+      // no list of the companies is given without a sign-in: a client's logo is asked for by its id, which a person learns only with his own sites
+      return send(res, 200, { name: v.name, first: v.first, second: v.second, line: v.line, logo: v.logo, photo: v.photo }, { 'Cache-Control': 'public, max-age=60' });
     }
     if (!B.NAME.test(img)) throw fail(404, 'No such picture.');
     let f = null; try { f = ((await db('GET', 'brand_files?select=mime,data&name=eq.' + enc(img))) || [])[0]; } catch (e) { if (!missing(e)) throw e; }

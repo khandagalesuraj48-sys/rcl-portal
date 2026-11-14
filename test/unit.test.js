@@ -634,6 +634,8 @@ test('the brand (step 13): the product\'s name, line and logo and each client\'s
   assert.match(api, /if \(req\.method === 'GET'\) \{/); assert.match(api, /sameSite\(req\);\n  const me = await ses\.need\(req, \{ super: true \}\);/);
   assert.ok(api.indexOf("sameSite(req);") > api.indexOf("if (req.method !== 'POST')"), 'every change is after the checks');
   assert.match(api, /catch \(e\) \{ v = B\.view\(null, \[\]\); \}/, 'the database not answering: the built-in name, never a broken sign-in page');
+  assert.match(api, /return send\(res, 200, \{ name: v\.name, first: v\.first, second: v\.second, line: v\.line, logo: v\.logo, photo: v\.photo \}, \{ 'Cache-Control': 'public, max-age=60' \}\);/, 'without a sign-in: no list of the companies');
+  assert.match(fs.readFileSync(path.join(__dirname, '..', 'api', 'auth.js'), 'utf8'), /companyId: s\.company_id \|\| '', module:/, 'a person\'s own sites carry their company\'s id – its logo is asked for with it');
   assert.match(api, /if \(missing\(e\)\) throw fail\(409, STEP13, 'step13'\)/);
   // the database step only adds
   assert.match(sql, /create table if not exists public\.brand \(/); assert.match(sql, /create table if not exists public\.brand_files \(/);
