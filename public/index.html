@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>RCL ERP</title>
+<title>Sketchline Lion</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="favicon.png">
 <style>
@@ -54,6 +54,7 @@
   .boot-orb .b1 i { background: #1E63D6; } .boot-orb .b1 i + i { background: #22C3E6; } .boot-orb .b2 i { background: #F7B92B; } .boot-orb .b2 i + i { background: #2E9E6F; }
   .boot-hub { position: relative; width: 132px; height: 132px; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 9px #F1F6FD, 0 18px 44px rgba(30,110,220,.28); }
   .boot-hub img { width: 98px; height: auto; }
+.orbit .hub img.br-logo, .boot-hub img.br-logo { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #000; }      /* (14-11-2026) the product's logo, as the Portal keeps it */
   .boot-box b { font: 600 14px system-ui, sans-serif; color: #8A97AD; letter-spacing: .02em; margin-top: 18px; }
   @keyframes bootTurn { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { .boot-orb .bring { animation: none !important; } }
@@ -82,7 +83,11 @@
   .masc .m2, .masc .m3 { display: none; }
   .masc[data-mood="cover"] .m1, .masc[data-mood="peek"] .m1 { display: none; } .masc[data-mood="cover"] .m2 { display: block; } .masc[data-mood="peek"] .m3 { display: block; }
   @media (prefers-reduced-motion: reduce) { .orbit .ring, .orbit .ic span { animation: none !important; } .masc .pu, .masc .hand { transition: none; } }
-  .card .oc { display: flex; justify-content: center; margin-bottom: 20px; } .card .oc img { width: min(200px, 60%); height: auto; }
+  .card .oc { display: flex; justify-content: center; margin-bottom: 20px; } .card .oc img { width: min(200px, 60%); height: auto; } .card .oc img.br-logo { width: 104px; height: 104px; object-fit: cover; border-radius: 24px; background: #000; box-shadow: 0 8px 22px rgba(0,0,0,.25); }
+  .top .brand .mark.br-mark { padding: 0; overflow: hidden; background: #000; } .top .brand .mark.br-mark img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .br-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--s-line, #E2E8F0); flex-wrap: wrap; } .br-row:first-child { border-top: 0; }
+  .br-row .br-pic { width: 64px; height: 64px; border-radius: 14px; background: #000 center/cover no-repeat; flex: none; border: 1px solid var(--s-line, #E2E8F0); } .br-row .br-pic.wide { width: 112px; } .br-row .br-pic.light { background-color: #fff; background-size: contain; }
+  .br-row .br-what { flex: 1 1 220px; min-width: 0; } .br-row .br-what b { display: block; } .br-row .br-what small { color: #64748B; }
   .card h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; color: #111827; }
   .card .field label { font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px; }
   .card .field { margin-bottom: 18px; }
@@ -545,7 +550,7 @@
 </style>
 </head>
 <body>
-<div id="go_boot" hidden role="status"><div class="boot-box"><div class="boot-orb" aria-hidden="true"><span class="bring b2"><i></i><i></i></span><span class="bring b1"><i></i><i></i></span><span class="boot-hub"><img src="oc-logo.webp" alt="" width="640" height="462" decoding="async"></span></div><b>Signing in</b></div></div>
+<div id="go_boot" hidden role="status"><div class="boot-box"><div class="boot-orb" aria-hidden="true"><span class="bring b2"><i></i><i></i></span><span class="bring b1"><i></i><i></i></span><span class="boot-hub"><img class="br-logo" src="brand-lion.png" alt="" width="256" height="256" decoding="async"></span></div><b>Signing in</b></div></div>
 
 <!-- sign-in -->
 <section id="v_login" class="center" hidden>
@@ -573,7 +578,7 @@
 <!-- first start: import from Mechanical -->
 <section id="v_setup" class="center" hidden>
   <form class="card" id="f_setup">
-    <div class="oc"><img src="oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
+    <div class="oc"><img class="br-logo" src="brand-lion.png" alt="Sketchline Lion" width="256" height="256" decoding="async"></div>
     <h1>Bring the users over</h1>
     <p class="note">The Portal copies from Mechanical, once: the companies, the sites, every user with the password he has now, who has which site, and the Super Admin. Mechanical is only read – nothing there changes.</p>
     <p class="mr">Mechanical मधले users, त्यांचे आत्ताचे passwords, sites आणि Super Admin एकदाच इथे येतील. Mechanical मध्ये काहीही बदलत नाही.</p>
@@ -588,7 +593,7 @@
 <!-- the Super Admin's recovery code -->
 <section id="v_rec" class="center" hidden>
   <form class="card" id="f_rec">
-    <div class="oc"><img src="oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
+    <div class="oc"><img class="br-logo" src="brand-lion.png" alt="Sketchline Lion" width="256" height="256" decoding="async"></div>
     <h1>A new password with the recovery code</h1>
     <p class="note">Only for the Super Admin: the recovery code written down when the Super Admin was made. You get a NEW recovery code – the old one stops working.</p>
     <div id="rc_form">
@@ -607,7 +612,7 @@
 <!-- (12-11-2026) the second way in: a code by e-mail (shown only when it is switched on – OTP_LOGIN) -->
 <section id="v_otp" class="center" hidden>
   <form class="card" id="f_otp" autocomplete="on">
-    <div class="oc"><img src="oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
+    <div class="oc"><img class="br-logo" src="brand-lion.png" alt="Sketchline Lion" width="256" height="256" decoding="async"></div>
     <h1>Login with Email OTP</h1>
     <p class="note">A 6-digit code comes to your registered e-mail. It is valid for 10 minutes and works once.</p>
     <p class="mr">तुमच्या नोंदलेल्या email वर 6 अंकी code येईल – 10 मिनिटांसाठी, एकदाच वापरता येतो.</p>
@@ -626,7 +631,7 @@
 <!-- (12-11-2026) "verify my e-mail": a code to his own address; after it he can also sign in with a code -->
 <section id="v_ver" class="center" hidden>
   <form class="card" id="f_ver">
-    <div class="oc"><img src="oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
+    <div class="oc"><img class="br-logo" src="brand-lion.png" alt="Sketchline Lion" width="256" height="256" decoding="async"></div>
     <h1>Verify your e-mail</h1>
     <p class="note">Type your OWN e-mail – one you can open. A 6-digit code is sent to it; type the code here once.</p>
     <p class="mr">तुमचा स्वतःचा, चालू असलेला email टाका. त्यावर 6 अंकी code येईल – तो इथे एकदा टाका.</p>
@@ -646,7 +651,7 @@
 <!-- own password -->
 <section id="v_pw" class="center" hidden>
   <form class="card" id="f_pw">
-    <div class="oc"><img src="oc-logo.webp" alt="One Click Solution" width="640" height="462" decoding="async"></div>
+    <div class="oc"><img class="br-logo" src="brand-lion.png" alt="Sketchline Lion" width="256" height="256" decoding="async"></div>
     <p class="note" id="p_who" style="margin:0 0 6px;text-align:center"></p>
     <h1 id="p_title">Set your own password</h1>
     <p class="note" id="p_sub">Your password was set by the Super Admin. Choose a new one only you know.</p>
@@ -662,7 +667,7 @@
 <!-- a person's modules -->
 <section id="v_home" hidden>
   <header class="top">
-    <div class="brand"><span class="mark">RCL</span><div><b>RCL ERP</b><small>My modules</small></div></div>
+    <div class="brand"><span class="mark br-mark"><img class="br-logo" src="brand-lion.png" alt=""></span><div><b class="br-name">Sketchline Lion</b><small>My modules</small></div></div>
     <div class="who"><b id="h_name"></b><small id="h_email"></small></div>
     <button class="btn small" id="h_sa" type="button" hidden>Super Admin console</button>
     <button class="btn small" id="h_pw" type="button">Change password</button>
@@ -673,7 +678,7 @@
     <div class="ver-strip" id="h_ver" hidden><span><b>Verify your e-mail.</b> तुमचा email verify करा – Email OTP ने login करण्यासाठी.</span><button class="btn small" id="h_ver_btn" type="button">Verify now</button></div>
     <div id="h_sites"></div>
     <!-- (14-10-2026) the mobile app: shown only when a version is in the Portal's app store -->
-    <div class="panel" id="h_app" hidden><h2>Mobile app</h2><p class="note" id="h_app_txt"></p><p class="mr">Android फोनवर RCL ERP app – एकदा download करून install करा; पुढचे update app मध्येच येतील.</p>
+    <div class="panel" id="h_app" hidden><h2>Mobile app</h2><p class="note" id="h_app_txt"></p><p class="mr">Android फोनवर <span class="br-name">Sketchline Lion</span> app – एकदा download करून install करा; पुढचे update app मध्येच येतील.</p>
       <p><button class="btn primary" id="h_apk" type="button">Download the Android app</button></p></div>
     <div class="panel" id="h_none" hidden><h2>No module yet</h2><p class="note">The Super Admin has not given you a module on any site yet. Ask him.</p><p class="mr">तुम्हाला अजून कोणताही module दिलेला नाही – Super Admin ला सांगा.</p></div>
   </main>
@@ -682,7 +687,7 @@
 <!-- the Super Admin's console – (23-10-2026) the new look: sidebar, top bar, cards (only the look changed; every action as before) -->
 <section id="v_sa" class="sa" hidden>
   <aside class="sa-side" id="sa_side">
-    <div class="sa-logo"><span class="sa-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 7.2A7 7 0 1 0 18 16.4"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/></svg></span><div><b>RCL ERP</b><small>Fleet Management</small></div></div>
+    <div class="sa-logo"><span class="sa-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 7.2A7 7 0 1 0 18 16.4"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/></svg></span><div><b class="br-name">Sketchline Lion</b><small class="br-line">Integrated Construction Management</small></div></div>
     <div class="sa-role"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5L3 7z"/><rect x="5" y="19" width="14" height="2" rx="1"/></svg>Super Admin</div>
     <nav class="sa-nav" id="sa_tabs" role="tablist" aria-label="Super Admin">
       <button type="button" role="tab" data-t="dash" aria-selected="false" id="sa_mods" title="The whole ERP at a glance; open any module of any site (as its Admin)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>Dashboard</button>
@@ -694,11 +699,12 @@
       <button type="button" id="sa_rule" title="The Rule Book of HR: attendance, late, weekly off, leave, comp-off and overtime policies – opens in HR"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.500A1.500 1.500 0 0 1 6.500 3H19v15H6.500A1.500 1.500 0 0 0 5 19.500z"/><path d="M5 19.500A1.500 1.500 0 0 0 6.500 21H19"/><path d="M9 8h6M9 12h4"/></svg>Rule Book</button>
       <button type="button" role="tab" data-t="versions" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5-8 4.5-8-4.5z"/><path d="M4 12l8 4.5 8-4.5"/><path d="M4 16.5l8 4.5 8-4.5"/></svg>Versions</button>
       <button type="button" role="tab" data-t="ads" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M10 9l5 2.5-5 2.5z"/><path d="M8 21h8"/></svg>Advertise</button>
+      <button type="button" role="tab" data-t="brand" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.500 9.200l5.900-.900z"/></svg>Branding</button>
       <button type="button" role="tab" data-t="audit" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Activity</button>
       <button type="button" role="tab" data-t="me" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4.2 4-6.5 8-6.5s7.2 2.3 8 6.5"/></svg>My Account</button>
     </nav>
     <div class="sa-scene" aria-hidden="true"><svg viewBox="0 0 240 150" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sn_sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0C2350" stop-opacity="0"/><stop offset="1" stop-color="#16346E"/></linearGradient><radialGradient id="sn_glow"><stop offset="0" stop-color="#FFC86B" stop-opacity=".85"/><stop offset="1" stop-color="#FFC86B" stop-opacity="0"/></radialGradient></defs><rect width="240" height="150" fill="url(#sn_sky)"/><path d="M0 96h14v-18h10v10h12V70h9v26h16V82h12v14h20V76h8v20h18V86h14v10h22V72h10v24h22V84h12v12h22v54H0z" fill="#132C5C"/><g fill="url(#sn_glow)"><circle cx="40" cy="64" r="16"/><circle cx="128" cy="60" r="16"/><circle cx="210" cy="64" r="16"/></g><g fill="#2A4A86"><rect x="39" y="64" width="2" height="40"/><rect x="127" y="60" width="2" height="44"/><rect x="209" y="64" width="2" height="40"/></g><g fill="#FFD27A"><circle cx="40" cy="64" r="2.6"/><circle cx="128" cy="60" r="2.6"/><circle cx="210" cy="64" r="2.6"/></g><path d="M0 112l240-8v46H0z" fill="#0E2147"/><path d="M0 128l240-10" stroke="#F2B632" stroke-width="1.4" stroke-dasharray="10 9" opacity=".65"/><g fill="#1D3B76"><path d="M18 110h34l6 8v6H14v-8z"/><rect x="30" y="100" width="14" height="10" rx="1.5"/><path d="M44 102l18-14 4 4-14 12z"/><path d="M62 88l8 10-6 3-6-8z"/><circle cx="24" cy="125" r="5"/><circle cx="50" cy="125" r="5"/></g><g fill="#22427F"><rect x="92" y="104" width="40" height="14" rx="2"/><rect x="118" y="96" width="14" height="10" rx="1.5"/><circle cx="100" cy="122" r="6"/><circle cx="126" cy="122" r="6"/></g><g fill="#1A3670"><rect x="160" y="100" width="50" height="16" rx="2"/><rect x="200" y="92" width="16" height="12" rx="1.5"/><circle cx="170" cy="121" r="5.5"/><circle cx="186" cy="121" r="5.5"/><circle cx="206" cy="121" r="5.5"/></g><g fill="#FFD27A" opacity=".9"><circle cx="131" cy="111" r="1.6"/><circle cx="215" cy="108" r="1.6"/><circle cx="57" cy="117" r="1.4"/></g></svg></div>
-    <div class="sa-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.6-3.4 8.2-8 9-4.6-.8-8-4.4-8-9V6l8-3z"/><path d="M8.8 12.2l2.2 2.2 4.4-4.6"/></svg><div><b>RCL ERP</b><small>One Click Solution</small></div></div>
+    <div class="sa-badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.6-3.4 8.2-8 9-4.6-.8-8-4.4-8-9V6l8-3z"/><path d="M8.8 12.2l2.2 2.2 4.4-4.6"/></svg><div><b class="br-name">Sketchline Lion</b><small>Super Admin</small></div></div>
   </aside>
   <div class="sa-main">
     <header class="sa-top">
@@ -819,6 +825,21 @@
         <div class="sa-card flat"><p class="note" id="v_note" hidden></p><div class="tw cg-tw"><table class="sa-ver cg-t one"><tbody id="v_rows"><tr><td>Loading…</td></tr></tbody></table></div></div>
       </section>
       <!-- (11-11-2026) THE ADVERTISE CORNER: the posts (images, videos) shown on the web's Dashboard and the app's Home – step 8 -->
+      <section id="t_brand" class="sa-page" hidden>
+        <div class="sa-head"><div><span class="sa-eyebrow">Branding</span><h1>Branding</h1><p>The name and the logo of the product on the web and in the app, and each client company's own logo. What is changed here shows everywhere – the code is not touched.</p></div></div>
+        <p class="note" id="br_step" hidden></p>
+        <div class="panel pg"><h2>The product's name</h2>
+          <div class="sa-form">
+            <div class="field"><label for="br_first">Name – first word *</label><input id="br_first" maxlength="24" autocomplete="off"></div>
+            <div class="field"><label for="br_second">Name – second word</label><input id="br_second" maxlength="24" autocomplete="off"></div>
+            <div class="field"><label for="br_line">The line under the name</label><input id="br_line" maxlength="60" autocomplete="off"></div>
+          </div>
+          <div class="acts"><button class="sa-btn primary" id="br_save" type="button">Save the name</button><span class="note" id="br_by"></span></div>
+        </div>
+        <div class="panel pg"><h2>The product's pictures</h2><div id="br_pics"></div></div>
+        <div class="panel pg"><h2>Client companies</h2><p class="note">A client's own logo is shown beside the product's after the sign-in. The papers (a bill, a report, a purchase order) are headed as before, from "Companies".</p><div id="br_cos"></div></div>
+        <input type="file" id="br_file" accept="image/png,image/jpeg,image/webp" hidden>
+      </section>
       <section id="t_ads" class="sa-page" hidden>
         <div class="sa-head"><div><span class="sa-eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M10 9l5 2.5-5 2.5z"/></svg>Media &amp; Celebration</span><h1>Advertise Corner</h1><p>Festival wishes, achievements, notices – images and videos shown on the web's Dashboard and the app's Home.</p></div>
           <div class="acts"><button class="sa-btn outline" id="ad_reload" type="button">Refresh</button><label class="sa-btn primary" id="ad_add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add images / videos<input id="ad_files" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple hidden></label></div></div>
@@ -1216,7 +1237,7 @@
     }); });
   // (11-11-2026) the sign-in look: the orbit on the left of every sign-in page; "Forgot password?" opens the help that was always
   // there; the character's moods – look only (it is told a COUNT of letters of the email and whether the password is shown, nothing else)
-  const ORBIT = '<div class="orbit" aria-hidden="true"><div class="ring r1"><div class="ic" style="translate:141px 51px"><span><img src="login/tractor.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:-115px 96px"><span><img src="login/package.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:-26px -148px"><span><img src="login/inbox_tray.png" alt="" width="38" height="38" decoding="async"></span></div></div><div class="ring r2"><div class="ic" style="translate:74px 202px"><span><img src="login/building_construction.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:-169px 132px"><span><img src="login/receipt.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:-178px -120px"><span><img src="login/bar_chart.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:59px -207px"><span><img src="login/fuel_pump.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:215px -8px"><span><img src="login/notebook.png" alt="" width="38" height="38" decoding="async"></span></div></div><div class="hub"><img src="oc-logo.webp" alt="" width="640" height="462" decoding="async"></div></div>';
+  const ORBIT = '<div class="orbit" aria-hidden="true"><div class="ring r1"><div class="ic" style="translate:141px 51px"><span><img src="login/tractor.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:-115px 96px"><span><img src="login/package.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:-26px -148px"><span><img src="login/inbox_tray.png" alt="" width="38" height="38" decoding="async"></span></div></div><div class="ring r2"><div class="ic" style="translate:74px 202px"><span><img src="login/building_construction.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:-169px 132px"><span><img src="login/receipt.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:-178px -120px"><span><img src="login/bar_chart.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:59px -207px"><span><img src="login/fuel_pump.png" alt="" width="38" height="38" decoding="async"></span></div><div class="ic" style="translate:215px -8px"><span><img src="login/notebook.png" alt="" width="38" height="38" decoding="async"></span></div></div><div class="hub"><img class="br-logo" src="brand-lion.png" alt="" width="256" height="256" decoding="async"></div></div>';
   for (const sec of document.querySelectorAll('section.center')) sec.insertAdjacentHTML('afterbegin', ORBIT);
   $('l_forgot').addEventListener('click', () => { const h = $('l_help'); h.hidden = !h.hidden; $('l_forgot').setAttribute('aria-expanded', String(!h.hidden)); });
   const mascMood = () => {
@@ -1283,7 +1304,7 @@
   // (14-10-2026) the Android app: a link that works 10 minutes, asked for at the click (never kept in the page)
   async function appPanel() {
     try { const r = await api('/api/app', { action: 'latest', platform: 'android' }); $('h_app').hidden = !r.url;
-      if (r.url) $('h_app_txt').textContent = 'RCL ERP for Android, version ' + r.version + '. Download it once and install it; later updates come inside the app.'; }
+      if (r.url) $('h_app_txt').textContent = (document.title || 'Sketchline Lion') + ' for Android, version ' + r.version + '. Download it once and install it; later updates come inside the app.'; }
     catch (e) { $('h_app').hidden = true; }
   }
   $('h_apk').addEventListener('click', e => busy(e.target, 'Getting the file…', async () => {
@@ -1358,11 +1379,50 @@
   function fail(e) { if (e.code === 'session' || e.status === 401) { toast(MR.session, true); return loginView(); } toast(msgOf(e), true); }
   function tab(t) {
     S.tab = t; document.querySelectorAll('#sa_tabs button[data-t]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.t === t)));
-    ['dash', 'users', 'sites', 'wf', 'companies', 'modules', 'versions', 'ads', 'audit', 'me'].forEach(k => { $('t_' + k).hidden = k !== t; });
+    ['dash', 'users', 'sites', 'wf', 'companies', 'modules', 'versions', 'ads', 'brand', 'audit', 'me'].forEach(k => { $('t_' + k).hidden = k !== t; });
     $('v_sa').classList.remove('nav-open'); menuClose(); $('sa_q').value = '';
-    if (t === 'dash') dash(); else if (t === 'users') { userClose(); users(); } else if (t === 'sites') sites(); else if (t === 'wf') workflow(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'versions') versions(); else if (t === 'ads') ads(); else if (t === 'audit') audit(); else if (t === 'me') meTab(S.meTab || 'pw');
+    if (t === 'dash') dash(); else if (t === 'users') { userClose(); users(); } else if (t === 'sites') sites(); else if (t === 'wf') workflow(); else if (t === 'companies') companies(); else if (t === 'modules') modules(); else if (t === 'versions') versions(); else if (t === 'ads') ads(); else if (t === 'brand') brand(); else if (t === 'audit') audit(); else if (t === 'me') meTab(S.meTab || 'pw');
     window.scrollTo(0, 0);
   }
+  /* ---------------- (14-11-2026) THE BRAND (/api/brand; the Portal's step 13) ----------------
+   * Asked 14-11-2026: "aple app ch name change kraych aahe ani logo pn – Sketchline Lion … super admin multiple changes kru shakel,
+   * pratek weli code change krne garjech nahi". This page shows the product's name and logo as the Portal keeps them (the built-in
+   * "Sketchline Lion" until it answers, and while step 13 is not run); the Super Admin changes them in the tab "Branding". */
+  const BR = { v: null, pick: '' };
+  const brImg = (name, v) => BASE + 'api/brand?img=' + encodeURIComponent(name) + '&v=' + encodeURIComponent(v);
+  function brandShow(v) {
+    if (!v || !v.name) return; BR.v = v; document.title = v.name;
+    document.querySelectorAll('.br-name').forEach(e => { e.textContent = v.name; }); document.querySelectorAll('.br-line').forEach(e => { e.textContent = v.line; });
+    document.querySelectorAll('img.br-logo').forEach(e => { e.src = v.logo ? brImg('logo', v.logo) : 'brand-lion.png'; if (e.alt) e.alt = v.name; });
+  }
+  fetch(BASE + 'api/brand', { credentials: 'omit' }).then(r => r.ok ? r.json() : null).then(brandShow).catch(() => {});
+  async function brand() {
+    let d; try { d = await api('/api/brand', { action: 'get' }); } catch (e) { return fail(e); }
+    $('br_step').hidden = d.ready; if (!d.ready) $('br_step').textContent = 'Branding needs the Portal\'s database step 13 first: run sql/portal_step13_brand.sql once in the Portal\'s Supabase → SQL Editor. Until then the built-in name and logo are shown.';
+    $('br_first').value = d.first; $('br_second').value = d.second; $('br_line').value = d.line; $('br_by').textContent = d.by ? 'Changed by ' + d.by : '';
+    const row = (name, title, what, v, cls, builtin) => '<div class="br-row" data-n="' + esc(name) + '"><span class="br-pic ' + cls + '" style="background-image:url(\'' + (v ? brImg(name, v) : builtin) + '\')"></span><div class="br-what"><b>' + esc(title) + '</b><small>' + esc(what) + (v ? '' : ' · ' + (builtin ? 'the built-in one is shown' : 'none yet')) + '</small></div>' +
+      '<button class="sa-btn outline br-put" type="button">' + (v ? 'Change…' : 'Choose…') + '</button>' + (v ? '<button class="sa-btn danger br-del" type="button">Remove</button>' : '') + '</div>';
+    $('br_pics').innerHTML = row('logo', 'Logo', 'On the sign-in pages, on top of the web and in the app. A square picture, PNG / JPG / WebP.', d.logo, '', 'brand-lion.png') +
+      row('photo', 'Photo of the app\'s opening screen', 'The wide photo under the name when the app opens.', d.photo, 'wide', '');
+    const cos = (S.data && S.data.companies) || [];
+    $('br_cos').innerHTML = cos.map(c => row('co-' + c.id, c.name, 'This client\'s own logo.', d.companies[c.id] || '', 'light', '')).join('') || '<p class="note">No company yet – add one in "Companies".</p>';
+    brandShow(d);
+  }
+  $('br_save').addEventListener('click', () => busy($('br_save'), 'Saving…', async () => {
+    try { await api('/api/brand', { action: 'save', first: $('br_first').value, second: $('br_second').value, line: $('br_line').value }); toast('Saved – the web and the app show it from now on.'); await brand(); } catch (e) { fail(e); } }));
+  $('t_brand').addEventListener('click', e => { const r = e.target.closest('.br-row'); if (!r) return;
+    if (e.target.closest('.br-put')) { BR.pick = r.dataset.n; $('br_file').value = ''; $('br_file').click(); }
+    else if (e.target.closest('.br-del')) { if (!window.confirm('Remove this picture?')) return; const b = e.target.closest('.br-del');
+      busy(b, 'Removing…', async () => { try { await api('/api/brand', { action: 'fileRemove', name: r.dataset.n }); toast('Removed.'); await brand(); } catch (er) { fail(er); } }); } });
+  // the chosen picture is made small enough here (a logo 512 px, the photo 1600 px) before it is sent
+  $('br_file').addEventListener('change', async () => { const f = $('br_file').files[0], name = BR.pick; if (!f || !name) return;
+    try {
+      const url = URL.createObjectURL(f), im = new Image(); await new Promise((ok, no) => { im.onload = ok; im.onerror = () => no(new Error('This picture could not be read – choose a PNG, JPG or WebP picture.')); im.src = url; });
+      const max = name === 'photo' ? 1600 : 512, k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(im.naturalWidth * k)); c.height = Math.max(1, Math.round(im.naturalHeight * k)); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      const mime = name === 'photo' ? 'image/jpeg' : 'image/png', data = c.toDataURL(mime, .86).split(',')[1] || '';
+      await api('/api/brand', { action: 'file', name: name, mime: mime, data: data }); toast('Saved – the web and the app show it from now on.'); await brand();
+    } catch (e) { if (e && e.code !== undefined) fail(e); else toast(String((e && e.message) || e), true); } });
   /* ---------------- (11-11-2026) THE ADVERTISE CORNER (/api/ads; the Portal's step 8) ----------------
    * "Add images / videos": several at once – each file goes straight to the private place of the files (a link of the server, for
    * that one file), then is kept as an INACTIVE post; he opens it, sets where, the size, the period, the days and the hours, and
